@@ -243,12 +243,21 @@ function colorify_saves_appearance_to_global( int $user_id = 0, ?array $input = 
 
 	$source = null !== $input ? $input : ( isset( $_POST ) && is_array( $_POST ) ? wp_unslash( $_POST ) : array() ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-	if ( isset( $source['scope'] ) && 'global' === sanitize_key( $source['scope'] ) ) {
-		return true;
+	// Radio zakresu w profilu / ustawieniach ma pierwszeństwo (login = tylko zapis globalny).
+	if ( isset( $source['colorify_settings_scope'] ) ) {
+		return 'global' === sanitize_key( $source['colorify_settings_scope'] );
 	}
-	if ( isset( $source['colorify_settings_scope'] ) && 'global' === sanitize_key( $source['colorify_settings_scope'] ) ) {
-		return true;
+
+	if ( isset( $source['scope'] ) ) {
+		$scope = sanitize_key( $source['scope'] );
+		if ( 'user' === $scope ) {
+			return false;
+		}
+		if ( 'global' === $scope ) {
+			return true;
+		}
 	}
+
 	return colorify_uses_global_settings();
 }
 
@@ -414,11 +423,9 @@ function colorify_save_global_appearance( array $input ): void {
 		colorify_set_global_appearance_mode( $mode );
 	}
 
-	if ( isset( $input['admin_color'] ) ) {
-		$scheme = sanitize_key( $input['admin_color'] );
-		if ( colorify_admin_scheme_is_registered( $scheme ) ) {
-			update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'admin_color', $scheme );
-		}
+	$scheme = colorify_resolve_admin_color_from_input( $input );
+	if ( '' !== $scheme ) {
+		update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'admin_color', $scheme );
 	}
 
 	if ( isset( $input['colorify_custom_colors'] ) && is_array( $input['colorify_custom_colors'] ) ) {

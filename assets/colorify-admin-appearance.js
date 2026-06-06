@@ -1388,6 +1388,7 @@
 	}
 
 	function onScopePreviewChange(scopeKey) {
+		cfg.settingsScope = scopeKey === 'global' ? 'global' : 'user';
 		applyScopeBundle(scopeKey);
 		syncScopeHint(scopeKey);
 		queueAutosaveAppearance();
@@ -1544,12 +1545,13 @@
 
 	function getModeSaveScope() {
 		var checked = document.querySelector('input[name="colorify_settings_scope"]:checked');
-		if (checked && checked.value === 'global') {
-			return 'global';
+		if (checked) {
+			return checked.value === 'global' ? 'global' : 'user';
 		}
-		if (cfg.settingsScope === 'global') {
-			return 'global';
+		if (cfg.isSettingsPage) {
+			return cfg.settingsScope === 'global' ? 'global' : 'user';
 		}
+		// Profil bez przełącznika zakresu — zawsze zapis personalny (login bez zmian).
 		return 'user';
 	}
 
