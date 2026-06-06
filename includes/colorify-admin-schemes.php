@@ -449,7 +449,7 @@ function colorify_admin_ensure_visible_on_dark_bg( string $hex, string $bg, floa
 }
 
 /**
- * Przyciemnia kolor aż do min. kontrastu na jasnym tle.
+ * Przyciemnia kolor aż do min. kontrastu na jasnym tle (neutralny grafit, bez zielonego washout).
  */
 function colorify_admin_ensure_contrast_on_bg( string $hex, string $bg, float $min_ratio = 4.5 ): string {
 	$out = $hex;
@@ -457,13 +457,13 @@ function colorify_admin_ensure_contrast_on_bg( string $hex, string $bg, float $m
 		if ( colorify_admin_contrast_ratio( $out, $bg ) >= $min_ratio ) {
 			break;
 		}
-		$out = colorify_admin_interpolate_hex( $out, '#1C4B42', 0.1 );
+		$out = colorify_admin_interpolate_hex( $out, '#18181b', 0.1 );
 	}
 	return $out;
 }
 
 /**
- * Akcenty UI dopasowane do trybu (light = stonowane, dark = jaśniejsze linki).
+ * Akcenty UI dopasowane do trybu (light = zachowana saturacja marki, dark = jaśniejsze linki).
  *
  * @return array{0:string,1:string,2:string,3:string} accent, accent_soft, link, link_hover
  */
@@ -472,12 +472,16 @@ function colorify_admin_resolve_accents_for_mode( string $mode, array $def, stri
 	$raw_soft = $def['accent_soft'] ?? '#92c200';
 
 	if ( 'light' === $mode ) {
-		$seed      = colorify_admin_interpolate_hex( $raw, '#1C4B42', 0.22 );
-		$seed_soft = colorify_admin_interpolate_hex( $raw_soft, '#3d524c', 0.35 );
-		$accent    = colorify_admin_ensure_contrast_on_bg( $seed, $bg2, 4.5 );
-		$soft      = colorify_admin_ensure_contrast_on_bg( $seed_soft, $bg2, 3.2 );
-		$link      = colorify_admin_ensure_contrast_on_bg( $accent, $bg, 4.5 );
-		$hover     = colorify_admin_interpolate_hex( $link, '#0a1f1a', 0.12 );
+		if ( isset( $def['accent_light'] ) && is_string( $def['accent_light'] ) && '' !== $def['accent_light'] ) {
+			$raw = $def['accent_light'];
+		}
+		if ( isset( $def['accent_soft_light'] ) && is_string( $def['accent_soft_light'] ) && '' !== $def['accent_soft_light'] ) {
+			$raw_soft = $def['accent_soft_light'];
+		}
+		$accent = colorify_admin_ensure_contrast_on_bg( $raw, $bg2, 4.5 );
+		$soft   = colorify_admin_ensure_contrast_on_bg( $raw_soft, $bg2, 3.0 );
+		$link   = colorify_admin_ensure_contrast_on_bg( $accent, $bg, 4.5 );
+		$hover  = colorify_admin_interpolate_hex( $link, '#09090b', 0.14 );
 		return array( $accent, $soft, $link, $hover );
 	}
 
@@ -670,7 +674,7 @@ function colorify_admin_scheme_tint_ratios( string $key ): array {
 	if ( in_array( $key, colorify_admin_warm_scheme_keys(), true ) ) {
 		return array(
 			'dark'  => array( 0.0, 0.0 ),
-			'light' => array( 0.05, 0.09 ),
+			'light' => array( 0.07, 0.12 ),
 		);
 	}
 
@@ -1304,10 +1308,10 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 	if ( $is_light ) {
 		$bg     = $def['bg_light'] ?? '#fefefd';
 		$bg2    = $def['bg2_light'] ?? '#f7f6f3';
-		$text   = '#1a3d35';
-		$muted  = '#3d524c';
-		$dim    = '#5c6b66';
-		$border = 'rgba(28, 75, 66, 0.09)';
+		$text   = '#18181b';
+		$muted  = '#52525b';
+		$dim    = '#71717a';
+		$border = 'rgba(24, 24, 27, 0.09)';
 	} else {
 		$bg     = $def['bg_dark'] ?? '#050f0c';
 		$bg2    = $def['bg2_dark'] ?? '#0b231c';
@@ -1338,8 +1342,8 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 			'--colorify-admin-field'         => $layout['field'],
 			'--colorify-admin-field-hover'   => $layout['field_hover'],
 			'--colorify-admin-border'        => $border,
-			'--colorify-admin-border-subtle' => $is_light ? 'rgba(28, 75, 66, 0.06)' : 'rgba(255, 255, 255, 0.08)',
-			'--colorify-admin-icon'          => $is_light ? '#4a5f59' : colorify_admin_brighten_text_hex( '#8fa39b', 38.0 ),
+			'--colorify-admin-border-subtle' => $is_light ? 'rgba(24, 24, 27, 0.06)' : 'rgba(255, 255, 255, 0.08)',
+			'--colorify-admin-icon'          => $is_light ? '#52525b' : colorify_admin_brighten_text_hex( '#8fa39b', 38.0 ),
 			'--colorify-admin-text'          => $text,
 			'--colorify-admin-text-muted'    => $muted,
 			'--colorify-admin-text-dim'      => $dim,
@@ -1354,10 +1358,10 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 			'--colorify-admin-link'          => $link,
 			'--colorify-admin-link-hover'    => $link_hov,
 			'--colorify-admin-on-accent'     => colorify_admin_contrast_on_accent( $accent ),
-			'--colorify-admin-readable-text' => $is_light ? '#1a3d35' : '#eef0ef',
-			'--colorify-admin-readable-muted' => $is_light ? '#3d524c' : '#b0bdb8',
-			'--colorify-admin-readable-dim'  => $is_light ? '#5c6b66' : '#8a9691',
-			'--colorify-admin-readable-icon' => $is_light ? '#4a5f59' : '#b0bdb8',
+			'--colorify-admin-readable-text' => $is_light ? '#18181b' : '#eef0ef',
+			'--colorify-admin-readable-muted' => $is_light ? '#52525b' : '#b0bdb8',
+			'--colorify-admin-readable-dim'  => $is_light ? '#71717a' : '#8a9691',
+			'--colorify-admin-readable-icon' => $is_light ? '#52525b' : '#b0bdb8',
 			'--colorify-admin-highlight-bg'   => $accent,
 			'--colorify-admin-highlight-text' => colorify_admin_contrast_on_accent( $accent ),
 		),
@@ -1551,19 +1555,18 @@ function colorify_admin_change_style_icon_html(): string {
  * @param bool $enabled Czy styl jest włączony.
  */
 function colorify_admin_theme_switch_html( bool $enabled ): string {
-	$off_class = $enabled ? '' : ' is-active';
-	$on_class  = $enabled ? ' is-active' : '';
-
-	return '<nav class="colorify-theme-switch colorify-toolbar-switch colorify-toolbar-pills" aria-label="'
+	return '<div class="colorify-theme-switch colorify-toolbar-switch colorify-admin-toolbar__theme" role="group" aria-label="'
 		. esc_attr( colorify_i18n( 'Colorify theme', 'Motyw Colorify' ) )
 		. '">'
-		. '<a href="' . esc_url( colorify_toolbar_action_url( 'theme', '0' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $off_class ) . '">'
-		. esc_html( colorify_i18n( 'Off', 'Wył.' ) )
-		. '</a>'
-		. '<a href="' . esc_url( colorify_toolbar_action_url( 'theme', '1' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $on_class ) . '">'
-		. esc_html( colorify_i18n( 'On', 'Wł.' ) )
-		. '</a>'
-		. '</nav>';
+		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Off', 'Wył.' ) ) . '</span>'
+		. '<label class="colorify-mode-switch__track">'
+		. '<input type="checkbox" class="colorify-theme-switch__input" '
+		. ( $enabled ? 'checked ' : '' )
+		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' ) ) . '" />'
+		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
+		. '</label>'
+		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'On', 'Wł.' ) ) . '</span>'
+		. '</div>';
 }
 
 /**
@@ -1594,18 +1597,18 @@ function colorify_admin_floating_toolbar_html(): string {
  * @param string $mode dark|light
  */
 function colorify_admin_mode_switch_html( string $mode ): string {
-	$is_light    = 'light' === $mode;
-	$dark_class  = $is_light ? '' : ' is-active';
-	$light_class = $is_light ? ' is-active' : '';
+	$is_light = 'light' === $mode;
 
-	return '<nav class="colorify-mode-switch colorify-toolbar-switch colorify-toolbar-pills" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
-		. '<a href="' . esc_url( colorify_toolbar_action_url( 'mode', 'dark' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $dark_class ) . '">'
-		. esc_html( colorify_i18n( 'Dark', 'Ciemny' ) )
-		. '</a>'
-		. '<a href="' . esc_url( colorify_toolbar_action_url( 'mode', 'light' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $light_class ) . '">'
-		. esc_html( colorify_i18n( 'Light', 'Jasny' ) )
-		. '</a>'
-		. '</nav>';
+	return '<div class="colorify-mode-switch colorify-toolbar-switch" role="group" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
+		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Dark', 'Ciemny' ) ) . '</span>'
+		. '<label class="colorify-mode-switch__track">'
+		. '<input type="checkbox" class="colorify-mode-switch__input" '
+		. ( $is_light ? 'checked ' : '' )
+		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' ) ) . '" />'
+		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
+		. '</label>'
+		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Light', 'Jasny' ) ) . '</span>'
+		. '</div>';
 }
 
 /**
@@ -1953,8 +1956,22 @@ function colorify_admin_finalize_scheme_css_tokens( string $mode, array $def ): 
  */
 function colorify_admin_scheme_css_tokens(): array {
 	$user_id = get_current_user_id();
-	$scheme  = colorify_get_effective_admin_color( $user_id );
 	$mode    = colorify_get_effective_appearance_mode( $user_id );
+
+	return colorify_admin_scheme_css_tokens_for_mode( $mode, $user_id );
+}
+
+/**
+ * Tokeny CSS dla wybranego trybu (podgląd AJAX bez zapisu).
+ *
+ * @param string $mode    dark|light.
+ * @param int    $user_id User ID.
+ * @return array<string,string>
+ */
+function colorify_admin_scheme_css_tokens_for_mode( string $mode, int $user_id = 0 ): array {
+	$user_id = $user_id > 0 ? $user_id : get_current_user_id();
+	$mode    = 'light' === $mode ? 'light' : 'dark';
+	$scheme  = colorify_get_effective_admin_color( $user_id );
 	$def     = colorify_admin_get_resolved_scheme( $scheme, $user_id );
 	$tuning  = colorify_get_effective_custom_tuning( $user_id );
 	$def     = colorify_admin_apply_user_tuning_to_scheme( $def, $mode, $tuning );
@@ -2589,6 +2606,31 @@ function colorify_ajax_save_admin_appearance(): void {
 	);
 }
 add_action( 'wp_ajax_colorify_save_admin_appearance', 'colorify_ajax_save_admin_appearance' );
+
+/**
+ * AJAX — tokeny CSS dla trybu (natychmiastowy podgląd paska bez przeładowania).
+ */
+function colorify_ajax_get_scheme_tokens(): void {
+	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
+
+	$user_id = get_current_user_id();
+	if ( $user_id <= 0 ) {
+		wp_send_json_error( array( 'message' => 'not_logged_in' ), 403 );
+	}
+
+	$mode = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( ! in_array( $mode, array( 'dark', 'light' ), true ) ) {
+		wp_send_json_error( array( 'message' => 'invalid_mode' ), 400 );
+	}
+
+	wp_send_json_success(
+		array(
+			'mode'   => $mode,
+			'tokens' => colorify_admin_scheme_css_tokens_for_mode( $mode, $user_id ),
+		)
+	);
+}
+add_action( 'wp_ajax_colorify_get_scheme_tokens', 'colorify_ajax_get_scheme_tokens' );
 
 /**
  * AJAX — pełny zapis wyglądu (schemat, tryb, paleta, dostrojenie, zakres) bez przeładowania.

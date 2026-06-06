@@ -9,13 +9,16 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Bieżący URL panelu admina (do powrotu po przełączeniu).
+ *
+ * REQUEST_URI to ścieżka od root domeny (np. /wp-admin/plugins.php) — nie używać admin_url() na niej,
+ * bo admin_url() doklei kolejny /wp-admin/ → /wp-admin/wp-admin/… (404).
  */
 function colorify_current_admin_url(): string {
 	if ( isset( $_SERVER['REQUEST_URI'] ) ) {
 		$path = wp_unslash( $_SERVER['REQUEST_URI'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$path = is_string( $path ) ? $path : '';
 		if ( '' !== $path ) {
-			return admin_url( $path );
+			return home_url( $path );
 		}
 	}
 

@@ -97,7 +97,7 @@
 			if (contrastRatio(out, bg) >= minRatio) {
 				break;
 			}
-			out = interpolateHex(out, '#1C4B42', 0.1);
+			out = interpolateHex(out, '#18181b', 0.1);
 		}
 		return out;
 	}
@@ -267,11 +267,9 @@
 	}
 
 	function toneAccentForLight(accent, accentSoft, bg, bg2) {
-		var seed = interpolateHex(accent, '#1C4B42', 0.22);
-		var seedSoft = interpolateHex(accentSoft, '#3d524c', 0.35);
 		return {
-			accent: ensureContrastOnBg(seed, bg2, 4.5),
-			soft: ensureContrastOnBg(seedSoft, bg2, 3.2),
+			accent: ensureContrastOnBg(accent, bg2, 4.5),
+			soft: ensureContrastOnBg(accentSoft, bg2, 3.0),
 		};
 	}
 
@@ -603,12 +601,12 @@
 		}
 
 		if (isLight) {
-			text = '#1a3d35';
-			muted = '#3d524c';
-			dim = '#5c6b66';
-			border = 'rgba(28, 75, 66, 0.09)';
+			text = '#18181b';
+			muted = '#52525b';
+			dim = '#71717a';
+			border = 'rgba(24, 24, 27, 0.09)';
 			link = ensureContrastOnBg(accent, bg, 4.5);
-			linkHover = interpolateHex(link, '#0a1f1a', 0.12);
+			linkHover = interpolateHex(link, '#09090b', 0.14);
 		} else {
 			text = brightenText('#f4f4f5', 35);
 			muted = brightenText('#c8d4cf', 38);
@@ -628,8 +626,8 @@
 			'--colorify-admin-field': layout.field,
 			'--colorify-admin-field-hover': layout.fieldHover,
 			'--colorify-admin-border': border,
-			'--colorify-admin-border-subtle': isLight ? 'rgba(28, 75, 66, 0.06)' : 'rgba(255, 255, 255, 0.08)',
-			'--colorify-admin-icon': isLight ? '#4a5f59' : brightenText('#8fa39b', 38),
+			'--colorify-admin-border-subtle': isLight ? 'rgba(24, 24, 27, 0.06)' : 'rgba(255, 255, 255, 0.08)',
+			'--colorify-admin-icon': isLight ? '#52525b' : brightenText('#8fa39b', 38),
 			'--colorify-admin-text': text,
 			'--colorify-admin-text-muted': muted,
 			'--colorify-admin-text-dim': dim,
@@ -640,10 +638,10 @@
 			'--colorify-admin-link-hover': linkHover,
 			'--colorify-admin-text-bright': '#ffffff',
 			'--colorify-admin-on-accent': contrastOnAccent(accent),
-			'--colorify-admin-readable-text': isLight ? '#1a3d35' : '#eef0ef',
-			'--colorify-admin-readable-muted': isLight ? '#3d524c' : '#b0bdb8',
-			'--colorify-admin-readable-dim': isLight ? '#5c6b66' : '#8a9691',
-			'--colorify-admin-readable-icon': isLight ? '#4a5f59' : '#b0bdb8',
+			'--colorify-admin-readable-text': isLight ? '#18181b' : '#eef0ef',
+			'--colorify-admin-readable-muted': isLight ? '#52525b' : '#b0bdb8',
+			'--colorify-admin-readable-dim': isLight ? '#71717a' : '#8a9691',
+			'--colorify-admin-readable-icon': isLight ? '#52525b' : '#b0bdb8',
 			'--colorify-admin-highlight-bg': accent,
 			'--colorify-admin-highlight-text': contrastOnAccent(accent),
 		};
@@ -740,6 +738,12 @@
 		syncHiddenField();
 		syncCustomPaletteVisibility();
 		return true;
+	}
+
+	function syncModeSwitch() {
+		document.querySelectorAll('.colorify-mode-switch__input').forEach(function (input) {
+			input.checked = state.mode === 'light';
+		});
 	}
 
 	function syncHiddenField() {
@@ -1918,6 +1922,18 @@
 
 	function boot() {
 		bindLeaveWarningBypass();
+		document.addEventListener('colorify:mode-changed', function (event) {
+			if (!event.detail || !event.detail.mode) {
+				return;
+			}
+			state.mode = event.detail.mode === 'light' ? 'light' : 'dark';
+			syncHiddenField();
+			if (isThemeActive()) {
+				applyAppearance(state.scheme, state.mode);
+			} else {
+				syncModeSwitch();
+			}
+		});
 		bootModeAndTokens();
 		if (!hasAppearanceUi()) {
 			return;

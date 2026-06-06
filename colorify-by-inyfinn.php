@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.16
+ * Version: 1.0.18
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.16' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.18' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -219,7 +219,7 @@ function colorify_is_appearance_editor_screen(): bool {
 }
 
 /**
- * Pasek narzędzi — sam CSS (przełączniki = linki GET w PHP).
+ * Pasek narzędzi — CSS + JS (przełączniki = natychmiastowy AJAX).
  *
  * @param int $context_user_id User ID.
  */
@@ -233,6 +233,31 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-toolbar.css',
 		array(),
 		COLORIFY_PLUGIN_VERSION
+	);
+
+	wp_enqueue_script(
+		'colorify-admin-toolbar',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-toolbar.js',
+		array(),
+		COLORIFY_PLUGIN_VERSION,
+		true
+	);
+
+	wp_localize_script(
+		'colorify-admin-toolbar',
+		'colorifyAdminToolbar',
+		array(
+			'mode'            => colorify_get_effective_appearance_mode( $context_user_id ),
+			'themeEnabled'    => colorify_is_user_theme_enabled( $context_user_id ) ? '1' : '0',
+			'settingsScope'   => colorify_get_settings_scope(),
+			'canManageGlobal' => current_user_can( 'manage_options' ) ? '1' : '0',
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'nonce'           => wp_create_nonce( 'colorify-admin-appearance' ),
+			'assets'          => array(
+				'branding'  => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css' ),
+				'overrides' => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css' ),
+			),
+		)
 	);
 
 	// Krytyczne pozycjonowanie inline — nie zależy od cache / uszkodzonego pliku CSS.
