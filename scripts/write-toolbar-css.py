@@ -1,4 +1,7 @@
-/**
+#!/usr/bin/env python3
+from pathlib import Path
+
+CONTENT = """/**
  * Pływający pasek Colorify (Zmień styl + tryb + Wył./Wł.).
  */
 
@@ -170,3 +173,8 @@ body.wp-admin.colorify-theme-off .colorify-mode-switch:not(.colorify-theme-switc
 		max-width: 100%;
 	}
 }
+"""
+
+path = Path(__file__).resolve().parents[1] / "assets" / "colorify-admin-toolbar.css"
+path.write_bytes(CONTENT.encode("utf-8"))
+print("written", path, "nulls", path.read_bytes().count(b"\x00"))

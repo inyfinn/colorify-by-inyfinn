@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.32
+ * Version: 1.0.33
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.32' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.33' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -275,7 +275,9 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		'colorify-admin-toolbar',
 		'.colorify-mode-switch-float{position:fixed!important;top:0!important;right:148px!important;left:auto!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;z-index:100001!important;pointer-events:none!important;max-width:calc(100vw - 320px)!important}'
 		. '.colorify-mode-switch-float .colorify-admin-toolbar{display:flex!important;align-items:center!important;gap:20px!important;pointer-events:auto!important;white-space:nowrap!important}'
-		. '.colorify-toolbar-switch,.colorify-mode-switch,.colorify-theme-switch{display:inline-flex!important;align-items:center!important;gap:8px!important;flex-flow:row nowrap!important}'
+		. '.colorify-toolbar-switch,.colorify-mode-switch,.colorify-theme-switch{display:inline-flex!important;align-items:center!important;gap:10px!important;flex-flow:row nowrap!important}'
+		. '.colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn{background:var(--colorify-admin-accent,#b4e717)!important;color:var(--colorify-admin-on-accent,#050f0c)!important;border:1px solid color-mix(in srgb,var(--colorify-admin-accent,#b4e717) 82%,#000)!important}'
+		. 'body.wp-admin.colorify-admin-light .colorify-toolbar-switch,body.wp-admin.colorify-admin-light .colorify-mode-switch,body.wp-admin.colorify-admin-light .colorify-theme-switch{color:var(--colorify-admin-text,#18181b)!important;background:color-mix(in srgb,var(--colorify-admin-accent,#b4e717) 12%,var(--colorify-admin-bg,#fafafa))!important}'
 	);
 
 	if ( ! colorify_is_user_theme_enabled( $context_user_id ) ) {
