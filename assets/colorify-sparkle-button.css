@@ -251,12 +251,34 @@ body.login .colorify-login-btn:focus-visible {
 	transition: color var(--transition);
 }
 
-.colorify-sparkle-button--compact .colorify-sparkle-button__text,
-.colorify-sparkle-button--compact.colorify-change-style-btn {
+.colorify-sparkle-button--compact .colorify-sparkle-button__text {
 	color: var(--sparkle-on) !important;
-	background: none;
-	-webkit-background-clip: border-box;
-	background-clip: border-box;
+	background: transparent;
+}
+
+/* Toolbar „Zmień styl” — pełny CTA ze schematu (bez background:none na <a>) */
+.colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn {
+	--sparkle-accent: var(--colorify-admin-accent, #b4e717);
+	--sparkle-on: var(--colorify-admin-on-accent, #050f0c);
+	--bg: var(--sparkle-accent);
+	background: var(--bg) !important;
+	color: var(--sparkle-on) !important;
+	border: 1px solid color-mix(in srgb, var(--sparkle-accent) 82%, #000) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 28%, transparent) inset,
+		0 6px 16px -8px color-mix(in srgb, var(--sparkle-accent) 52%, transparent) !important;
+}
+
+.colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn:is(:hover, :focus-visible) {
+	background: color-mix(in srgb, var(--sparkle-accent) 90%, #ffffff) !important;
+	color: var(--sparkle-on) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 36%, transparent) inset,
+		0 8px 20px -6px color-mix(in srgb, var(--sparkle-accent) 58%, transparent) !important;
+}
+
+body.wp-admin.colorify-admin-light .colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn {
+	border-color: color-mix(in srgb, var(--sparkle-accent) 70%, #000) !important;
 }
 
 .colorify-sparkle-button__stars {

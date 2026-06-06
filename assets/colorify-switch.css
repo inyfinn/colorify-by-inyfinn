@@ -4,7 +4,11 @@
  */
 
 label.switch {
-	--colorify-switch-off: color-mix(in srgb, var(--colorify-admin-accent, #64748b) 22%, #475569);
+	--colorify-switch-off: color-mix(
+		in srgb,
+		var(--colorify-admin-accent, #64748b) 24%,
+		var(--colorify-admin-field, var(--colorify-admin-bg, #0b231c))
+	);
 	--colorify-switch-on: var(--colorify-admin-accent, #64748b);
 	font-size: 11px;
 	position: relative;
@@ -75,6 +79,15 @@ label.switch input:checked + .slider::before {
 body.wp-admin.colorify-theme-off label.switch {
 	--colorify-switch-off: #dcdcde;
 	--colorify-switch-on: #8c8f94;
+}
+
+body.wp-admin.colorify-admin-light label.switch {
+	--colorify-switch-off: color-mix(
+		in srgb,
+		var(--colorify-admin-accent, #b4e717) 18%,
+		var(--colorify-admin-surface-2, var(--colorify-admin-bg, #ffffff))
+	);
+	--colorify-switch-on: var(--colorify-admin-accent, #b4e717);
 }
 
 @media (prefers-reduced-motion: reduce) {

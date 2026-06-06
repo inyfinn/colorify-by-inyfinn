@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.30
+ * Version: 1.0.31
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.30' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.31' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -229,6 +229,8 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		$context_user_id = get_current_user_id();
 	}
 
+	colorify_enqueue_sparkle_button_assets();
+
 	wp_enqueue_style(
 		'colorify-switch',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-switch.css',
@@ -239,7 +241,7 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 	wp_enqueue_style(
 		'colorify-admin-toolbar',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-toolbar.css',
-		array( 'colorify-switch' ),
+		array( 'colorify-switch', 'colorify-sparkle-button' ),
 		COLORIFY_PLUGIN_VERSION
 	);
 
@@ -286,7 +288,12 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 			'--colorify-admin-accent',
 			'--colorify-admin-on-accent',
 			'--colorify-admin-accent-soft',
+			'--colorify-admin-text',
 			'--colorify-admin-text-muted',
+			'--colorify-admin-bg',
+			'--colorify-admin-border',
+			'--colorify-admin-field',
+			'--colorify-admin-surface-2',
 			'--colorify-admin-highlight-bg',
 			'--colorify-admin-highlight-text',
 		) as $key ) {
