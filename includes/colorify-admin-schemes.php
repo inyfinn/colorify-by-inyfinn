@@ -1574,13 +1574,17 @@ function colorify_admin_floating_toolbar_html(): string {
 	$theme_on    = colorify_is_user_theme_enabled();
 
 	return '<div class="colorify-admin-toolbar" role="toolbar" aria-label="' . esc_attr( COLORIFY_BRANDING_NAME ) . '">'
+		. '<div class="colorify-admin-toolbar__segment colorify-admin-toolbar__segment--style">'
 		. '<a href="' . esc_url( $schemes_url ) . '" class="colorify-change-style-btn">'
 		. colorify_admin_change_style_icon_html()
 		. '<span class="colorify-change-style-btn__text">' . esc_html( colorify_i18n( 'Change style', 'Zmień styl' ) ) . '</span>'
 		. '</a>'
+		. '</div>'
 		. '<span class="colorify-admin-toolbar__sep" aria-hidden="true"></span>'
+		. '<div class="colorify-admin-toolbar__segment colorify-admin-toolbar__segment--controls">'
 		. colorify_admin_mode_switch_html( $mode )
 		. colorify_admin_theme_switch_html( $theme_on )
+		. '</div>'
 		. '</div>';
 }
 

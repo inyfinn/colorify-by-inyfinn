@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.4' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.5' );
 define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.4' );
 
 /**
@@ -71,7 +71,7 @@ const COLORIFY_BRANDING_CSS_VERSION    = '1.14.9';
 const COLORIFY_APPEARANCE_JS_VERSION   = '1.15.3';
 const COLORIFY_ADMIN_OVERRIDES_VER     = '1.11.0';
 const COLORIFY_ADMIN_COLORS_VER        = '1.1.1';
-const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.4';
+const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.5';
 const COLORIFY_TABLE_READABLE_VER      = '1.0.2';
 
 /**
