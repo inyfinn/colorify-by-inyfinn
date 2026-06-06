@@ -548,6 +548,7 @@ final class Colorify_Github_Updater {
 
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'inject_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 20, 3 );
+		add_filter( 'upgrader_pre_download', array( $this, 'prepare_downloaded_package' ), 10, 4 );
 		add_filter( 'upgrader_pre_install', array( $this, 'remember_active_before_install' ), 10, 2 );
 		add_filter( 'upgrader_source_selection', array( $this, 'select_package_source' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'verify_post_install' ), 10, 3 );
@@ -576,6 +577,51 @@ final class Colorify_Github_Updater {
 		}
 
 		return in_array( $this->plugin_basename, $targets, true );
+	}
+
+	/**
+	 * WordPress: pobranie paczki (download_url) + normalizacja ZIP przed unzip_file().
+	 *
+	 * Ten sam łańcuch co core: Plugin_Upgrader::download_package() → unpack_package().
+	 * Filtr upgrader_pre_download zwraca ścieżkę lokalnego pliku i pomija domyślne pobieranie.
+	 *
+	 * @param false|string|WP_Error $reply      Short-circuit.
+	 * @param string                $package    URL paczki.
+	 * @param WP_Upgrader           $upgrader   Upgrader.
+	 * @param array                 $hook_extra Kontekst.
+	 * @return false|string|WP_Error
+	 */
+	public function prepare_downloaded_package( $reply, $package, $upgrader, $hook_extra ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		if ( false !== $reply ) {
+			return $reply;
+		}
+
+		if ( ! is_array( $hook_extra ) || ! $this->hook_extra_targets_us( $hook_extra ) ) {
+			return false;
+		}
+
+		if ( ! is_string( $package ) || '' === $package ) {
+			return false;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		if ( ! preg_match( '!^(http|https|ftp)://!i', $package ) ) {
+			if ( file_exists( $package ) ) {
+				$normalized = colorify_normalize_plugin_zip( $package, $this->plugin_slug );
+				return is_wp_error( $normalized ) ? $normalized : $normalized;
+			}
+			return false;
+		}
+
+		$downloaded = download_url( $package, 300 );
+		if ( is_wp_error( $downloaded ) ) {
+			return $downloaded;
+		}
+
+		$normalized = colorify_normalize_plugin_zip( $downloaded, $this->plugin_slug );
+
+		return is_wp_error( $normalized ) ? $normalized : $normalized;
 	}
 
 	/**
@@ -649,28 +695,18 @@ final class Colorify_Github_Updater {
 
 		$destination = trailingslashit( $result['destination'] );
 
+		colorify_repair_flattened_plugin_dir( $destination, $wp_filesystem );
+
 		foreach ( colorify_required_plugin_files() as $relative ) {
 			if ( ! $wp_filesystem->exists( $destination . $relative ) ) {
 				return new WP_Error(
 					'colorify_invalid_package',
 					sprintf(
 						/* translators: %s: relative file path */
-						__( 'Niepoprawna paczka Colorify — brakuje pliku: %s. Użyj oficjalnego ZIP z GitHub Releases (tag v*).', 'colorify-by-inyfinn' ),
+						__( 'Niepoprawna paczka Colorify — brakuje pliku: %s po rozpakowaniu.', 'colorify-by-inyfinn' ),
 						$relative
 					)
 				);
-			}
-		}
-
-		$list = $wp_filesystem->dirlist( $destination, false, false );
-		if ( is_array( $list ) ) {
-			foreach ( array_keys( $list ) as $name ) {
-				if ( preg_match( '#^(assets|includes|languages)(%5C|%5c|\\\\|\\\).+#', $name ) ) {
-					return new WP_Error(
-						'colorify_invalid_package',
-						__( 'Niepoprawna paczka Colorify — uszkodzona struktura katalogów. Zainstaluj oficjalny ZIP z GitHub Releases.', 'colorify-by-inyfinn' )
-					);
-				}
 			}
 		}
 

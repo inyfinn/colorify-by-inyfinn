@@ -20,3 +20,19 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 		return 0 === strncmp( $haystack, $needle, strlen( $needle ) );
 	}
 }
+
+if ( ! function_exists( 'str_ends_with' ) ) {
+	/**
+	 * @param string $haystack Haystack.
+	 * @param string $needle   Needle.
+	 */
+	function str_ends_with( string $haystack, string $needle ): bool {
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		$len = strlen( $needle );
+
+		return $len <= strlen( $haystack ) && 0 === substr_compare( $haystack, $needle, -$len );
+	}
+}
