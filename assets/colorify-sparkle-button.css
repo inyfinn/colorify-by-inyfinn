@@ -1,6 +1,5 @@
 /**
  * Sparkle button — login + toolbar (akcent ze schematu Colorify).
- * Glow obcinany przez .colorify-sparkle-button-wrap { overflow: hidden }.
  */
 
 .colorify-sparkle-button-wrap {
@@ -15,9 +14,9 @@
 .colorify-sparkle-button-wrap--login {
 	display: flex;
 	width: 100%;
-	margin-top: 0.25rem;
-	overflow: hidden;
-	border-radius: 100px;
+	justify-content: center;
+	margin-top: 0;
+	overflow: visible;
 }
 
 .colorify-sparkle-button-wrap--compact {
@@ -31,26 +30,16 @@
 	--cut: 0.08em;
 	--glow-scale: 1;
 	--sparkle-accent: var(--colorify-admin-accent, #b4e717);
+	--sparkle-accent-bright: color-mix(in srgb, var(--sparkle-accent) 42%, #ffffff);
 	--sparkle-accent-soft: color-mix(in srgb, var(--sparkle-accent) 72%, #ffffff);
-	--sparkle-accent-deep: color-mix(in srgb, var(--sparkle-accent) 55%, #050f0c);
 	--sparkle-on: var(--colorify-admin-on-accent, #050f0c);
-	--bg: radial-gradient(
-			40% 50% at center 100%,
-			color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent),
-			transparent
-		),
-		radial-gradient(
-			80% 100% at center 120%,
-			color-mix(in srgb, var(--sparkle-accent) calc(var(--active) * 85%), transparent),
-			transparent
-		),
-		color-mix(in srgb, var(--sparkle-accent-deep) calc(44% + (var(--active) * 56%)), var(--sparkle-accent) 30%);
+	--bg: var(--sparkle-accent);
 
 	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 0.35em;
+	gap: 0.55em;
 	width: auto;
 	margin: 0;
 	padding: 0.85em 1.35em;
@@ -66,10 +55,9 @@
 	cursor: pointer;
 	text-decoration: none !important;
 	box-shadow:
-		0 0 calc(var(--active) * var(--glow-scale) * 2.4em) calc(var(--active) * var(--glow-scale) * 0.65em)
-			color-mix(in srgb, var(--sparkle-accent) 55%, transparent),
-		0 0 0 0 color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent) inset,
-		0 -0.05em 0 0 color-mix(in srgb, var(--sparkle-accent-deep) calc(var(--active) * 100%), transparent) inset;
+		0 0 calc(var(--active) * var(--glow-scale) * 2.2em) calc(var(--active) * var(--glow-scale) * 0.55em)
+			var(--sparkle-accent-bright),
+		0 8px 22px -8px color-mix(in srgb, var(--sparkle-accent) 50%, transparent);
 	transform: scale(calc(1 + (var(--active) * 0.04)));
 	transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
 	overflow: visible;
@@ -88,9 +76,19 @@
 }
 
 .colorify-sparkle-button--login {
-	width: 100%;
+	--sparkle-on: #ffffff;
+	--bg: var(--sparkle-accent);
+	--active: 1;
+	width: auto;
+	min-width: 11rem;
+	max-width: min(100%, 18rem);
 	font-size: 1.05rem;
-	padding: 0.75em 1.25em;
+	padding: 0.8em 1.6em;
+	gap: 0.75em;
+	background: var(--sparkle-accent) !important;
+	box-shadow:
+		0 0 2em 0.45em var(--sparkle-accent-bright),
+		0 10px 28px -10px color-mix(in srgb, var(--sparkle-accent) 55%, transparent);
 }
 
 .colorify-sparkle-button:is(:hover, :focus-visible) {
@@ -98,6 +96,12 @@
 	color: var(--sparkle-on) !important;
 	text-decoration: none !important;
 	outline: none;
+}
+
+.colorify-sparkle-button--login:is(:hover, :focus-visible) {
+	box-shadow:
+		0 0 2.6em 0.65em color-mix(in srgb, var(--sparkle-accent) 28%, #ffffff 72%),
+		0 12px 32px -8px color-mix(in srgb, var(--sparkle-accent) 60%, transparent) !important;
 }
 
 .colorify-sparkle-button:active {
@@ -113,15 +117,15 @@
 	position: relative;
 	z-index: 2;
 	letter-spacing: 0.01em;
-	background: linear-gradient(
-		90deg,
-		color-mix(in srgb, var(--sparkle-on) calc(65% + (var(--active) * 35%)), #ffffff),
-		color-mix(in srgb, var(--sparkle-on) calc(26% + (var(--active) * 74%)), #ffffff)
-	);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	transition: background var(--transition);
+	color: var(--sparkle-on);
+	transition: color var(--transition);
+}
+
+.colorify-sparkle-button--login .colorify-sparkle-button__text {
+	color: #ffffff !important;
+	background: none !important;
+	-webkit-background-clip: border-box;
+	background-clip: border-box;
 }
 
 .colorify-sparkle-button--compact .colorify-sparkle-button__text,
@@ -137,20 +141,32 @@
 	flex-shrink: 0;
 	position: relative;
 	z-index: 2;
-	translate: -8% -4%;
+	margin: 0;
+	translate: none;
+}
+
+.colorify-sparkle-button--login .colorify-sparkle-button__stars {
+	inline-size: 1.1em;
 }
 
 .colorify-sparkle-button--compact .colorify-sparkle-button__stars {
 	inline-size: 0.95em;
+	translate: -8% -4%;
 }
 
 .colorify-sparkle-button__stars path {
 	fill: currentColor;
 	stroke: currentColor;
-	color: color-mix(in srgb, var(--sparkle-on) calc(40% + (var(--active) * 60%)), #ffffff);
+	color: var(--sparkle-on);
 	transform-box: fill-box;
 	transform-origin: center;
 	transition: color var(--transition);
+}
+
+.colorify-sparkle-button--login .colorify-sparkle-button__stars path {
+	color: #ffffff !important;
+	fill: #ffffff !important;
+	stroke: #ffffff !important;
 }
 
 .colorify-sparkle-button:is(:hover, :focus-visible) .colorify-sparkle-button__stars path {
@@ -216,12 +232,16 @@
 	pointer-events: none;
 }
 
+.colorify-sparkle-button--login .colorify-sparkle-button__backdrop {
+	background: var(--sparkle-accent);
+}
+
 .colorify-sparkle-button::before {
 	content: "";
 	position: absolute;
 	inset: -0.15em;
 	z-index: -1;
-	border: 0.2em solid color-mix(in srgb, var(--sparkle-accent) 45%, transparent);
+	border: 0.2em solid color-mix(in srgb, var(--sparkle-accent-bright) 65%, transparent);
 	border-radius: 100px;
 	opacity: var(--active);
 	transition: opacity var(--transition);
@@ -245,24 +265,34 @@
 	}
 }
 
-/* Login — nadpisanie domyślnego WP primary */
+/* Login — układ formularza */
+body.login form p.forgetmenot {
+	float: none !important;
+	width: 100% !important;
+	clear: both !important;
+	margin: 0.75rem 0 0 !important;
+}
+
+body.login form p.submit {
+	float: none !important;
+	width: 100% !important;
+	clear: both !important;
+	margin: 1.25rem 0 0 !important;
+	padding: 0 !important;
+	text-align: center !important;
+	display: flex !important;
+	justify-content: center !important;
+	overflow: visible;
+}
+
 body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button,
 body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button:hover,
 body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button:focus {
-	background: var(--bg) !important;
+	background: var(--sparkle-accent) !important;
 	border: none !important;
-	box-shadow:
-		0 0 calc(var(--active) * 2.4em) calc(var(--active) * 0.65em)
-			color-mix(in srgb, var(--sparkle-accent) 55%, transparent),
-		0 0 0 0 color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent) inset,
-		0 -0.05em 0 0 color-mix(in srgb, var(--sparkle-accent-deep) calc(var(--active) * 100%), transparent) inset !important;
+	color: #ffffff !important;
 	height: auto !important;
 	text-shadow: none !important;
-}
-
-body.login form .submit {
-	overflow: hidden;
-	border-radius: 100px;
 }
 
 /* Toolbar — ikona palety obok tekstu */

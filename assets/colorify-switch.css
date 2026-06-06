@@ -18,9 +18,14 @@ label.switch {
 
 label.switch input {
 	opacity: 0;
-	width: 0;
-	height: 0;
 	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+	z-index: 2;
 }
 
 label.switch .slider {
@@ -30,6 +35,8 @@ label.switch .slider {
 	background: var(--colorify-switch-off);
 	border-radius: 50px;
 	transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+	z-index: 1;
+	pointer-events: none;
 }
 
 label.switch .slider::before {

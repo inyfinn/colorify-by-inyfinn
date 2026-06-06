@@ -50,6 +50,15 @@ function colorify_login_sparkle_submit_script(): void {
 	?>
 <script id="colorify-login-sparkle-submit">
 (function () {
+	// Przenieś wiersz submit na koniec formularza (pod „Remember Me”).
+	var form = document.getElementById('loginform') || document.querySelector('#login form');
+	if (form) {
+		var submitRow = form.querySelector('p.submit');
+		if (submitRow) {
+			form.appendChild(submitRow);
+		}
+	}
+
 	var input = document.getElementById('wp-submit');
 	if (!input || input.dataset.colorifySparkleDone === '1') {
 		return;
@@ -68,7 +77,10 @@ function colorify_login_sparkle_submit_script(): void {
 	btn.innerHTML = <?php echo wp_json_encode( colorify_sparkle_button_layers() ); ?>
 		+ '<span class="colorify-sparkle-button__text"></span>';
 
-	btn.querySelector('.colorify-sparkle-button__text').textContent = input.value;
+	var textEl = btn.querySelector('.colorify-sparkle-button__text');
+	if (textEl) {
+		textEl.textContent = input.value;
+	}
 
 	var parent = input.parentNode;
 	if (!parent) {

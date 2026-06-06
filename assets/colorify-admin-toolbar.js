@@ -220,15 +220,29 @@
 	}
 
 	function onThemeToggle(checked) {
+		var previous = themeEnabled;
+		themeEnabled = checked;
+		cfg.themeEnabled = checked ? '1' : '0';
+		syncThemeSwitchInputs();
+
+		if (checked) {
+			enableThemeLive();
+		} else {
+			disableThemeLive();
+		}
+
 		saveThemeEnabled(checked).then(function (saved) {
-			if (!saved) {
-				syncThemeSwitchInputs();
+			if (saved) {
+				window.location.reload();
 				return;
 			}
+			themeEnabled = previous;
+			cfg.themeEnabled = previous ? '1' : '0';
+			syncThemeSwitchInputs();
 			if (checked) {
-				enableThemeLive();
-			} else {
 				disableThemeLive();
+			} else {
+				enableThemeLive();
 			}
 		});
 	}
@@ -256,7 +270,7 @@
 			if (input.classList.contains('colorify-theme-switch__input')) {
 				onThemeToggle(!!input.checked);
 			}
-		});
+		}, true);
 	}
 
 	if (document.readyState === 'loading') {
