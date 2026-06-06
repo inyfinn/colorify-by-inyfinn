@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.33
+ * Version: 1.1.0
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.33' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.1.0' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -217,6 +217,21 @@ function colorify_is_appearance_editor_screen(): bool {
 		array( 'profile', 'user-edit', 'settings_page_colorify-by-inyfinn' ),
 		true
 	);
+}
+
+/**
+ * Ekran WordPress Customizer (customize.php).
+ */
+function colorify_is_customizer_controls_screen(): bool {
+	global $pagenow;
+
+	if ( isset( $pagenow ) && 'customize.php' === $pagenow ) {
+		return true;
+	}
+
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	return $screen && 'customize' === $screen->id;
 }
 
 /**
@@ -485,6 +500,18 @@ function colorify_enqueue_personalization_assets_when_theme_off(): void {
 }
 
 /**
+ * CSS WordPress Customizer (dark + light).
+ */
+function colorify_enqueue_customizer_styles(): void {
+	wp_enqueue_style(
+		'colorify-customizer',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-customizer.css',
+		array( 'colorify-branding-admin' ),
+		COLORIFY_PLUGIN_VERSION
+	);
+}
+
+/**
  * Admin assets — wspólne dla wp-admin i strony ustawień wtyczki.
  *
  * @param int $context_user_id User ID kontekstu zapisu/podglądu.
@@ -506,6 +533,10 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	}
 
 	colorify_enqueue_branding_admin_css();
+
+	if ( colorify_is_customizer_controls_screen() ) {
+		colorify_enqueue_customizer_styles();
+	}
 
 	if ( colorify_is_appearance_editor_screen() ) {
 		colorify_enqueue_appearance_editor_styles();

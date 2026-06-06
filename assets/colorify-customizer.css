@@ -1,0 +1,271 @@
+/**
+ * WordPress Customizer — pełna czytelność dark + light (tokeny Colorify).
+ */
+
+/* ── Wspólne powierzchnie sidebara ─────────────────────────────────────── */
+
+body.wp-customizer #customize-controls,
+body.wp-customizer .wp-full-overlay-sidebar,
+body.wp-customizer .wp-full-overlay-sidebar-content,
+body.wp-customizer #widgets-right,
+body.wp-customizer #customize-theme-controls,
+body.wp-customizer #customize-sidebar-outer-content,
+body.wp-customizer .customize-pane-child,
+body.wp-customizer .customize-panel-back,
+body.wp-customizer #customize-header-actions,
+body.wp-customizer #customize-footer-actions,
+body.wp-customizer .customize-info,
+body.wp-customizer .accordion-section,
+body.wp-customizer .accordion-section-content,
+body.wp-customizer .customize-section-description-container,
+body.wp-customizer .customize-themes-section,
+body.wp-customizer .control-section,
+body.wp-customizer .customize-control {
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12));
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────────── */
+
+body.wp-customizer:not(.colorify-admin-light) {
+	color-scheme: dark;
+	background: var(--colorify-admin-bg, #050f0c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-sidebar,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-sidebar-content,
+body.wp-customizer:not(.colorify-admin-light) #widgets-right,
+body.wp-customizer:not(.colorify-admin-light) #customize-theme-controls,
+body.wp-customizer:not(.colorify-admin-light) #customize-sidebar-outer-content,
+body.wp-customizer:not(.colorify-admin-light) .customize-pane-child,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back,
+body.wp-customizer:not(.colorify-admin-light) #customize-header-actions,
+body.wp-customizer:not(.colorify-admin-light) #customize-footer-actions,
+body.wp-customizer:not(.colorify-admin-light) .customize-info,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section-content,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-description-container,
+body.wp-customizer:not(.colorify-admin-light) .customize-themes-section,
+body.wp-customizer:not(.colorify-admin-light) .control-section {
+	background: var(--colorify-admin-sidebar, #0b231c) !important;
+	background-color: var(--colorify-admin-sidebar, #0b231c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-control-title,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls label,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls h2,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls h3,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls p,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .description,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back,
+body.wp-customizer:not(.colorify-admin-light) .customize-info .panel-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-info .customize-help-toggle,
+body.wp-customizer:not(.colorify-admin-light) .customize-control .customize-inside-control-row {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .description,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .customize-section-description {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls input:not([type="checkbox"]):not([type="radio"]),
+body.wp-customizer:not(.colorify-admin-light) #customize-controls textarea,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls select {
+	background: var(--colorify-admin-field, #0b231c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-header,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls a {
+	color: var(--colorify-admin-accent-muted, var(--colorify-admin-accent, #b4e717)) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .accordion-section-title::after,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back::before,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back::before {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+/* ── Light mode ────────────────────────────────────────────────────────── */
+
+body.wp-customizer.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-customizer {
+	color-scheme: light;
+	background: var(--colorify-admin-bg, #fafafa) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-controls,
+body.wp-customizer.colorify-admin-light .wp-full-overlay-sidebar,
+body.wp-customizer.colorify-admin-light .wp-full-overlay-sidebar-content,
+body.wp-customizer.colorify-admin-light #widgets-right,
+body.wp-customizer.colorify-admin-light #customize-theme-controls,
+body.wp-customizer.colorify-admin-light #customize-sidebar-outer-content,
+body.wp-customizer.colorify-admin-light .customize-pane-child,
+body.wp-customizer.colorify-admin-light .customize-panel-back,
+body.wp-customizer.colorify-admin-light #customize-header-actions,
+body.wp-customizer.colorify-admin-light #customize-footer-actions,
+body.wp-customizer.colorify-admin-light .customize-info,
+body.wp-customizer.colorify-admin-light .accordion-section,
+body.wp-customizer.colorify-admin-light .accordion-section-content,
+body.wp-customizer.colorify-admin-light .customize-section-description-container,
+body.wp-customizer.colorify-admin-light .customize-themes-section,
+body.wp-customizer.colorify-admin-light .control-section,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls,
+html[data-colorify-admin-mode="light"] body.wp-customizer .wp-full-overlay-sidebar,
+html[data-colorify-admin-mode="light"] body.wp-customizer .wp-full-overlay-sidebar-content,
+html[data-colorify-admin-mode="light"] body.wp-customizer #widgets-right {
+	background: var(--colorify-admin-bg, #fafafa) !important;
+	background-color: var(--colorify-admin-bg, #fafafa) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+	border-color: var(--colorify-admin-border, rgba(24, 24, 27, 0.12)) !important;
+}
+
+body.wp-customizer.colorify-admin-light .customize-panel-title,
+body.wp-customizer.colorify-admin-light .customize-section-title,
+body.wp-customizer.colorify-admin-light .accordion-section-title,
+body.wp-customizer.colorify-admin-light .customize-control-title,
+body.wp-customizer.colorify-admin-light #customize-controls label,
+body.wp-customizer.colorify-admin-light #customize-controls h2,
+body.wp-customizer.colorify-admin-light #customize-controls h3,
+body.wp-customizer.colorify-admin-light #customize-controls p,
+body.wp-customizer.colorify-admin-light .customize-info .panel-title,
+body.wp-customizer.colorify-admin-light .customize-control .customize-inside-control-row,
+html[data-colorify-admin-mode="light"] body.wp-customizer .customize-section-title,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls label,
+html[data-colorify-admin-mode="light"] body.wp-customizer .customize-info .panel-title {
+	color: var(--colorify-admin-text, #18181b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-controls .description,
+body.wp-customizer.colorify-admin-light #customize-controls .customize-section-description,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls .description {
+	color: var(--colorify-admin-text-dim, #52525b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-dim, #52525b) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-controls input:not([type="checkbox"]):not([type="radio"]),
+body.wp-customizer.colorify-admin-light #customize-controls textarea,
+body.wp-customizer.colorify-admin-light #customize-controls select,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls input:not([type="checkbox"]):not([type="radio"]),
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls textarea,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls select {
+	background: var(--colorify-admin-field, #ffffff) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+	border-color: var(--colorify-admin-border, rgba(24, 24, 27, 0.12)) !important;
+}
+
+body.wp-customizer.colorify-admin-light .wp-full-overlay-header,
+body.wp-customizer.colorify-admin-light .wp-full-overlay-footer,
+html[data-colorify-admin-mode="light"] body.wp-customizer .wp-full-overlay-header,
+html[data-colorify-admin-mode="light"] body.wp-customizer .wp-full-overlay-footer {
+	background: var(--colorify-admin-surface, #ffffff) !important;
+	border-color: var(--colorify-admin-border, rgba(24, 24, 27, 0.12)) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-controls a,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls a {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent, #b4e717)) !important;
+}
+
+/* ── Przyciski (Opublikuj / Zmień / secondary) — oba tryby ─────────────── */
+
+body.wp-customizer #customize-save-button-wrapper .save,
+body.wp-customizer #customize-save-button-wrapper .button-primary,
+body.wp-customizer #customize-header-actions .button-primary,
+body.wp-customizer .customize-action .button-primary {
+	background: var(--colorify-admin-accent, #b4e717) !important;
+	background-color: var(--colorify-admin-accent, #b4e717) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 82%, #000) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+	opacity: 1 !important;
+	box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 55%, transparent) !important;
+	text-shadow: none !important;
+}
+
+body.wp-customizer #customize-save-button-wrapper .save:hover,
+body.wp-customizer #customize-save-button-wrapper .save:focus,
+body.wp-customizer #customize-header-actions .button-primary:hover,
+body.wp-customizer #customize-header-actions .button-primary:focus {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 90%, #ffffff) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+}
+
+body.wp-customizer #customize-save-button-wrapper .save.has-next-sibling,
+body.wp-customizer #customize-save-button-wrapper .save.has-next-sibling:disabled {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 72%, var(--colorify-admin-surface-2, #1c4b42)) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+	opacity: 1 !important;
+}
+
+body.wp-customizer #customize-controls .button,
+body.wp-customizer #customize-controls .button-secondary,
+body.wp-customizer .customize-info .button,
+body.wp-customizer .theme-overlay .button {
+	background: var(--colorify-admin-surface-2, #1c4b42) !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-controls .button,
+body.wp-customizer.colorify-admin-light #customize-controls .button-secondary,
+body.wp-customizer.colorify-admin-light .customize-info .button,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls .button,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-controls .button-secondary {
+	background: var(--colorify-admin-surface, #ffffff) !important;
+	border-color: var(--colorify-admin-border, rgba(24, 24, 27, 0.12)) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-customizer #customize-header-actions .customize-controls-close,
+body.wp-customizer .collapse-sidebar {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-header-actions .customize-controls-close,
+body.wp-customizer.colorify-admin-light .collapse-sidebar,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-header-actions .customize-controls-close {
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-customizer #customize-footer-actions .devices button {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+body.wp-customizer.colorify-admin-light #customize-footer-actions .devices button,
+html[data-colorify-admin-mode="light"] body.wp-customizer #customize-footer-actions .devices button {
+	color: var(--colorify-admin-text-dim, #52525b) !important;
+}
+
+body.wp-customizer #customize-footer-actions .devices button.active {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+body.wp-customizer input[type="checkbox"]:checked,
+body.wp-customizer input[type="checkbox"]:indeterminate {
+	background: var(--colorify-admin-accent, #b4e717) !important;
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+}
