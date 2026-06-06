@@ -1550,6 +1550,22 @@ function colorify_admin_change_style_icon_html(): string {
 }
 
 /**
+ * Globalny markup przełącznika (label.switch + span.slider).
+ *
+ * @param string $input_class Klasa inputa (np. colorify-mode-switch__input).
+ * @param bool   $checked     Stan początkowy.
+ * @param string $aria_label  Etykieta dostępności.
+ */
+function colorify_ui_switch_html( string $input_class, bool $checked, string $aria_label ): string {
+	return '<label class="switch">'
+		. '<input type="checkbox" class="' . esc_attr( $input_class ) . '" '
+		. ( $checked ? 'checked ' : '' )
+		. 'aria-label="' . esc_attr( $aria_label ) . '" />'
+		. '<span class="slider"></span>'
+		. '</label>';
+}
+
+/**
  * Przełącznik ON/OFF — wyłącza styl Colorify (zostaje domyślny WP + ten pasek).
  *
  * @param bool $enabled Czy styl jest włączony.
@@ -1559,9 +1575,11 @@ function colorify_admin_theme_switch_html( bool $enabled ): string {
 		. esc_attr( colorify_i18n( 'Colorify theme', 'Motyw Colorify' ) )
 		. '">'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Off', 'Wył.' ) ) . '</span>'
-		. '<input type="checkbox" class="colorify-switch colorify-theme-switch__input" '
-		. ( $enabled ? 'checked ' : '' )
-		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' ) ) . '" />'
+		. colorify_ui_switch_html(
+			'colorify-theme-switch__input',
+			$enabled,
+			colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' )
+		)
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'On', 'Wł.' ) ) . '</span>'
 		. '</div>';
 }
@@ -1598,9 +1616,11 @@ function colorify_admin_mode_switch_html( string $mode ): string {
 
 	return '<div class="colorify-mode-switch colorify-toolbar-switch" role="group" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Dark', 'Ciemny' ) ) . '</span>'
-		. '<input type="checkbox" class="colorify-switch colorify-mode-switch__input" '
-		. ( $is_light ? 'checked ' : '' )
-		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' ) ) . '" />'
+		. colorify_ui_switch_html(
+			'colorify-mode-switch__input',
+			$is_light,
+			colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' )
+		)
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Light', 'Jasny' ) ) . '</span>'
 		. '</div>';
 }

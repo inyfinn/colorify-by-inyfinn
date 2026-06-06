@@ -1,0 +1,78 @@
+/**
+ * Globalny przełącznik Colorify — Uiverse.io by gharsh11032000
+ * Markup: <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+ */
+
+label.switch {
+	--colorify-switch-off: color-mix(in srgb, var(--colorify-admin-accent, #b84fce) 32%, #d4acfb);
+	--colorify-switch-on: var(--colorify-admin-accent, #b84fce);
+	font-size: 11px;
+	position: relative;
+	display: inline-block;
+	width: 3.5em;
+	height: 2em;
+	flex-shrink: 0;
+	margin: 0;
+	vertical-align: middle;
+}
+
+label.switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+	position: absolute;
+}
+
+label.switch .slider {
+	position: absolute;
+	cursor: pointer;
+	inset: 0;
+	background: var(--colorify-switch-off);
+	border-radius: 50px;
+	transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+label.switch .slider::before {
+	position: absolute;
+	content: "";
+	height: 1.4em;
+	width: 1.4em;
+	left: 0.3em;
+	bottom: 0.3em;
+	background-color: #ffffff;
+	border-radius: 50px;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+	transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+label.switch input:checked + .slider {
+	background: var(--colorify-switch-on);
+}
+
+label.switch input:focus + .slider {
+	box-shadow: 0 0 1px var(--colorify-switch-on);
+}
+
+label.switch input:focus-visible + .slider {
+	outline: 2px solid var(--colorify-switch-on);
+	outline-offset: 2px;
+}
+
+label.switch input:checked + .slider::before {
+	transform: translateX(1.6em);
+	width: 2em;
+	height: 2em;
+	bottom: 0;
+}
+
+body.wp-admin.colorify-theme-off label.switch {
+	--colorify-switch-off: #dcdcde;
+	--colorify-switch-on: #8c8f94;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	label.switch .slider,
+	label.switch .slider::before {
+		transition: none;
+	}
+}
