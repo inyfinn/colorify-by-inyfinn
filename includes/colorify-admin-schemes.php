@@ -1632,7 +1632,7 @@ function colorify_admin_profile_scope_bar( int $user_id ): void {
 		'global' === $scope ? ' is-active' : '',
 		checked( $scope, 'global', false ),
 		esc_html__( 'Globalne (domyślne)', 'colorify-by-inyfinn' ),
-		esc_html__( 'Wtyczka narzuca kolory tylko bez własnego stylu.', 'colorify-by-inyfinn' )
+		esc_html__( 'Kolory logowania + domyślny panel.', 'colorify-by-inyfinn' )
 	);
 	echo '</div>';
 	echo '<p class="description colorify-profile-scope-bar__link">';

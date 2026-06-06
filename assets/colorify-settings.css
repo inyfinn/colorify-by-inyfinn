@@ -275,6 +275,18 @@
 	border-color: var(--colorify-admin-accent, #b4e717) !important;
 }
 
+.colorify-settings-callout--login {
+	margin: 12px 0 16px;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 35%, transparent) !important;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 8%, var(--colorify-admin-surface, #0b231c)) !important;
+}
+
+.colorify-settings-callout--login p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
 .colorify-settings-github-form .regular-text.code {
 	max-width: 420px;
 }

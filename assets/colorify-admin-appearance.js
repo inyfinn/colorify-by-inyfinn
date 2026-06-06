@@ -707,6 +707,7 @@
 	}
 
 	function applyAppearance(schemeKey, mode) {
+		suppressLeavePageWarning();
 		if (!isThemeActive()) {
 			return false;
 		}
@@ -1198,6 +1199,9 @@
 						state.scheme = payload.data.scheme;
 					}
 				}
+				if (ok) {
+					suppressLeavePageWarning();
+				}
 				if (options.showStatus) {
 					setSaveStatus(
 						ok ? i18n.saved || 'Zapisano.' : i18n.saveFailed || 'Nie udało się zapisać.',
@@ -1226,7 +1230,15 @@
 			});
 	}
 
+	function suppressLeavePageWarning() {
+		if (!window.jQuery) {
+			return;
+		}
+		window.jQuery(window).off('beforeunload');
+	}
+
 	function queueAutosaveAppearance() {
+		suppressLeavePageWarning();
 		if (!canAutosaveAppearance()) {
 			return;
 		}
@@ -1237,6 +1249,23 @@
 			autosaveTimer = null;
 			saveAppearanceState({ showStatus: false });
 		}, 420);
+	}
+
+	function bindLeaveWarningBypass() {
+		if (document.body && document.body.dataset.colorifyLeaveBound === '1') {
+			return;
+		}
+		if (document.body) {
+			document.body.dataset.colorifyLeaveBound = '1';
+		}
+		suppressLeavePageWarning();
+		if (window.jQuery) {
+			window.jQuery(function () {
+				suppressLeavePageWarning();
+				window.setTimeout(suppressLeavePageWarning, 0);
+				window.setTimeout(suppressLeavePageWarning, 250);
+			});
+		}
 	}
 
 	function loadThemeStylesheet(key) {
@@ -1688,6 +1717,7 @@
 				return;
 			}
 			var enabled = !!input.checked;
+			suppressLeavePageWarning();
 			saveThemeEnabled(enabled).then(function (saved) {
 				if (!saved) {
 					syncThemeSwitch();
@@ -2155,11 +2185,13 @@
 	}
 
 	function boot() {
+		bindLeaveWarningBypass();
 		bootModeAndTokens();
 		if (!hasAppearanceUi()) {
 			return;
 		}
 		initAppearanceUi();
+		suppressLeavePageWarning();
 	}
 
 	function runBoot() {
@@ -2176,6 +2208,7 @@
 	runBoot();
 	window.addEventListener('load', function () {
 		boot();
+		suppressLeavePageWarning();
 		if (isThemeActive()) {
 			injectRowActionsReadableCss();
 			watchRowActionsTable();
@@ -2183,6 +2216,7 @@
 		relocateTuningModal();
 		ensureTuningModalClosed();
 		ensureTuningUi();
+		window.setTimeout(suppressLeavePageWarning, 0);
 	});
 
 	window.setInterval(function () {

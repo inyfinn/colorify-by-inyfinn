@@ -186,7 +186,7 @@ final class Colorify_Settings {
 
 				<section class="colorify-settings-scope" aria-labelledby="colorify-scope-title">
 					<h2 id="colorify-scope-title"><?php esc_html_e( 'Zakres ustawień kolorów', 'colorify-by-inyfinn' ); ?></h2>
-					<p class="description"><?php esc_html_e( 'Globalne: wtyczka narzuca domyślny wygląd tylko użytkownikom bez własnego wyboru w profilu. Per użytkownik: każdy konfiguruje kolory samodzielnie.', 'colorify-by-inyfinn' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Globalne: wtyczka narzuca domyślny wygląd tylko użytkownikom bez własnego wyboru w profilu — w tym na stronie logowania. Per użytkownik: każdy konfiguruje kolory samodzielnie.', 'colorify-by-inyfinn' ); ?></p>
 
 					<div class="colorify-scope-toggle" role="radiogroup" aria-label="<?php esc_attr_e( 'Zakres ustawień', 'colorify-by-inyfinn' ); ?>">
 						<label class="colorify-scope-toggle__option<?php echo 'user' === $scope ? ' is-active' : ''; ?>">
@@ -221,6 +221,12 @@ final class Colorify_Settings {
 				<section class="colorify-settings-panel" id="colorify-global-scope-panel"<?php echo 'global' !== $scope ? ' hidden' : ''; ?>>
 					<h2><?php esc_html_e( 'Ustawienia globalne', 'colorify-by-inyfinn' ); ?></h2>
 					<p class="description"><?php esc_html_e( 'Poniżej ustawiasz domyślny wygląd witryny. Dotyczy tylko użytkowników, którzy nie wybrali własnego stylu w profilu.', 'colorify-by-inyfinn' ); ?></p>
+					<div class="colorify-settings-callout colorify-settings-callout--login" role="note">
+						<p>
+							<strong><?php esc_html_e( 'Panel logowania', 'colorify-by-inyfinn' ); ?></strong> —
+							<?php esc_html_e( 'Zmiana globalnego stylu aktualizuje także stronę logowania (wp-login.php). Kolory logowania zawsze pochodzą z ustawień globalnych.', 'colorify-by-inyfinn' ); ?>
+						</p>
+					</div>
 
 					<input type="hidden" name="colorify_admin_appearance" id="colorify-admin-appearance-field" value="<?php echo esc_attr( colorify_get_effective_appearance_mode() ); ?>" />
 

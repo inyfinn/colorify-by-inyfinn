@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.0
+ * Version: 1.0.4
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,8 +39,8 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.3' );
-define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.3' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.4' );
+define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.4' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -68,7 +68,7 @@ const COLORIFY_BRANDING_NAME     = 'Colorify';
 const COLORIFY_CREDITS         = 'inyfinn.art © 2026';
 const COLORIFY_CREDITS_URL     = 'https://inyfinn.art';
 const COLORIFY_BRANDING_CSS_VERSION    = '1.14.9';
-const COLORIFY_APPEARANCE_JS_VERSION   = '1.15.2';
+const COLORIFY_APPEARANCE_JS_VERSION   = '1.15.3';
 const COLORIFY_ADMIN_OVERRIDES_VER     = '1.11.0';
 const COLORIFY_ADMIN_COLORS_VER        = '1.1.1';
 const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.4';
