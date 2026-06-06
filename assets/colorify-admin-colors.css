@@ -1,0 +1,34 @@
+/**
+ * inyfinn.art style — WP admin color scheme (shell).
+ * Dynamiczne --wp-admin-theme-color* z colorify-scheme-vars (inline).
+ */
+
+body {
+	background: var(--colorify-admin-bg, #050f0c);
+	color: var(--colorify-admin-text, #f4f4f5);
+}
+
+a {
+	color: var(--colorify-admin-accent-muted, #b4e717);
+}
+
+.wp-core-ui .button-link,
+.wp-core-ui .button.button-link {
+	color: var(--wp-admin-theme-color, var(--colorify-admin-accent, #7c3aed));
+}
+
+.wp-core-ui .button-link:hover,
+.wp-core-ui .button-link:focus,
+.wp-core-ui .button.button-link:hover,
+.wp-core-ui .button.button-link:focus {
+	color: var(--wp-admin-theme-color-darker-20, var(--colorify-admin-accent-muted, #a78bfa));
+}
+
+.view-switch a.current:before {
+	color: var(--wp-admin-theme-color, var(--colorify-admin-accent, #7c3aed));
+}
+
+.filter-links .current {
+	border-bottom-color: var(--wp-admin-theme-color, var(--colorify-admin-accent, #7c3aed));
+	color: var(--colorify-admin-text, #f4f4f5);
+}

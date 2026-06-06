@@ -1,0 +1,253 @@
+/**
+ * Panel ustawień wtyczki Colorify by INYFINN
+ * Używa tokenów Colorify — czytelne w dark i light.
+ */
+
+.colorify-settings-wrap {
+	max-width: 1100px;
+	margin-top: 12px;
+}
+
+.colorify-settings-hero {
+	margin-bottom: 20px;
+	padding: 20px 22px;
+	border-radius: 16px;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12));
+	background: linear-gradient(
+		145deg,
+		var(--colorify-admin-sidebar, #0b231c) 0%,
+		var(--colorify-admin-bg, #050f0c) 55%,
+		color-mix(in srgb, var(--colorify-admin-bg, #050f0c) 88%, var(--colorify-admin-text, #f4f4f5) 12%) 100%
+	);
+	color: var(--colorify-admin-text, #f4f4f5);
+	box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.colorify-settings-hero__brand {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.colorify-settings-hero__brand h1 {
+	margin: 0 0 4px;
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--colorify-admin-text-bright, #fff);
+}
+
+.colorify-settings-hero__brand p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--colorify-admin-text-muted, #c8d4cf);
+}
+
+.colorify-settings-status {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 14px;
+	margin: 0 0 16px;
+	padding: 12px 16px;
+	border-radius: 12px;
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg));
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-settings-status__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--colorify-admin-text-muted);
+}
+
+.colorify-settings-status__badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.colorify-settings-status__badge--user {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 14%, var(--colorify-admin-bg));
+	color: var(--colorify-admin-accent-muted, var(--colorify-admin-text));
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-accent) 35%, var(--colorify-admin-border));
+}
+
+.colorify-settings-status__badge--global {
+	background: color-mix(in srgb, var(--colorify-admin-text) 8%, var(--colorify-admin-bg));
+	color: var(--colorify-admin-text);
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-settings-scope,
+.colorify-settings-panel {
+	margin: 0 0 18px;
+	padding: 18px 20px;
+	border-radius: 14px;
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg));
+	border: 1px solid var(--colorify-admin-border);
+	box-shadow: inset 0 1px 0 color-mix(in srgb, var(--colorify-admin-text) 4%, transparent);
+}
+
+.colorify-settings-scope h2,
+.colorify-settings-panel h2 {
+	margin: 0 0 8px;
+	font-size: 16px;
+	color: var(--colorify-admin-text) !important;
+}
+
+.colorify-settings-scope .description,
+.colorify-settings-panel .description {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.colorify-scope-toggle {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-top: 14px;
+}
+
+@media (max-width: 782px) {
+	.colorify-scope-toggle {
+		grid-template-columns: 1fr;
+	}
+}
+
+.colorify-scope-toggle__option {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	border: 2px solid var(--colorify-admin-border);
+	background: var(--colorify-admin-field, var(--colorify-admin-bg));
+	cursor: pointer;
+	transition:
+		border-color 0.18s ease,
+		box-shadow 0.18s ease,
+		background 0.18s ease;
+}
+
+.colorify-scope-toggle__option.is-active {
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 55%, var(--colorify-admin-border));
+	background: color-mix(in srgb, var(--colorify-admin-accent) 10%, var(--colorify-admin-bg));
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.12));
+}
+
+.colorify-scope-toggle__option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.colorify-scope-toggle__label {
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--colorify-admin-text) !important;
+}
+
+.colorify-scope-toggle__hint {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.colorify-settings-callout {
+	padding: 16px 18px;
+	border-radius: 12px;
+	background: color-mix(in srgb, var(--colorify-admin-accent) 8%, var(--colorify-admin-bg));
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-settings-callout h2 {
+	margin-top: 0;
+	color: var(--colorify-admin-text) !important;
+}
+
+.colorify-settings-callout a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+.colorify-global-scheme-picker {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 14px;
+	margin: 0 0 16px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: var(--colorify-admin-field, var(--colorify-admin-bg));
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-global-scheme-picker label {
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--colorify-admin-text) !important;
+}
+
+.colorify-global-scheme-picker select {
+	min-width: 220px;
+	min-height: 40px;
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+.colorify-settings-submit {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px 16px;
+	margin-top: 16px;
+}
+
+.colorify-settings-submit--scope {
+	margin-top: 4px;
+	padding-top: 8px;
+	border-top: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-settings-submit__hint {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--colorify-admin-text-muted) !important;
+	max-width: 420px;
+	text-align: right;
+}
+
+.colorify-settings-save {
+	min-height: 44px !important;
+	padding: 10px 24px !important;
+	font-weight: 700 !important;
+	border-radius: 12px !important;
+}
+
+.colorify-settings-footer {
+	margin-top: 8px;
+	font-size: 12px;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.colorify-settings-footer a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+#colorify-global-appearance-mount .colorify-custom-section {
+	max-width: none;
+}
+
+#colorify-global-appearance-mount #colorify-custom-palette-mount {
+	display: block !important;
+}
+
+#colorify-global-appearance-mount #colorify-custom-palette-mount[hidden] {
+	display: block !important;
+}

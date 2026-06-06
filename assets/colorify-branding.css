@@ -1,0 +1,2496 @@
+/**
+ * inyfinn.art style — wp-login + wp-admin branding.
+ */
+
+/* ── Login ─────────────────────────────────────────────────────────────── */
+
+html,
+body.login {
+	background: #0a0a0a !important;
+	font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+	min-height: 100vh;
+	margin: 0;
+}
+
+body.login {
+	position: relative;
+}
+
+body.login::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.22), transparent 70%),
+		radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.1), transparent 55%),
+		radial-gradient(circle at 85% 85%, rgba(124, 58, 237, 0.12), transparent 45%);
+	z-index: 0;
+}
+
+body.login #login {
+	position: relative;
+	z-index: 1;
+	width: min(100%, 400px);
+	padding-top: 6vh;
+}
+
+body.login #login h1.wp-login-logo a,
+body.login #login h1 a {
+	background-image: none !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 auto 1.25rem;
+	text-indent: 0 !important;
+	overflow: visible !important;
+	display: flex !important;
+	justify-content: center;
+	text-decoration: none !important;
+	outline: none;
+	box-shadow: none !important;
+}
+
+body.login .colorify-login-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.65rem;
+	color: #f4f4f5 !important;
+}
+
+body.login .colorify-login-brand__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 999px;
+	background: color-mix(in srgb, #7c3aed 16%, transparent);
+	color: #c4b5fd;
+	overflow: hidden;
+}
+
+body.login .colorify-login-brand__icon-img {
+	display: block;
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+	border-radius: 8px;
+}
+
+body.login .colorify-login-brand__icon-img--fallback {
+	width: 30px;
+	height: 30px;
+	color: #c4b5fd;
+	filter: brightness(0) saturate(100%) invert(78%) sepia(28%) saturate(1200%) hue-rotate(218deg) brightness(103%) contrast(98%);
+}
+
+body.login .colorify-login-brand__wordmark {
+	font-size: 1.25rem;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+body.login .colorify-login-tagline {
+	margin: 0 0 1.25rem;
+	text-align: center;
+	color: #a1a1aa;
+	font-size: 0.875rem;
+	line-height: 1.45;
+}
+
+body.login form {
+	background: rgba(255, 255, 255, 0.04) !important;
+	border: 1px solid rgba(255, 255, 255, 0.1) !important;
+	border-radius: 20px !important;
+	box-shadow: 0 24px 64px -24px rgba(124, 58, 237, 0.35) !important;
+	padding: 1.75rem 1.5rem 1.5rem !important;
+	backdrop-filter: blur(12px);
+}
+
+body.login form label,
+body.login form .forgetmenot label {
+	color: #e4e4e7 !important;
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+body.login input[type="text"],
+body.login input[type="password"],
+body.login input[type="email"] {
+	background: rgba(255, 255, 255, 0.06) !important;
+	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	border-radius: 12px !important;
+	color: #f4f4f5 !important;
+	box-shadow: none !important;
+	padding: 0.55rem 0.75rem !important;
+}
+
+body.login input[type="text"]:focus,
+body.login input[type="password"]:focus,
+body.login input[type="email"]:focus {
+	border-color: rgba(124, 58, 237, 0.55) !important;
+	box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18) !important;
+	outline: none !important;
+}
+
+body.login .button-primary,
+body.login .button-primary:hover,
+body.login .button-primary:focus {
+	background: #7c3aed !important;
+	border: none !important;
+	border-radius: 999px !important;
+	box-shadow: 0 8px 24px -8px rgba(124, 58, 237, 0.65) !important;
+	color: #fff !important;
+	font-weight: 600 !important;
+	padding: 0.4rem 1.25rem !important;
+	text-shadow: none !important;
+	height: auto !important;
+	line-height: 1.6 !important;
+}
+
+body.login .button-primary:hover {
+	background: #6d28d9 !important;
+}
+
+body.login #nav,
+body.login #backtoblog,
+body.login .privacy-policy-page-link {
+	padding: 0 !important;
+	text-align: center;
+	position: relative;
+	z-index: 1;
+}
+
+body.login #nav,
+body.login #backtoblog {
+	margin-top: 0.85rem;
+}
+
+body.login #nav a,
+body.login #backtoblog a,
+body.login .privacy-policy-page-link a {
+	color: #a78bfa !important;
+	transition: color 0.15s ease;
+}
+
+body.login #nav a:hover,
+body.login #backtoblog a:hover,
+body.login .privacy-policy-page-link a:hover {
+	color: #c4b5fd !important;
+}
+
+body.login .message,
+body.login .success,
+body.login #login_error {
+	border-radius: 12px !important;
+	border-left-width: 4px !important;
+}
+
+body.login #login_error {
+	border-left-color: #f87171 !important;
+	background: rgba(248, 113, 113, 0.08) !important;
+	color: #fecaca !important;
+}
+
+body.login .message,
+body.login .success {
+	border-left-color: #7c3aed !important;
+	background: rgba(124, 58, 237, 0.1) !important;
+	color: #e4e4e7 !important;
+}
+
+body.login .language-switcher {
+	position: relative;
+	z-index: 1;
+	width: min(100%, 400px);
+	margin: 1.25rem auto 0;
+	padding: 0 1rem 2rem;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	text-align: center;
+}
+
+body.login #language-switcher {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 0.45rem;
+	margin: 0;
+	padding: 0.45rem 0.75rem !important;
+	background: rgba(255, 255, 255, 0.04) !important;
+	border: 1px solid rgba(255, 255, 255, 0.1) !important;
+	border-radius: 999px !important;
+	box-shadow: none !important;
+}
+
+body.login .language-switcher label {
+	margin: 0 !important;
+	display: inline-flex;
+	align-items: center;
+	color: #a1a1aa !important;
+}
+
+body.login .language-switcher label .dashicons {
+	color: #a78bfa !important;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+body.login #language-switcher select,
+body.login .language-switcher select {
+	margin: 0 !important;
+	padding: 0.15rem 0.35rem !important;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 8px !important;
+	color: #f4f4f5 !important;
+	color-scheme: light;
+	font-family: inherit;
+	font-size: 0.8125rem;
+	max-width: 11rem;
+	box-shadow: none !important;
+	-webkit-text-fill-color: #f4f4f5;
+}
+
+body.login #language-switcher select option,
+body.login .language-switcher select option {
+	background-color: #ffffff !important;
+	color: #0a0a0a !important;
+	-webkit-text-fill-color: #0a0a0a;
+}
+
+body.login #language-switcher select:focus,
+body.login .language-switcher select:focus {
+	outline: none !important;
+	box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35) !important;
+}
+
+body.login .language-switcher .button {
+	margin: 0 !important;
+	border-radius: 999px !important;
+	border: 1px solid rgba(124, 58, 237, 0.45) !important;
+	color: #c4b5fd !important;
+	background: rgba(124, 58, 237, 0.12) !important;
+	font-size: 0.8125rem;
+	line-height: 1.6;
+	padding: 0.15rem 0.75rem !important;
+	height: auto !important;
+}
+
+body.login .language-switcher .button:hover,
+body.login .language-switcher .button:focus {
+	background: rgba(124, 58, 237, 0.22) !important;
+	color: #ede9fe !important;
+}
+
+body.login input[type="checkbox"]:checked::before {
+	color: #7c3aed !important;
+}
+
+body.login .colorify-login-credits {
+	position: relative;
+	z-index: 1;
+	width: min(100%, 400px);
+	margin: 0.75rem auto 0;
+	padding: 0 1rem 1.5rem;
+	text-align: center;
+	font-size: 0.75rem;
+	color: #71717a;
+	letter-spacing: 0.02em;
+}
+
+body.login .colorify-login-credits a {
+	color: #a78bfa !important;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+body.login .colorify-login-credits a:hover {
+	color: #c4b5fd !important;
+}
+
+/* ── Admin panel — dark mode (inyfinn.art style tokens) ─────────────────── */
+
+:root {
+	--colorify-admin-bg: #050f0c;
+	--colorify-admin-sidebar: #0b231c;
+	--colorify-admin-surface: #0b231c;
+	--colorify-admin-surface-2: #1c4b42;
+	--colorify-admin-field: #0b231c;
+	--colorify-admin-field-hover: #1c4b42;
+	--colorify-admin-border: rgba(255, 255, 255, 0.1);
+	--colorify-admin-text: #f4f4f5;
+	--colorify-admin-text-muted: #c8d4cf;
+	--colorify-admin-text-dim: #8fa39b;
+	--colorify-admin-accent: #b4e717;
+	--colorify-admin-accent-soft: rgba(180, 231, 23, 0.12);
+	--colorify-admin-accent-muted: #b4e717;
+	--wp-admin-theme-color: var(--colorify-admin-bg, #1c4b42);
+}
+
+html.wp-toolbar {
+	padding-top: 32px;
+}
+
+@media screen and (max-width: 782px) {
+	html.wp-toolbar {
+		padding-top: 46px;
+	}
+}
+
+body.wp-admin:not(.colorify-admin-light) {
+	color-scheme: dark;
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+	/* Semantyka UI: tło = bg, akcent tylko na tekst/linki, pasek = 20% ciemniej od tła */
+	--colorify-admin-mark: color-mix(in srgb, var(--colorify-admin-bg) 80%, #000);
+	--colorify-admin-row-bg: var(--colorify-admin-bg);
+	--colorify-admin-row-active-bg: var(--colorify-admin-bg);
+	--colorify-admin-row-hover-bg: color-mix(in srgb, var(--colorify-admin-bg) 94%, var(--colorify-admin-text));
+	--colorify-admin-row-separator: color-mix(in srgb, var(--colorify-admin-bg) 72%, #000);
+	--colorify-admin-notice-bg: var(--colorify-admin-bg);
+	--colorify-admin-ui-hover-bg: color-mix(in srgb, var(--colorify-admin-bg) 90%, var(--colorify-admin-text));
+	--colorify-admin-ui-selected-bg: color-mix(in srgb, var(--colorify-admin-bg) 88%, var(--colorify-admin-sidebar) 12%);
+}
+
+body.wp-admin.colorify-admin-light {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+	--colorify-admin-mark: color-mix(in srgb, var(--colorify-admin-bg) 80%, #000);
+	--colorify-admin-row-bg: var(--colorify-admin-bg);
+	--colorify-admin-row-active-bg: var(--colorify-admin-bg);
+	--colorify-admin-row-hover-bg: color-mix(in srgb, var(--colorify-admin-bg) 96%, var(--colorify-admin-text));
+	--colorify-admin-row-separator: color-mix(in srgb, var(--colorify-admin-bg) 82%, #000);
+	--colorify-admin-notice-bg: var(--colorify-admin-bg);
+	--colorify-admin-ui-hover-bg: color-mix(in srgb, var(--colorify-admin-bg) 92%, var(--colorify-admin-text));
+	--colorify-admin-ui-selected-bg: color-mix(in srgb, var(--colorify-admin-bg) 88%, var(--colorify-admin-sidebar) 12%);
+}
+
+/* Gradient tła — 35% mniejszy niż na loginie, ten sam klimat */
+body.wp-admin:not(.colorify-admin-light)::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	left: 160px;
+	pointer-events: none;
+	z-index: 0;
+	background:
+		radial-gradient(ellipse 52% 39% at 50% 0%, color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 22%, transparent), transparent 70%),
+		radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 10%, transparent), transparent 55%),
+		radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 12%, transparent), transparent 45%);
+}
+
+@media screen and (max-width: 782px) {
+	body.wp-admin:not(.colorify-admin-light)::before {
+		left: 0;
+	}
+}
+
+#wpwrap {
+	position: relative;
+	z-index: 1;
+}
+
+#adminmenuback,
+#adminmenuwrap,
+#adminmenu {
+	position: relative;
+	z-index: 2;
+}
+
+body.wp-admin.colorify-admin-light {
+	color-scheme: light;
+}
+
+#wpwrap,
+#wpcontent,
+#wpbody,
+#wpbody-content,
+.wrap,
+#screen-meta-links,
+#screen-meta {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+#wpfooter {
+	background: var(--colorify-admin-surface) !important;
+	border-top: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wrap h1,
+.wrap h2,
+.wrap h3,
+.wrap h4 {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wrap p,
+.form-table p,
+.form-table .description,
+p.description,
+.subtitle,
+.wrap .notice p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.form-table th,
+.form-table td,
+label {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Pola formularzy — szare tło, biały tekst */
+.wp-admin input[type="text"],
+.wp-admin input[type="password"],
+.wp-admin input[type="email"],
+.wp-admin input[type="url"],
+.wp-admin input[type="number"],
+.wp-admin input[type="search"],
+.wp-admin input[type="tel"],
+.wp-admin input[type="date"],
+.wp-admin input[type="time"],
+.wp-admin input[type="datetime-local"],
+.wp-admin textarea,
+.wp-admin select,
+.wp-admin .regular-text,
+.wp-admin .large-text,
+.wp-admin .CodeMirror,
+.wp-admin .CodeMirror pre {
+	background: var(--colorify-admin-field) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 8px !important;
+	color: var(--colorify-admin-text) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="text"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="password"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="email"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="url"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="number"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="search"]:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin textarea:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-admin select:focus {
+	background: var(--colorify-admin-field-hover) !important;
+	border-color: rgba(124, 58, 237, 0.5) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft) !important;
+	outline: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin select option,
+.wp-admin select optgroup {
+	background: #1c1c1f !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin input[type="checkbox"],
+.wp-admin input[type="radio"] {
+	background: var(--colorify-admin-field) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="checkbox"]:checked::before {
+	color: var(--colorify-admin-accent) !important;
+}
+
+.wp-admin input::placeholder,
+.wp-admin textarea::placeholder {
+	color: var(--colorify-admin-text-dim) !important;
+	opacity: 1;
+}
+
+/* Przyciski secondary */
+.wp-core-ui .button,
+.wp-core-ui .button-secondary {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+	border-radius: 8px !important;
+	box-shadow: none !important;
+}
+
+.wp-core-ui .button:hover,
+.wp-core-ui .button-secondary:hover {
+	background: var(--colorify-admin-field-hover) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 35%, var(--colorify-admin-border)) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-core-ui .button:focus,
+.wp-core-ui .button-secondary:focus {
+	border-color: var(--colorify-admin-accent) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Powiadomienia — to samo ciemne tło co panel; akcent tylko na tekście/linkach */
+.wp-admin .notice,
+.wp-admin div.updated,
+.wp-admin div.error,
+.wp-admin .update-nag {
+	background: var(--colorify-admin-notice-bg, var(--colorify-admin-bg)) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-left: none !important;
+	border-radius: 8px !important;
+	color: var(--colorify-admin-text) !important;
+	box-shadow: none !important;
+}
+
+.wp-admin .plugins .plugin-update-tr .notice,
+.wp-admin .plugins .plugin-update-tr .update-message {
+	background: var(--colorify-admin-notice-bg, var(--colorify-admin-bg)) !important;
+	border: none !important;
+	border-left: none !important;
+}
+
+.wp-admin .settings-error,
+.wp-admin .is-dismissible {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin .updated p,
+.wp-admin .notice-success p {
+	color: #86efac !important;
+}
+
+.wp-admin .notice-error p,
+.wp-admin div.error p {
+	color: #fecaca !important;
+}
+
+.wp-admin .notice-warning p {
+	color: #fde68a !important;
+}
+
+.wp-admin .notice-info p,
+.wp-admin .notice p,
+.wp-admin .update-nag p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin.colorify-admin-light .notice p,
+body.wp-admin.colorify-admin-light .update-nag p,
+body.wp-admin.colorify-admin-light div.updated p,
+body.wp-admin.colorify-admin-light div.error p {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin.colorify-admin-light .notice a,
+body.wp-admin.colorify-admin-light .update-nag a,
+body.wp-admin.colorify-admin-light div.updated a,
+body.wp-admin.colorify-admin-light div.error a {
+	color: var(--colorify-admin-link) !important;
+	font-weight: 600;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice a,
+body.wp-admin:not(.colorify-admin-light) .update-nag a,
+body.wp-admin:not(.colorify-admin-light) div.updated a,
+body.wp-admin:not(.colorify-admin-light) div.error a,
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a,
+body.wp-admin:not(.colorify-admin-light) .subsubsub a {
+	color: var(--colorify-admin-link) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice a:hover,
+body.wp-admin:not(.colorify-admin-light) .update-nag a:hover,
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a:hover,
+body.wp-admin:not(.colorify-admin-light) .subsubsub a:hover {
+	color: var(--colorify-admin-link-hover) !important;
+}
+
+.wp-admin .notice strong,
+.wp-admin .update-nag strong {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin .notice-dismiss:before {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+.wp-admin .notice-dismiss:hover:before,
+.wp-admin .notice-dismiss:focus:before {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin strong,
+.wp-admin b {
+	color: var(--colorify-admin-text);
+}
+
+/* Metaboxy / karty */
+.wp-admin .postbox,
+.wp-admin .stuffbox {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 12px !important;
+	box-shadow: none !important;
+}
+
+.wp-admin .postbox-header,
+.wp-admin .postbox .hndle,
+.wp-admin .stuffbox .hndle {
+	background: var(--colorify-admin-surface-2) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin .postbox .inside,
+.wp-admin .stuffbox .inside {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* ── Kokpit — widgety, aktywność, komentarze (tokeny zamiast #f6f7f7) ─── */
+
+.wp-admin #dashboard-widgets .postbox .inside {
+	background: transparent !important;
+}
+
+.wp-admin #dashboard_right_now .sub {
+	background: var(--colorify-admin-surface-2) !important;
+	border-top: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #dashboard_right_now .sub h3,
+.wp-admin #dashboard_right_now .sub p,
+.wp-admin #dashboard_right_now li,
+.wp-admin #dashboard_right_now .main p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #dashboard_right_now .main {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin #dashboard_activity .subsubsub {
+	border-top: 1px solid var(--colorify-admin-border) !important;
+}
+
+.wp-admin #dashboard_activity .subsubsub a .count,
+.wp-admin #dashboard_activity .subsubsub a.current .count {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+.wp-admin #future-posts li,
+.wp-admin #published-posts li {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #future-posts li:nth-child(odd),
+.wp-admin #published-posts li:nth-child(odd) {
+	background-color: var(--colorify-admin-surface-2) !important;
+}
+
+.wp-admin .activity-block {
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+}
+
+.wp-admin .activity-block h3,
+.wp-admin .activity-block h4,
+.wp-admin .activity-block .subsubsub li {
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin #dashboard_activity .no-activity p {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+.wp-admin #activity-widget #the-comment-list .comment-item {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #activity-widget #the-comment-list .comment-item:first-child {
+	border-top: 1px solid var(--colorify-admin-border) !important;
+}
+
+.wp-admin #activity-widget #the-comment-list .comment-item p,
+.wp-admin #activity-widget #the-comment-list .comment-item blockquote {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #activity-widget #the-comment-list .unapproved {
+	background-color: color-mix(in srgb, #fbbf24 14%, var(--colorify-admin-surface-2)) !important;
+}
+
+.wp-admin #dashboard_quick_press div.updated {
+	border-color: var(--colorify-admin-border) !important;
+}
+
+.wp-admin.js #dashboard_quick_press .drafts {
+	border-top: 1px solid var(--colorify-admin-border) !important;
+}
+
+.wp-admin .welcome-panel .welcome-panel-column-container {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+.wp-admin .welcome-panel-column p,
+.wp-admin .welcome-panel-column li,
+.wp-admin .welcome-panel-column li a {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin .community-events-footer {
+	border-top: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin .community-events li,
+.wp-admin .community-events .activity-block > p,
+.wp-admin .rssSummary,
+.wp-admin #dashboard_primary .rss-widget span,
+.wp-admin #dashboard_primary .rss-widget span.rss-date {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin #dashboard_site_health .health-check-widget-title-section,
+.wp-admin #dashboard_site_health .health-check-widget-title-section + div {
+	background: transparent !important;
+}
+
+.wp-admin .health-check-widget .site-health-progress,
+.wp-admin .site-health-view-more {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Tabele list */
+.wp-admin .wp-list-table {
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 8px !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin .wp-list-table th,
+.wp-admin .wp-list-table td {
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+	background-color: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+}
+
+.wp-admin .wp-list-table thead th,
+.wp-admin .wp-list-table tfoot th {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+.wp-admin .wp-list-table.striped > tbody > :nth-child(odd),
+.wp-admin .wp-list-table.alternate tbody tr:nth-child(odd) {
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-list-table tr:hover td,
+body.wp-admin:not(.colorify-admin-light) .wp-list-table tr:hover th {
+	background: var(--colorify-admin-row-hover-bg, var(--colorify-admin-surface)) !important;
+}
+
+body.wp-admin.colorify-admin-light .wp-list-table tr:hover td,
+body.wp-admin.colorify-admin-light .wp-list-table tr:hover th {
+	background: var(--colorify-admin-surface-2) !important;
+}
+
+.wp-admin .tablenav,
+.wp-admin .subsubsub {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin .subsubsub a {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.wp-admin .subsubsub a.current {
+	color: var(--colorify-admin-text) !important;
+	font-weight: 600;
+}
+
+/* Linki w treści admina */
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button) {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent)) !important;
+	font-weight: 500;
+}
+
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):hover,
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):focus {
+	color: var(--colorify-admin-link-hover, var(--colorify-admin-accent)) !important;
+}
+
+/* Card / panel ustawień Voiceprint */
+.wp-admin .form-table,
+.wp-admin fieldset {
+	background: transparent !important;
+}
+
+.wp-admin hr {
+	border-color: var(--colorify-admin-border) !important;
+}
+
+.wp-admin code,
+.wp-admin .code {
+	background: var(--colorify-admin-field) !important;
+	color: #c4b5fd !important;
+	border-radius: 4px;
+	padding: 0.1em 0.35em;
+}
+
+/* Range sliders — fioletowy akcent */
+.wp-admin input[type="range"] {
+	accent-color: var(--colorify-admin-accent);
+}
+
+/* Screen options / help tabs */
+#screen-options-wrap,
+#contextual-help-wrap {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+#screen-meta-links .show-settings {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+#screen-meta,
+#screen-meta-links,
+#screen-meta-links .show-settings,
+#contextual-help-link-wrap {
+	position: relative;
+	z-index: 2;
+	pointer-events: auto !important;
+}
+
+/* Menu boczne — delikatnie jaśniejsze od tła contentu */
+#adminmenuback {
+	background: var(--colorify-admin-sidebar) !important;
+	width: 160px !important;
+	max-width: 160px !important;
+	pointer-events: none !important;
+}
+
+#adminmenu,
+#adminmenuwrap {
+	background: var(--colorify-admin-sidebar) !important;
+}
+
+#adminmenuwrap {
+	border-right: 1px solid var(--colorify-admin-border);
+}
+
+/* Modal sesji — gdy ukryty, nie blokuj kliknięć */
+#wp-auth-check-wrap.hidden {
+	display: none !important;
+	pointer-events: none !important;
+	visibility: hidden !important;
+}
+
+#wp-auth-check-wrap.hidden #wp-auth-check-bg,
+#wp-auth-check-wrap.hidden #wp-auth-check-form-wrap {
+	display: none !important;
+	pointer-events: none !important;
+}
+
+#adminmenu .wp-submenu,
+#adminmenu li.wp-has-current-submenu .wp-submenu,
+#adminmenu .wp-has-current-submenu > a,
+#adminmenu .current > a {
+	background: var(--colorify-admin-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu a:hover,
+body.wp-admin:not(.colorify-admin-light) #adminmenu li.menu-top:hover,
+body.wp-admin:not(.colorify-admin-light) #adminmenu li.opensub > a.menu-top {
+	background: var(--colorify-admin-surface-2) !important;
+}
+
+#adminmenu li.current a.menu-top,
+#adminmenu li.wp-has-current-submenu a.wp-has-current-submenu {
+	background: var(--colorify-admin-surface-2) !important;
+	border-left: 2px solid var(--colorify-admin-mark, var(--colorify-admin-border)) !important;
+}
+
+#adminmenu a,
+#adminmenu li.menu-top > a {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Submenu (rozwijane + flyout przy zwiniętym menu) — czytelny tekst */
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu-wrap,
+body.wp-admin:not(.colorify-admin-light) .wp-submenu {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	box-shadow: 4px 4px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu .wp-submenu-head,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu li a,
+body.wp-admin:not(.colorify-admin-light) .wp-submenu a {
+	color: var(--colorify-admin-text) !important;
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a:hover,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a:focus {
+	color: var(--colorify-admin-text-bright, #ffffff) !important;
+	background: var(--colorify-admin-ui-hover-bg, var(--colorify-admin-surface-2)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu li.current a,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a.current {
+	color: var(--colorify-admin-accent-muted, var(--colorify-admin-text)) !important;
+	background: var(--colorify-admin-ui-selected-bg, var(--colorify-admin-surface)) !important;
+	font-weight: 600;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu .wp-submenu-head {
+	color: var(--colorify-admin-text-muted) !important;
+	font-weight: 600;
+}
+
+body.wp-admin:not(.colorify-admin-light).folded #adminmenu .wp-has-submenu.opensub .wp-submenu,
+body.wp-admin:not(.colorify-admin-light).folded #adminmenu .wp-has-submenu:hover .wp-submenu,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-menu-open .wp-submenu.sub-open {
+	background: var(--colorify-admin-surface-2) !important;
+}
+
+#adminmenu div.wp-menu-image::before {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+#adminmenu li.current div.wp-menu-image::before,
+#adminmenu li.wp-has-current-submenu div.wp-menu-image::before,
+#adminmenu a:hover div.wp-menu-image::before {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+/* Light: ikony na aktywnym menu-top (ciemny akcent tła → jasna ikona) */
+body.wp-admin.colorify-admin-light #adminmenu li.current div.wp-menu-image::before,
+body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu div.wp-menu-image::before {
+	color: var(--colorify-admin-on-accent, #ffffff) !important;
+}
+
+#adminmenu .awaiting-mod,
+#adminmenu .update-plugins,
+#adminmenu .update-count,
+#adminmenu .menu-counter,
+#adminmenu span[class*="count"],
+#adminmenu .wf-menu-badge {
+	display: inline-block;
+	min-width: 16px;
+	height: 16px;
+	padding: 0 5px;
+	line-height: 16px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	text-align: center;
+	vertical-align: middle;
+	box-sizing: border-box;
+	background: var(--colorify-admin-accent) !important;
+	background-color: var(--colorify-admin-accent) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+/* Badge w pasku admina — tylko małe liczniki, nie etykiety .ab-label */
+#wpadminbar .ab-top-menu > li .ab-item > .awaiting-mod:not(.ab-label),
+#wpadminbar .ab-top-menu > li .ab-item > .update-count:not(.ab-label) {
+	display: inline-block;
+	min-width: 16px;
+	height: 16px;
+	padding: 0 5px;
+	line-height: 16px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	text-align: center;
+	vertical-align: middle;
+	box-sizing: border-box;
+	background: var(--colorify-admin-accent) !important;
+	background-color: var(--colorify-admin-accent) !important;
+	color: var(--colorify-admin-on-accent, #ffffff) !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #adminmenu [style*="background"][class*="count"],
+body.wp-admin:not(.colorify-admin-light) #adminmenu [style*="background-color"][class*="count"],
+body.wp-admin:not(.colorify-admin-light) #adminmenu .update-plugins[style],
+body.wp-admin:not(.colorify-admin-light) #adminmenu .wf-menu-badge[style],
+body.wp-admin:not(.colorify-admin-light) #adminmenu a[class*="Wordfence"] .update-plugins,
+body.wp-admin:not(.colorify-admin-light) #adminmenu .toplevel_page_Wordfence .update-plugins {
+	background: var(--colorify-admin-accent) !important;
+	background-color: var(--colorify-admin-accent) !important;
+	color: #fff !important;
+}
+
+#wpadminbar {
+	position: fixed !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	z-index: 99999;
+	min-height: 32px;
+	height: 32px;
+	background: var(--colorify-admin-bg) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	box-sizing: border-box;
+}
+
+@media screen and (max-width: 782px) {
+	#wpadminbar {
+		min-height: 46px;
+		height: 46px;
+	}
+}
+
+#wpcontent,
+#wpfooter {
+	margin-top: 0 !important;
+}
+
+#wpadminbar .ab-item,
+#wpadminbar a.ab-item,
+#wpadminbar > #wp-toolbar span.ab-label,
+#wpadminbar > #wp-toolbar span.noticon {
+	color: var(--colorify-admin-text) !important;
+}
+
+#wpadminbar .ab-top-menu > li:hover > .ab-item,
+#wpadminbar .ab-top-menu > li.hover > .ab-item,
+#wpadminbar .ab-top-menu > li > .ab-item:focus,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus,
+#wpadminbar .ab-top-menu > li.menupop.hover > .ab-item {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+#wpadminbar #wp-admin-bar-site-name > .ab-item::before {
+	color: var(--colorify-admin-accent-muted) !important;
+	width: 18px !important;
+	height: 18px !important;
+	line-height: 18px !important;
+	margin-top: 7px !important;
+}
+
+#wpadminbar .quicklinks .ab-sub-wrapper,
+#wpadminbar .shortlink-input {
+	background: var(--colorify-admin-surface) !important;
+}
+
+.wp-core-ui .button-primary,
+.wp-core-ui .button-primary:hover,
+.wp-core-ui .button-primary:focus,
+.wp-core-ui .button-primary:active {
+	background: var(--colorify-admin-accent) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 85%, #000) !important;
+	box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--colorify-admin-accent) 55%, transparent) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+}
+
+.wp-core-ui .button-primary:hover,
+.wp-core-ui .button-primary:focus {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 88%, #000) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 75%, #000) !important;
+}
+
+.wp-core-ui .button-primary:focus {
+	box-shadow: 0 0 0 2px var(--colorify-admin-surface), 0 0 0 4px var(--colorify-admin-accent) !important;
+}
+
+#wpbody-content a.button-primary,
+#wpbody-content a.button-primary:hover,
+#wpbody-content a.button-primary:focus,
+.notice a.button-primary,
+.update-nag a.button-primary,
+div.updated a.button-primary {
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+}
+
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
+#adminmenu li.current a.menu-top,
+#adminmenu li.wp-has-current-submenu a.wp-has-current-submenu {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Strzałka aktywnej pozycji — akcent marki zamiast białego WP core */
+#adminmenu li.current .wp-menu-arrow,
+#adminmenu li.wp-has-current-submenu .wp-menu-arrow {
+	background: transparent !important;
+}
+
+#adminmenu li.current .wp-menu-arrow div,
+#adminmenu li.wp-has-current-submenu .wp-menu-arrow div {
+	background: var(--colorify-admin-accent) !important;
+	border-color: transparent var(--colorify-admin-accent) transparent transparent !important;
+}
+
+#footer-left .colorify-admin-footer-brand {
+	color: var(--colorify-admin-text-muted);
+	font-weight: 500;
+}
+
+#footer-left .colorify-admin-footer-brand .colorify-admin-footer-credits {
+	color: var(--colorify-admin-text-muted) !important;
+	font-size: inherit;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	text-decoration: none;
+}
+
+#footer-left .colorify-admin-footer-brand .colorify-admin-footer-credits:hover,
+#footer-left .colorify-admin-footer-brand .colorify-admin-footer-credits:focus {
+	color: var(--colorify-admin-link) !important;
+}
+
+#footer-left .colorify-admin-footer-brand strong {
+	color: var(--colorify-admin-link);
+	font-weight: 600;
+}
+
+#footer-right .colorify-admin-footer-right {
+	color: var(--colorify-admin-text-muted);
+	font-weight: 500;
+}
+
+#footer-right .colorify-admin-footer-credits {
+	color: var(--colorify-admin-text-muted) !important;
+	font-size: inherit;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	text-decoration: none;
+}
+
+#footer-right .colorify-admin-footer-credits:hover,
+#footer-right .colorify-admin-footer-credits:focus {
+	color: var(--colorify-admin-link) !important;
+}
+
+#footer-right .colorify-admin-footer-site {
+	color: var(--colorify-admin-text-muted);
+	font-weight: 500;
+}
+
+#footer-right .colorify-admin-footer-version {
+	color: var(--colorify-admin-text-dim);
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+/* ── Dark mode — nadpisania WP core (#fff, #f6f7f7, niski kontrast) ─────── */
+
+body.wp-admin:not(.colorify-admin-light) .wp-filter,
+body.wp-admin:not(.colorify-admin-light) .filter-drawer,
+body.wp-admin:not(.colorify-admin-light) .wp-filter .filter-drawer {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .filter-links li > a {
+	background: transparent !important;
+	border-bottom-color: transparent !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .filter-links .current {
+	color: var(--colorify-admin-text) !important;
+	border-bottom-color: var(--colorify-admin-accent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .filter-links li > a:hover,
+body.wp-admin:not(.colorify-admin-light) .filter-links li > a:focus {
+	color: var(--colorify-admin-link-hover) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-filter .search-form input[type="search"],
+body.wp-admin:not(.colorify-admin-light) .wp-filter .search-form select,
+body.wp-admin:not(.colorify-admin-light) .wp-filter .filter-items select,
+body.wp-admin:not(.colorify-admin-light) #media-search-input,
+body.wp-admin:not(.colorify-admin-light) .search-form input[type="search"],
+body.wp-admin:not(.colorify-admin-light) .tablenav .search-plugins input[type="search"] {
+	background: var(--colorify-admin-field) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text);
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-filter .search-form input[type="search"]::placeholder,
+body.wp-admin:not(.colorify-admin-light) #media-search-input::placeholder,
+body.wp-admin:not(.colorify-admin-light) .search-form input[type="search"]::placeholder {
+	color: var(--colorify-admin-text-muted) !important;
+	opacity: 1;
+}
+
+body.wp-admin:not(.colorify-admin-light) .view-switch a:before {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .view-switch a:hover:before,
+body.wp-admin:not(.colorify-admin-light) .view-switch a:focus:before,
+body.wp-admin:not(.colorify-admin-light) .view-switch a.current:before {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachments-browser,
+body.wp-admin:not(.colorify-admin-light) .media-toolbar,
+body.wp-admin:not(.colorify-admin-light) .media-sidebar,
+body.wp-admin:not(.colorify-admin-light) .upload-ui,
+body.wp-admin:not(.colorify-admin-light) .media-upload-form .media-item,
+body.wp-admin:not(.colorify-admin-light) .uploader-inline,
+body.wp-admin:not(.colorify-admin-light) .uploader-inline-content,
+body.wp-admin:not(.colorify-admin-light) .media-frame-content,
+body.wp-admin:not(.colorify-admin-light) .media-frame-title,
+body.wp-admin:not(.colorify-admin-light) .media-frame-router,
+body.wp-admin:not(.colorify-admin-light) .media-frame-toolbar,
+body.wp-admin:not(.colorify-admin-light) .attachment-details,
+body.wp-admin:not(.colorify-admin-light) .attachment-info,
+body.wp-admin:not(.colorify-admin-light) .media-modal-content,
+body.wp-admin:not(.colorify-admin-light) .media-modal .media-toolbar {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame-title h1,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .setting,
+body.wp-admin:not(.colorify-admin-light) .attachment-details label,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .name,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .value,
+body.wp-admin:not(.colorify-admin-light) .media-sidebar .setting,
+body.wp-admin:not(.colorify-admin-light) .media-sidebar label {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item.active,
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item:hover {
+	color: var(--colorify-admin-text) !important;
+	background: var(--colorify-admin-surface-2) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-modal,
+body.wp-admin:not(.colorify-admin-light) .media-frame {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment .check,
+body.wp-admin:not(.colorify-admin-light) .media-selection .attachment.selection.details {
+	box-shadow: inset 0 0 0 3px var(--colorify-admin-accent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper,
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab {
+	background: transparent !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab.nav-tab-active,
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab:hover,
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab:focus {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	border-bottom-color: var(--colorify-admin-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #title,
+body.wp-admin:not(.colorify-admin-light) #title-prompt-text,
+body.wp-admin:not(.colorify-admin-light) .postbox .handlediv,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables .postbox,
+body.wp-admin:not(.colorify-admin-light) #post-status-info,
+body.wp-admin:not(.colorify-admin-light) .edit-post-header,
+body.wp-admin:not(.colorify-admin-light) .edit-post-sidebar,
+body.wp-admin:not(.colorify-admin-light) .components-panel,
+body.wp-admin:not(.colorify-admin-light) .interface-interface-skeleton__sidebar,
+body.wp-admin:not(.colorify-admin-light) .interface-interface-skeleton__header {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #title-prompt-text {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .inline-edit-row,
+body.wp-admin:not(.colorify-admin-light) .inline-edit-row .inline-edit-col,
+body.wp-admin:not(.colorify-admin-light) #bulk-edit,
+body.wp-admin:not(.colorify-admin-light) .quick-edit-row {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugin-card,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme,
+body.wp-admin:not(.colorify-admin-light) .theme-overlay .theme-wrap,
+body.wp-admin:not(.colorify-admin-light) .theme-overlay .theme-about,
+body.wp-admin:not(.colorify-admin-light) .theme-install-overlay .wp-full-overlay-header {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugin-card .name,
+body.wp-admin:not(.colorify-admin-light) .plugin-card .desc,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme-name,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme-author {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .health-check-accordion-trigger,
+body.wp-admin:not(.colorify-admin-light) .health-check-accordion-panel,
+body.wp-admin:not(.colorify-admin-light) .site-health-issues-wrapper,
+body.wp-admin:not(.colorify-admin-light) .privacy-settings-accordion,
+body.wp-admin:not(.colorify-admin-light) .privacy-settings-accordion-panel,
+body.wp-admin:not(.colorify-admin-light) .privacy-settings-accordion-trigger {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .health-check-accordion-trigger h3,
+body.wp-admin:not(.colorify-admin-light) .privacy-settings-accordion-trigger h3 {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .widefat .no-items,
+body.wp-admin:not(.colorify-admin-light) .tablenav-pages,
+body.wp-admin:not(.colorify-admin-light) .tablenav-pages .displaying-num,
+body.wp-admin:not(.colorify-admin-light) .pagination-links .page-numbers {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .pagination-links .page-numbers {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .pagination-links .page-numbers.current {
+	background: var(--colorify-admin-accent-soft) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .card,
+body.wp-admin:not(.colorify-admin-light) .welcome-panel,
+body.wp-admin:not(.colorify-admin-light) .about-wrap,
+body.wp-admin:not(.colorify-admin-light) .feature-section,
+body.wp-admin:not(.colorify-admin-light) .privacy-text-section {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .welcome-panel h2,
+body.wp-admin:not(.colorify-admin-light) .welcome-panel h3,
+body.wp-admin:not(.colorify-admin-light) .about-wrap h1,
+body.wp-admin:not(.colorify-admin-light) .about-wrap h2,
+body.wp-admin:not(.colorify-admin-light) .about-wrap h3 {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .update-php pre,
+body.wp-admin:not(.colorify-admin-light) .file-editor-warning,
+body.wp-admin:not(.colorify-admin-light) .notice pre {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-title {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions,
+body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions span {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .subsubsub a .count {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .drag-drop-inside,
+body.wp-admin:not(.colorify-admin-light) .drag-drop #drag-drop-area,
+body.wp-admin:not(.colorify-admin-light) .drag-drop .drag-drop-inside p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-filter .drawer-toggle:before {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* ── Wtyczki / motywy / widefat — wiersze (WP: rgba theme 0.08 na jasnym tle) ─ */
+
+body.wp-admin:not(.colorify-admin-light) .widefat > tbody > tr > td,
+body.wp-admin:not(.colorify-admin-light) .widefat > tbody > tr > th,
+body.wp-admin:not(.colorify-admin-light) .plugins .active td,
+body.wp-admin:not(.colorify-admin-light) .plugins .active th,
+body.wp-admin:not(.colorify-admin-light) .plugins .inactive td,
+body.wp-admin:not(.colorify-admin-light) .plugins .inactive th,
+body.wp-admin:not(.colorify-admin-light) .plugins .update td,
+body.wp-admin:not(.colorify-admin-light) .plugins .update th,
+body.wp-admin:not(.colorify-admin-light) .plugins .updated td,
+body.wp-admin:not(.colorify-admin-light) .plugins .updated th,
+body.wp-admin:not(.colorify-admin-light) .plugin-install #the-list td,
+body.wp-admin:not(.colorify-admin-light) .upgrade .plugins td,
+body.wp-admin:not(.colorify-admin-light) .upgrade .plugins th {
+	background-color: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+	color: var(--colorify-admin-text) !important;
+	box-shadow: inset 0 -1px 0 var(--colorify-admin-row-separator, var(--colorify-admin-border)) !important;
+	border-left: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .active td,
+body.wp-admin:not(.colorify-admin-light) .plugins .active th {
+	background-color: var(--colorify-admin-row-active-bg, var(--colorify-admin-bg)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins tr td,
+body.wp-admin:not(.colorify-admin-light) .plugins tr th {
+	border-left: none !important;
+	border-left-color: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins tr.active + tr.inactive th,
+body.wp-admin:not(.colorify-admin-light) .plugins tr.active + tr.inactive td,
+body.wp-admin:not(.colorify-admin-light) .plugins tr.active.plugin-update-tr + tr.inactive th,
+body.wp-admin:not(.colorify-admin-light) .plugins tr.active.plugin-update-tr + tr.inactive td {
+	border-top-color: var(--colorify-admin-border) !important;
+	box-shadow: inset 0 -1px 0 var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-title strong,
+body.wp-admin:not(.colorify-admin-light) .wp-list-table.plugins .theme-title strong {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .inactive .plugin-title strong {
+	color: var(--colorify-admin-text-muted) !important;
+	font-weight: 500 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-description,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-description p,
+body.wp-admin:not(.colorify-admin-light) .plugins .desc,
+body.wp-admin:not(.colorify-admin-light) .plugins .desc p,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-description,
+body.wp-admin:not(.colorify-admin-light) .plugins .second,
+body.wp-admin:not(.colorify-admin-light) .plugins p,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-description p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-description a,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update a,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-description a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a:hover,
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a:focus,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-description a:hover,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-description a:hover {
+	color: var(--colorify-admin-accent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-title .dashicons:before {
+	background-color: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text-dim) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr td,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr th,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr .plugin-update,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr .notice,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr .update-message {
+	background: var(--colorify-admin-notice-bg, var(--colorify-admin-row-bg)) !important;
+	background-color: var(--colorify-admin-notice-bg, var(--colorify-admin-row-bg)) !important;
+	border: none !important;
+	border-left: none !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* ── GLOBAL dark mode — białe tła, pola, wtyczki, jQuery UI ─────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background:#fff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: #fff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background:#ffffff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: #ffffff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background:#f6f7f7"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: #f6f7f7"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background:#f0f0f1"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: #f0f0f1"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color:#fff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: #fff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color:#ffffff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: #ffffff"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color:#f6f7f7"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: #f6f7f7"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color:#f0f0f1"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: #f0f0f1"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: white"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: white"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background: rgb(255, 255, 255)"]:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="background-color: rgb(255, 255, 255)"]:not(.iris-picker):not(.iris-picker *) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box,
+	.pt-list,
+	.pll-wizard-banner,
+	div[class*="promo"],
+	div[class*="banner"]:not(.update-nag)
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 8px;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box
+) a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box
+) h1,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box
+) h2,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box
+) h3,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	#cpt_info_box,
+	#cpto_info_box,
+	.cpt_info_box
+) h4 {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Tekst pomocniczy — wymuszone (wtyczki nadpisują na ciemnoszary) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .description,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content p.description,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table .description,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table td p,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table td > p,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table th label,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content label,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .pt-item label,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #cpto p,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .help,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .howto,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .screen-reader-text + p {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Wszystkie pola — globalnie w dark mode (w tym wtyczki) */
+body.wp-admin:not(.colorify-admin-light) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"]),
+body.wp-admin:not(.colorify-admin-light) textarea,
+body.wp-admin:not(.colorify-admin-light) select {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) input::placeholder,
+body.wp-admin:not(.colorify-admin-light) textarea::placeholder {
+	color: var(--colorify-admin-text-muted) !important;
+	opacity: 1;
+}
+
+/* jQuery UI — Polylang selectmenu i podobne (bez Iris — gradient hue) */
+body.wp-admin:not(.colorify-admin-light) .ui-selectmenu-button,
+body.wp-admin:not(.colorify-admin-light) .ui-selectmenu-button .ui-selectmenu-text,
+body.wp-admin:not(.colorify-admin-light) .ui-widget.ui-widget-content:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) .ui-widget-content:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) .ui-state-default:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) .ui-widget-header,
+body.wp-admin:not(.colorify-admin-light) .ui-menu,
+body.wp-admin:not(.colorify-admin-light) .ui-menu .ui-menu-item-wrapper,
+body.wp-admin:not(.colorify-admin-light) .ui-autocomplete,
+body.wp-admin:not(.colorify-admin-light) .ui-dialog,
+body.wp-admin:not(.colorify-admin-light) .ui-dialog .ui-dialog-content,
+body.wp-admin:not(.colorify-admin-light) .ui-dialog .ui-dialog-titlebar {
+	background: var(--colorify-admin-field) !important;
+	background-color: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .ui-menu .ui-menu-item-wrapper.ui-state-active,
+body.wp-admin:not(.colorify-admin-light) .ui-state-hover:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) .ui-state-focus:not(.iris-picker):not(.iris-picker *),
+body.wp-admin:not(.colorify-admin-light) .ui-button:hover,
+body.wp-admin:not(.colorify-admin-light) .ui-button:focus {
+	background: var(--colorify-admin-accent-soft) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .ui-icon,
+body.wp-admin:not(.colorify-admin-light) .ui-selectmenu-icon {
+	filter: invert(0.85);
+}
+
+/* Kontenery WP / wtyczki — typowe białe boxy */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.postbox,
+	.stuffbox,
+	.stuffbox .inside,
+	.card,
+	.metabox-holder,
+	#postcustomstuff,
+	#postcustom .inside,
+	.widgets-holder-wrap,
+	.accordion-section,
+	.accordion-section-content,
+	.inner-sidebar,
+	#poststuff,
+	#post-body-content,
+	#postbox-container-1,
+	#postbox-container-2,
+	.theme-browser .theme,
+	.plugin-card,
+	.welcome-panel,
+	.privacy-text-section,
+	.health-check-accordion-panel,
+	.privacy-settings-accordion-panel
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table tbody,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table tr,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .form-table th {
+	background: transparent !important;
+}
+
+/* ── Własne pola (Custom Fields) — tabele widefat w metaboksie ─────────── */
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff,
+body.wp-admin:not(.colorify-admin-light) #postcustom .inside,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #enternew {
+	background: transparent !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff table.widefat,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #list-table,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta table,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 8px !important;
+	border-collapse: separate !important;
+	border-spacing: 0 !important;
+	overflow: hidden;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat thead th,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat tbody td,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat tbody th,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat tbody tr,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta td,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta th,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #enternew td,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #enternew th,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) thead th,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) tbody td,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) tbody th,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) tbody tr {
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat thead th,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) thead th {
+	background-color: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	font-weight: 600;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat tbody tr.alternate td,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat.striped > tbody > :nth-child(odd),
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table) tbody tr.alternate td,
+body.wp-admin:not(.colorify-admin-light) .meta-box-sortables table.widefat:not(.wp-list-table).striped > tbody > :nth-child(odd) {
+	background-color: var(--colorify-admin-surface-2) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat textarea,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .widefat input[type="text"],
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta select,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta input[type="text"],
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff #newmeta textarea {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 8px !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff p,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff label,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .left,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff .left label {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff a:hover,
+body.wp-admin:not(.colorify-admin-light) #postcustomstuff a:focus {
+	color: var(--colorify-admin-accent) !important;
+}
+
+/* ── Wybór motywu (Profil) — mobile-first; colorify-admin-overrides ma finalne breakpointy */
+
+.wp-admin #color-picker.scheme-list {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 10px;
+	margin-top: 0.75rem;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.wp-admin .color-option {
+	display: flex;
+	flex-direction: column;
+	width: auto !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 12px 14px 14px !important;
+	box-sizing: border-box;
+	cursor: pointer;
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border-subtle, var(--colorify-admin-border)) !important;
+	border-radius: 12px !important;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.wp-admin .color-option:hover {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 35%, var(--colorify-admin-border)) !important;
+}
+
+.wp-admin .color-option.selected {
+	background: var(--colorify-admin-ui-selected-bg, var(--colorify-admin-surface)) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent-muted, var(--colorify-admin-accent)) 45%, var(--colorify-admin-border)) !important;
+	box-shadow: 0 0 0 1px var(--colorify-admin-border) !important;
+}
+
+.wp-admin .color-option label {
+	display: block;
+	margin: 0 0 10px !important;
+	padding: 0 !important;
+	color: var(--colorify-admin-text) !important;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	line-height: 1.4 !important;
+	cursor: pointer;
+}
+
+.wp-admin .color-option.selected label {
+	color: var(--colorify-admin-text) !important;
+	font-weight: 600 !important;
+}
+
+.wp-admin .color-palette {
+	display: flex !important;
+	width: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.wp-admin .color-palette-shade {
+	flex: 1 1 25%;
+	height: 22px !important;
+	min-height: 22px;
+}
+
+.wp-admin .color-option input[type="radio"] {
+	margin: 0 0 8px;
+	accent-color: var(--colorify-admin-accent);
+}
+
+@media (min-width: 520px) {
+	.wp-admin #color-picker.scheme-list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 12px;
+	}
+}
+
+@media (min-width: 900px) {
+	.wp-admin #color-picker.scheme-list {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1200px) {
+	.wp-admin #color-picker.scheme-list {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		max-width: 1100px;
+	}
+}
+
+/* ── Switch dark/light — profil (#color-picker) i ustawienia wtyczki ── */
+
+.colorify-profile-mode-bar-wrap {
+	margin: 0 0 14px;
+	width: 100%;
+	max-width: 1100px;
+}
+
+.colorify-profile-mode-bar {
+	margin: 0 0 16px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg));
+	border: 1px solid var(--colorify-admin-border);
+}
+
+.colorify-profile-mode-bar__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 16px;
+}
+
+.colorify-profile-mode-bar__label {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--colorify-admin-text) !important;
+	min-width: 110px;
+}
+
+.colorify-profile-mode-bar__hint {
+	margin: 10px 0 0 !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+.colorify-profile-mode-bar--global a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+.colorify-settings-mode-bar {
+	margin-bottom: 18px;
+}
+
+.user-admin-color-wrap #color-picker,
+.colorify-user-mode-wrap + tr.user-admin-color-wrap #color-picker {
+	margin-top: 0;
+}
+
+.colorify-user-mode-wrap th {
+	color: var(--colorify-admin-text) !important;
+	vertical-align: middle;
+}
+
+.colorify-user-mode-wrap td {
+	vertical-align: middle;
+}
+
+.colorify-user-mode-wrap .colorify-profile-mode-bar {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+
+.colorify-user-mode-wrap .colorify-profile-mode-bar__label {
+	display: none;
+}
+
+/* ── Switch dark/light (pływający, prawy górny róg — poza admin barem) ── */
+
+.colorify-mode-switch-float {
+	position: fixed;
+	top: 0;
+	right: 168px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	z-index: 99999;
+	pointer-events: none;
+}
+
+.colorify-mode-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: var(--colorify-admin-text-muted, #a1a1aa);
+	pointer-events: auto;
+}
+
+.colorify-mode-switch__label {
+	line-height: 1;
+	user-select: none;
+}
+
+.colorify-mode-switch__track {
+	position: relative;
+	display: inline-block;
+	flex-shrink: 0;
+	width: 44px;
+	height: 24px;
+	margin: 0;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.colorify-mode-switch__input {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	width: 44px;
+	height: 24px;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+	z-index: 2;
+}
+
+.colorify-mode-switch__thumb {
+	position: absolute;
+	inset: 0;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 35%, #3f3f46);
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 55%, transparent);
+	transition: background 0.2s ease;
+	pointer-events: none;
+}
+
+.colorify-mode-switch__thumb::after {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: #f4f4f5;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+	transition: transform 0.2s ease;
+}
+
+.colorify-mode-switch__input:checked + .colorify-mode-switch__thumb {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 75%, #ffffff);
+}
+
+.colorify-mode-switch__input:checked + .colorify-mode-switch__thumb::after {
+	transform: translateX(20px);
+}
+
+.colorify-mode-switch__input:focus-visible + .colorify-mode-switch__thumb {
+	outline: 2px solid var(--colorify-admin-accent, #7c3aed);
+	outline-offset: 2px;
+}
+
+@media screen and (max-width: 782px) {
+	.colorify-mode-switch-float {
+		top: 46px;
+		right: 12px;
+		height: auto;
+	}
+}
+
+/* ── v1.5 — Customizer, Astra, WPForms, uniwersalny dark mode ───────────── */
+
+body.wp-customizer:not(.colorify-admin-light) {
+	color-scheme: dark;
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light)::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	right: calc(100% - 300px);
+	pointer-events: none;
+	z-index: 0;
+	background:
+		radial-gradient(ellipse 52% 39% at 50% 0%, color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 22%, transparent), transparent 70%),
+		radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 10%, transparent), transparent 55%);
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-sidebar,
+body.wp-customizer:not(.colorify-admin-light) #customize-theme-controls,
+body.wp-customizer:not(.colorify-admin-light) #customize-sidebar-outer-content,
+body.wp-customizer:not(.colorify-admin-light) .customize-pane-child,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back,
+body.wp-customizer:not(.colorify-admin-light) #customize-header-actions,
+body.wp-customizer:not(.colorify-admin-light) #customize-footer-actions,
+body.wp-customizer:not(.colorify-admin-light) .customize-info,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section-content,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-description-container,
+body.wp-customizer:not(.colorify-admin-light) .customize-themes-section {
+	background: var(--colorify-admin-sidebar) !important;
+	background-color: var(--colorify-admin-sidebar) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-control-title,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls label,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls h3,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls p,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .description,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .description,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .customize-section-description {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls input:not([type="checkbox"]):not([type="radio"]),
+body.wp-customizer:not(.colorify-admin-light) #customize-controls textarea,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls select {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-header,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-save-button-wrapper .save,
+body.wp-customizer:not(.colorify-admin-light) #customize-header-actions .button-primary {
+	background: var(--colorify-admin-accent) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 85%, #000) !important;
+	color: #fff !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .button,
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .button-secondary {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls a {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+/* Wtyczki / motywy — białe karty w dark mode */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[id^="astra-"],
+	[class*="astra-"],
+	.ast-dashboard-wrapper,
+	.ast-box-shadow-container,
+	#wpforms-widget,
+	.wpforms-panel-content,
+	.wpforms-panel-sidebar,
+	.wpforms-container-full,
+	.wf-container,
+	.wf-block,
+	.wf-card,
+	.notice[class*="plugin"],
+	[class*="survey"],
+	[class*="nps"],
+	[class*="feedback"]
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[id^="astra-"],
+	[class*="astra-"],
+	.ast-dashboard-wrapper,
+	#wpforms-widget
+) :is(h1, h2, h3, h4, h5, h6, strong, label, th, .title) {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[id^="astra-"],
+	[class*="astra-"],
+	#wpforms-widget,
+	.wf-container
+) :is(p, span, li, td, div, a:not(.button-primary)) {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[id^="astra-"],
+	[class*="astra-"],
+	#wpforms-widget
+) a:not(.button-primary) {
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+/* WPForms / ankiety — jasne overlaye */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.wpforms-panel-content,
+	.wpforms-panel-content-wrap,
+	[class*="survey-wrap"],
+	[class*="nps-wrap"],
+	[class*="feedback-wrap"]
+) :is(
+	div[style*="background:#fff"],
+	div[style*="background: #fff"],
+	div[style*="background:#ffffff"],
+	div[style*="background: #ffffff"],
+	div[style*="background-color:#fff"],
+	div[style*="background-color: #fff"]
+) {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Tekst w jasnych elementach wtyczek — wymuszone */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="white"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="light-bg"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .bg-white,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .has-white-background-color {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="white"] :is(h1, h2, h3, h4, h5, h6, label, strong, p, span, li),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .bg-white :is(h1, h2, h3, h4, h5, h6, label, strong, p, span, li) {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Powiadomienia wtyczek z kolorowym tłem */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice:not(.notice-success):not(.notice-error):not(.notice-warning):not(.notice-info),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .updated:not(.notice),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"] h1,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"] h2,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"] h3,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] h1,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] h2,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] h3 {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Wordfence — pomarańczowe akcenty → fiolet motywu */
+body.wp-admin:not(.colorify-admin-light) :is(
+	.wf-orange,
+	.wf-orange-active,
+	.wf-btn-orange,
+	.wf-btn-callout,
+	[class*="wordfence"] [style*="fc6823"],
+	[class*="wordfence"] [style*="FC6823"]
+) {
+	background: var(--colorify-admin-accent) !important;
+	background-color: var(--colorify-admin-accent) !important;
+	color: #fff !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 80%, #000) !important;
+}
+
+/* iframe / overlay preview w Customizerze — bez czarnego paska */
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay.collapsed .wp-full-overlay-sidebar {
+	margin: 0 !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .customize-control .customize-inside-control-row {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls .customize-control-nav_menu_location .assigned-menu-location {
+	color: var(--colorify-admin-text-dim) !important;
+}
+
+/* ── v1.5.2 — Voiceprint Theme + submenu + suwaki (nadpisuje inline wtyczki) ─ */
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-wrap h1,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel h2,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-head label,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-section,
+body.wp-admin:not(.colorify-admin-light) .colorify-field-section {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-field-help,
+body.wp-admin:not(.colorify-admin-light) .colorify-path-intro {
+	margin: 4px 0 10px !important;
+	padding: 10px 12px !important;
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-left: 2px solid var(--colorify-admin-mark, var(--colorify-admin-border)) !important;
+	font-size: 13px !important;
+	line-height: 1.5 !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-field-help strong,
+body.wp-admin:not(.colorify-admin-light) .colorify-path-intro strong {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-cache,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-layout {
+	background: transparent !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-cache {
+	margin-top: 2rem !important;
+	padding: 1rem !important;
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 12px !important;
+	max-width: 720px;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-cache h2,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-cache p,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-cache label {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-range-row .colorify-unit,
+body.wp-admin:not(.colorify-admin-light) .colorify-range-hint {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-tip {
+	background: var(--colorify-admin-accent-soft) !important;
+	color: var(--colorify-admin-accent-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-tip:hover,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-tip:focus {
+	background: var(--colorify-admin-ui-hover-bg, var(--colorify-admin-surface-2)) !important;
+	outline-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-tip.colorify-tip-open {
+	background: var(--colorify-admin-accent) !important;
+	color: #fff !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-tip-popover {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-tip-popover::before {
+	border-bottom-color: var(--colorify-admin-surface-2) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel input[type="range"],
+body.wp-admin:not(.colorify-admin-light) .colorify-range-row input[type="range"] {
+	accent-color: var(--colorify-admin-accent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-mobile-section {
+	color: #f87171 !important;
+	border-left-color: #f87171 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-mobile-field .colorify-field-head label {
+	color: #fca5a5 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-wrap .widefat code {
+	background: var(--colorify-admin-field) !important;
+	color: #c4b5fd !important;
+}
+
+/* ── v1.5.3 — Iris / wp-color-picker (Voiceprint Theme + cały WP admin) ───── */
+
+/* Panel pickera — jasne tło = poprawne widzenie kolorów; gradienty z JS Iris nietknięte */
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .iris-picker.iris-border,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .iris-picker {
+	background: #f6f7f7 !important;
+	background-color: #f6f7f7 !important;
+	border-color: #8c8f94 !important;
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+	z-index: 100002 !important;
+}
+
+/* Nigdy nie ustawiaj shorthand `background` na strip/square — kasuje background-image */
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-square,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-square-inner,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-square-horiz,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-square-vert,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-strip,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-slider-offset,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-palette {
+	background-color: transparent !important;
+	color: inherit !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .iris-picker .ui-slider.ui-slider-vertical,
+body.wp-admin:not(.colorify-admin-light) .iris-picker .ui-slider.ui-slider-horizontal {
+	background-color: transparent !important;
+	border: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .iris-picker .ui-slider-handle {
+	background-color: transparent !important;
+	border-color: rgba(255, 255, 255, 0.9) !important;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .iris-picker .iris-square-handle {
+	border-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Przycisk „Wybierz kolor” — ciemny, spójny z adminem */
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result.button,
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .wp-picker-container .wp-color-result.button {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result-text,
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .wp-picker-container .wp-color-result-text {
+	background: var(--colorify-admin-field) !important;
+	border-left: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result:hover,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result:focus,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result:hover .wp-color-result-text,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result:focus .wp-color-result-text {
+	background: var(--colorify-admin-field-hover) !important;
+	border-color: rgba(124, 58, 237, 0.45) !important;
+	color: #fff !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container input[type="text"].wp-color-picker,
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-wrap .wp-picker-input-wrap input[type="text"].wp-color-picker {
+	background: var(--colorify-admin-field) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-picker-input-wrap .button.wp-picker-default,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-input-wrap .button.wp-picker-clear {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-wrap .colorify-color-row .button.colorify-use-accent {
+	background: var(--colorify-admin-surface-2) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .colorify-theme-wrap .colorify-color-row .button.colorify-use-accent:hover {
+	background: var(--colorify-admin-accent-soft) !important;
+	border-color: var(--colorify-admin-accent) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Customizer — ten sam picker */
+body.wp-customizer:not(.colorify-admin-light) .wp-picker-container .iris-picker.iris-border,
+body.wp-customizer:not(.colorify-admin-light) .wp-picker-container .iris-picker {
+	background: #f6f7f7 !important;
+	background-color: #f6f7f7 !important;
+	border-color: #8c8f94 !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .iris-picker .iris-strip,
+body.wp-customizer:not(.colorify-admin-light) .iris-picker .iris-square,
+body.wp-customizer:not(.colorify-admin-light) .iris-picker .iris-square-inner,
+body.wp-customizer:not(.colorify-admin-light) .iris-picker .iris-slider-offset {
+	background-color: transparent !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .wp-picker-container .wp-color-result.button {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .wp-picker-container .wp-color-result-text {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	border-left-color: var(--colorify-admin-border) !important;
+}
