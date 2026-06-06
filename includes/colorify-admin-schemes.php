@@ -1775,7 +1775,7 @@ function colorify_admin_scheme_is_registered( string $key ): bool {
  * Rejestracja schematów WP — tylko ekrany edytora (nie na każdej stronie admina).
  */
 function colorify_should_register_admin_color_schemes(): bool {
-	if ( ! is_admin() ) {
+	if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
 		return false;
 	}
 
@@ -1831,6 +1831,15 @@ add_action( 'admin_init', 'colorify_register_admin_color_schemes', 99 );
  * @return string
  */
 function colorify_default_admin_color( $value ): string {
+	$user_id = get_current_user_id();
+	if ( $user_id > 0 && ! colorify_is_user_theme_enabled( $user_id ) ) {
+		$value = is_string( $value ) ? sanitize_key( $value ) : '';
+		if ( '' === $value || colorify_admin_scheme_is_registered( colorify_admin_normalize_scheme_key( $value ) ) ) {
+			return 'modern';
+		}
+		return $value;
+	}
+
 	$value = is_string( $value ) ? colorify_admin_normalize_scheme_key( $value ) : '';
 
 	$legacy = colorify_admin_legacy_light_map();

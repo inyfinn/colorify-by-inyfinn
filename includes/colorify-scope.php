@@ -16,7 +16,7 @@ const COLORIFY_ADMIN_CUSTOMIZED_META     = 'colorify_admin_has_customized';
 const COLORIFY_THEME_ENABLED_META        = 'colorify_theme_enabled';
 
 /**
- * Czy Colorify styluje panel (OFF = domyślny WordPress, zostaje tylko pasek przełączników).
+ * Czy Colorify styluje panel (OFF = natywny WordPress + pasek przełączników).
  *
  * @param int $user_id User ID.
  */
@@ -455,6 +455,10 @@ function colorify_filter_global_user_option( $value, string $option, $user ) {
 
 	$user_id = ( $user instanceof WP_User ) ? (int) $user->ID : 0;
 	if ( $user_id <= 0 ) {
+		return $value;
+	}
+
+	if ( ! colorify_is_user_theme_enabled( $user_id ) ) {
 		return $value;
 	}
 

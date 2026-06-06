@@ -220,30 +220,12 @@
 	}
 
 	function onThemeToggle(checked) {
-		var previous = themeEnabled;
-		themeEnabled = checked;
-		cfg.themeEnabled = checked ? '1' : '0';
-		syncThemeSwitchInputs();
-
-		if (checked) {
-			enableThemeLive();
-		} else {
-			disableThemeLive();
-		}
-
 		saveThemeEnabled(checked).then(function (saved) {
 			if (saved) {
 				window.location.reload();
 				return;
 			}
-			themeEnabled = previous;
-			cfg.themeEnabled = previous ? '1' : '0';
 			syncThemeSwitchInputs();
-			if (checked) {
-				disableThemeLive();
-			} else {
-				enableThemeLive();
-			}
 		});
 	}
 

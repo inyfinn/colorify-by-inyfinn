@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.23
+ * Version: 1.0.24
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.23' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.24' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -456,29 +456,21 @@ function colorify_enqueue_appearance_editor_styles(): void {
 }
 
 /**
- * Profil / ustawienia Colorify — sekcja personalizacji także przy wyłączonym motywie.
+ * Profil / ustawienia Colorify przy wyłączonym motywie — tylko UI wtyczki, bez nadpisywania całego wp-admin.
  */
 function colorify_enqueue_personalization_assets_when_theme_off(): void {
 	if ( colorify_is_user_theme_enabled() ) {
 		return;
 	}
 
-	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-	if ( ! $screen || ! in_array( $screen->id, array( 'profile', 'user-edit', 'settings_page_colorify-by-inyfinn' ), true ) ) {
+	if ( ! colorify_is_appearance_editor_screen() ) {
 		return;
 	}
 
 	wp_enqueue_style(
-		'colorify-admin-overrides',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
-		array( 'colorify-admin-toolbar' ),
-		COLORIFY_PLUGIN_VERSION
-	);
-
-	wp_enqueue_style(
 		'colorify-settings',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
-		array( 'colorify-admin-overrides' ),
+		array(),
 		COLORIFY_PLUGIN_VERSION
 	);
 }
@@ -553,22 +545,21 @@ add_action( 'admin_footer', 'colorify_admin_render_mode_switch', 1 );
 add_action(
 	'admin_head',
 	static function (): void {
+		if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
+			return;
+		}
 		$mode  = colorify_get_effective_appearance_mode();
 		$color = 'light' === $mode ? '#fefefd' : '#050f0c';
 		printf( '<meta name="theme-color" content="%s">', esc_attr( $color ) );
 	}
 );
 
-/**
- * Wersja wtyczki w prawym dolnym rogu stopki admina.
- */
-function colorify_admin_footer_version(): string {
-	return COLORIFY_PLUGIN_VERSION;
-}
-
 add_filter(
 	'admin_footer_text',
-	static function (): string {
+	static function ( $text ): string {
+		if ( ! colorify_is_user_theme_enabled() ) {
+			return is_string( $text ) ? $text : '';
+		}
 		return sprintf(
 			'<span class="colorify-admin-footer-brand"><a class="colorify-admin-footer-credits" href="%s" target="_blank" rel="noopener noreferrer">%s</a> · %s CMS · <strong>Colorify</strong></span>',
 			esc_url( COLORIFY_CREDITS_URL ),
@@ -581,17 +572,18 @@ add_filter(
 /** Prawy dolny róg: copyright INYFINN + nazwa witryny + wersja Colorify (zamiast WP core). */
 add_filter(
 	'update_footer',
-	static function (): string {
+	static function ( $text ): string {
+		if ( ! colorify_is_user_theme_enabled() ) {
+			return is_string( $text ) ? $text : '';
+		}
 		return sprintf(
 			'<span class="colorify-admin-footer-right">'
 			. '<a class="colorify-admin-footer-credits" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>'
-			. ' · <span class="colorify-admin-footer-site">%3$s</span>'
-			. ' · <span class="colorify-admin-footer-version">Colorify v%4$s</span>'
+			. ' · <span class="colorify-admin-footer-version">Colorify v%3$s</span>'
 			. '</span>',
 			esc_url( COLORIFY_CREDITS_URL ),
 			esc_html( COLORIFY_CREDITS ),
-			esc_html( colorify_branding_site_name() ),
-			esc_html( colorify_admin_footer_version() )
+			esc_html( COLORIFY_PLUGIN_VERSION )
 		);
 	},
 	20
