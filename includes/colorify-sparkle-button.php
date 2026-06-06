@@ -53,7 +53,6 @@ function colorify_sparkle_stars_svg(): string {
 function colorify_sparkle_change_style_link_html( string $url, string $label ): string {
 	return '<span class="colorify-sparkle-button-wrap colorify-sparkle-button-wrap--compact">'
 		. '<a href="' . esc_url( $url ) . '" class="colorify-sparkle-button colorify-sparkle-button--compact colorify-change-style-btn">'
-		. colorify_sparkle_button_layers()
 		. colorify_admin_change_style_icon_html()
 		. '<span class="colorify-sparkle-button__text colorify-change-style-btn__text">' . esc_html( $label ) . '</span>'
 		. '</a>'

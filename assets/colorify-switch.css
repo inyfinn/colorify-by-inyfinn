@@ -1,11 +1,11 @@
 /**
  * Globalny przełącznik Colorify — Uiverse.io by gharsh11032000
- * Markup: <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+ * Kolory ze schematu (--colorify-admin-accent), bez domyślnego fioletu.
  */
 
 label.switch {
-	--colorify-switch-off: color-mix(in srgb, var(--colorify-admin-accent, #b84fce) 32%, #d4acfb);
-	--colorify-switch-on: var(--colorify-admin-accent, #b84fce);
+	--colorify-switch-off: color-mix(in srgb, var(--colorify-admin-accent, #64748b) 22%, #475569);
+	--colorify-switch-on: var(--colorify-admin-accent, #64748b);
 	font-size: 11px;
 	position: relative;
 	display: inline-block;
@@ -48,7 +48,7 @@ label.switch .slider::before {
 	bottom: 0.3em;
 	background-color: #ffffff;
 	border-radius: 50px;
-	box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
 	transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
