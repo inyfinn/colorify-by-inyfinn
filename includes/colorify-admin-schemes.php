@@ -1576,10 +1576,10 @@ function colorify_admin_floating_toolbar_html(): string {
 
 	return '<div class="colorify-admin-toolbar" role="toolbar" aria-label="' . esc_attr( COLORIFY_BRANDING_NAME ) . '">'
 		. '<div class="colorify-admin-toolbar__segment colorify-admin-toolbar__segment--style">'
-		. '<a href="' . esc_url( $schemes_url ) . '" class="colorify-change-style-btn">'
-		. colorify_admin_change_style_icon_html()
-		. '<span class="colorify-change-style-btn__text">' . esc_html( colorify_i18n( 'Change style', 'Zmień styl' ) ) . '</span>'
-		. '</a>'
+		. colorify_sparkle_change_style_link_html(
+			$schemes_url,
+			colorify_i18n( 'Change style', 'Zmień styl' )
+		)
 		. '</div>'
 		. '<span class="colorify-admin-toolbar__sep" aria-hidden="true"></span>'
 		. '<div class="colorify-admin-toolbar__segment colorify-admin-toolbar__segment--controls">'

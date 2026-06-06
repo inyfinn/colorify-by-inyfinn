@@ -186,9 +186,9 @@ body.login .button.wp-hide-pw .dashicons {
 	font-size: 1.25rem !important;
 }
 
-body.login .button-primary,
-body.login .button-primary:hover,
-body.login .button-primary:focus {
+body.login .button-primary:not(.colorify-sparkle-button),
+body.login .button-primary:not(.colorify-sparkle-button):hover,
+body.login .button-primary:not(.colorify-sparkle-button):focus {
 	background: var(--colorify-admin-accent, #b4e717) !important;
 	border: none !important;
 	border-radius: 999px !important;
@@ -201,7 +201,7 @@ body.login .button-primary:focus {
 	line-height: 1.6 !important;
 }
 
-body.login .button-primary:hover {
+body.login .button-primary:not(.colorify-sparkle-button):hover {
 	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 88%, #ffffff 12%) !important;
 }
 

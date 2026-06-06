@@ -1,0 +1,301 @@
+/**
+ * Sparkle button — login + toolbar (akcent ze schematu Colorify).
+ * Glow obcinany przez .colorify-sparkle-button-wrap { overflow: hidden }.
+ */
+
+.colorify-sparkle-button-wrap {
+	display: inline-flex;
+	vertical-align: middle;
+	border-radius: 100px;
+	overflow: hidden;
+	isolation: isolate;
+	max-width: 100%;
+}
+
+.colorify-sparkle-button-wrap--login {
+	display: flex;
+	width: 100%;
+	margin-top: 0.25rem;
+	overflow: hidden;
+	border-radius: 100px;
+}
+
+.colorify-sparkle-button-wrap--compact {
+	flex: 0 0 auto;
+}
+
+.colorify-sparkle-button {
+	--active: 0;
+	--transition: 0.3s;
+	--spark: 1.35s;
+	--cut: 0.08em;
+	--glow-scale: 1;
+	--sparkle-accent: var(--colorify-admin-accent, #b4e717);
+	--sparkle-accent-soft: color-mix(in srgb, var(--sparkle-accent) 72%, #ffffff);
+	--sparkle-accent-deep: color-mix(in srgb, var(--sparkle-accent) 55%, #050f0c);
+	--sparkle-on: var(--colorify-admin-on-accent, #050f0c);
+	--bg: radial-gradient(
+			40% 50% at center 100%,
+			color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent),
+			transparent
+		),
+		radial-gradient(
+			80% 100% at center 120%,
+			color-mix(in srgb, var(--sparkle-accent) calc(var(--active) * 85%), transparent),
+			transparent
+		),
+		color-mix(in srgb, var(--sparkle-accent-deep) calc(44% + (var(--active) * 56%)), var(--sparkle-accent) 30%);
+
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35em;
+	width: auto;
+	margin: 0;
+	padding: 0.85em 1.35em;
+	border: 0;
+	border-radius: 100px;
+	background: var(--bg);
+	color: var(--sparkle-on);
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.2;
+	white-space: nowrap;
+	cursor: pointer;
+	text-decoration: none !important;
+	box-shadow:
+		0 0 calc(var(--active) * var(--glow-scale) * 2.4em) calc(var(--active) * var(--glow-scale) * 0.65em)
+			color-mix(in srgb, var(--sparkle-accent) 55%, transparent),
+		0 0 0 0 color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent) inset,
+		0 -0.05em 0 0 color-mix(in srgb, var(--sparkle-accent-deep) calc(var(--active) * 100%), transparent) inset;
+	transform: scale(calc(1 + (var(--active) * 0.04)));
+	transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
+	overflow: visible;
+}
+
+.colorify-sparkle-button--compact {
+	--glow-scale: 0.38;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	padding: 0 14px;
+	height: 28px;
+	min-height: 28px;
+	gap: 6px;
+}
+
+.colorify-sparkle-button--login {
+	width: 100%;
+	font-size: 1.05rem;
+	padding: 0.75em 1.25em;
+}
+
+.colorify-sparkle-button:is(:hover, :focus-visible) {
+	--active: 1;
+	color: var(--sparkle-on) !important;
+	text-decoration: none !important;
+	outline: none;
+}
+
+.colorify-sparkle-button:active {
+	transform: scale(1);
+}
+
+.colorify-sparkle-button:focus-visible {
+	outline: 2px solid var(--sparkle-accent);
+	outline-offset: 3px;
+}
+
+.colorify-sparkle-button__text {
+	position: relative;
+	z-index: 2;
+	letter-spacing: 0.01em;
+	background: linear-gradient(
+		90deg,
+		color-mix(in srgb, var(--sparkle-on) calc(65% + (var(--active) * 35%)), #ffffff),
+		color-mix(in srgb, var(--sparkle-on) calc(26% + (var(--active) * 74%)), #ffffff)
+	);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	transition: background var(--transition);
+}
+
+.colorify-sparkle-button--compact .colorify-sparkle-button__text,
+.colorify-sparkle-button--compact.colorify-change-style-btn {
+	color: var(--sparkle-on) !important;
+	background: none;
+	-webkit-background-clip: border-box;
+	background-clip: border-box;
+}
+
+.colorify-sparkle-button__stars {
+	inline-size: 1.15em;
+	flex-shrink: 0;
+	position: relative;
+	z-index: 2;
+	translate: -8% -4%;
+}
+
+.colorify-sparkle-button--compact .colorify-sparkle-button__stars {
+	inline-size: 0.95em;
+}
+
+.colorify-sparkle-button__stars path {
+	fill: currentColor;
+	stroke: currentColor;
+	color: color-mix(in srgb, var(--sparkle-on) calc(40% + (var(--active) * 60%)), #ffffff);
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: color var(--transition);
+}
+
+.colorify-sparkle-button:is(:hover, :focus-visible) .colorify-sparkle-button__stars path {
+	animation-name: colorify-sparkle-bounce;
+	animation-duration: 0.55s;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(1) {
+	animation-delay: 0.05s;
+	--scale: 0.5;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(2) {
+	animation-delay: 0.12s;
+	--scale: 1.4;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(3) {
+	animation-delay: 0.2s;
+	--scale: 2.2;
+}
+
+@keyframes colorify-sparkle-bounce {
+	35%,
+	65% {
+		transform: scale(var(--scale, 1));
+	}
+}
+
+.colorify-sparkle-button__spark {
+	position: absolute;
+	inset: 0;
+	border-radius: 100px;
+	overflow: hidden;
+	mask: linear-gradient(white, transparent 55%);
+	pointer-events: none;
+	z-index: 0;
+	animation: colorify-sparkle-flip calc(var(--spark) * 2) infinite steps(2, end);
+}
+
+.colorify-sparkle-button__spark::before {
+	content: "";
+	position: absolute;
+	width: 200%;
+	aspect-ratio: 1;
+	top: 0;
+	left: 50%;
+	z-index: -1;
+	translate: -50% -15%;
+	opacity: calc(var(--active) + 0.35);
+	background: conic-gradient(from 0deg, transparent 0 340deg, rgba(255, 255, 255, 0.95) 360deg);
+	animation: colorify-sparkle-rotate var(--spark) linear infinite both;
+	transition: opacity var(--transition);
+}
+
+.colorify-sparkle-button__backdrop {
+	position: absolute;
+	inset: var(--cut);
+	background: var(--bg);
+	border-radius: 100px;
+	z-index: 1;
+	transition: background var(--transition);
+	pointer-events: none;
+}
+
+.colorify-sparkle-button::before {
+	content: "";
+	position: absolute;
+	inset: -0.15em;
+	z-index: -1;
+	border: 0.2em solid color-mix(in srgb, var(--sparkle-accent) 45%, transparent);
+	border-radius: 100px;
+	opacity: var(--active);
+	transition: opacity var(--transition);
+	pointer-events: none;
+}
+
+.colorify-sparkle-button--compact::before {
+	inset: -0.08em;
+	border-width: 0.12em;
+}
+
+@keyframes colorify-sparkle-flip {
+	to {
+		rotate: 360deg;
+	}
+}
+
+@keyframes colorify-sparkle-rotate {
+	to {
+		transform: rotate(90deg);
+	}
+}
+
+/* Login — nadpisanie domyślnego WP primary */
+body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button,
+body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button:hover,
+body.login .colorify-sparkle-button-wrap--login .colorify-sparkle-button:focus {
+	background: var(--bg) !important;
+	border: none !important;
+	box-shadow:
+		0 0 calc(var(--active) * 2.4em) calc(var(--active) * 0.65em)
+			color-mix(in srgb, var(--sparkle-accent) 55%, transparent),
+		0 0 0 0 color-mix(in srgb, var(--sparkle-accent-soft) calc(var(--active) * 100%), transparent) inset,
+		0 -0.05em 0 0 color-mix(in srgb, var(--sparkle-accent-deep) calc(var(--active) * 100%), transparent) inset !important;
+	height: auto !important;
+	text-shadow: none !important;
+}
+
+body.login form .submit {
+	overflow: hidden;
+	border-radius: 100px;
+}
+
+/* Toolbar — ikona palety obok tekstu */
+.colorify-sparkle-button.colorify-change-style-btn .colorify-change-style-btn__icon {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.colorify-sparkle-button.colorify-change-style-btn .colorify-change-style-btn__icon svg {
+	display: block;
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+	color: var(--sparkle-on);
+}
+
+.colorify-admin-toolbar__segment--style {
+	overflow: hidden;
+	border-radius: 100px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.colorify-sparkle-button__spark,
+	.colorify-sparkle-button__spark::before,
+	.colorify-sparkle-button__stars path {
+		animation: none !important;
+	}
+
+	.colorify-sparkle-button {
+		transition: none;
+	}
+}
