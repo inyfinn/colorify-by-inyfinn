@@ -7,6 +7,62 @@
 
 defined( 'ABSPATH' ) || exit;
 
+const COLORIFY_WAS_ACTIVE_TRANSIENT = 'colorify_plugin_was_active_before_update';
+
+/**
+ * Zapamiętuje, czy wtyczka była aktywna przed aktualizacją (WP często zostawia ją wyłączoną).
+ *
+ * @param string $plugin_basename Plugin basename.
+ */
+function colorify_remember_plugin_active_before_update( string $plugin_basename ): void {
+	if ( plugin_basename( COLORIFY_PLUGIN_FILE ) !== $plugin_basename ) {
+		return;
+	}
+
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	set_transient(
+		COLORIFY_WAS_ACTIVE_TRANSIENT,
+		is_plugin_active( $plugin_basename ) ? '1' : '0',
+		15 * MINUTE_IN_SECONDS
+	);
+}
+
+/**
+ * Ponownie włącza wtyczkę po aktualizacji, jeśli była aktywna wcześniej.
+ *
+ * @param string|null $plugin_basename Plugin basename.
+ * @return bool Czy wtyczka jest aktywna po operacji.
+ */
+function colorify_reactivate_plugin_after_update( ?string $plugin_basename = null ): bool {
+	$plugin_basename = null !== $plugin_basename ? $plugin_basename : plugin_basename( COLORIFY_PLUGIN_FILE );
+
+	if ( plugin_basename( COLORIFY_PLUGIN_FILE ) !== $plugin_basename ) {
+		return false;
+	}
+
+	$was_active = get_transient( COLORIFY_WAS_ACTIVE_TRANSIENT );
+	delete_transient( COLORIFY_WAS_ACTIVE_TRANSIENT );
+
+	if ( '1' !== $was_active ) {
+		return is_plugin_active( $plugin_basename );
+	}
+
+	if ( ! function_exists( 'is_plugin_active' ) || ! function_exists( 'activate_plugin' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	if ( is_plugin_active( $plugin_basename ) ) {
+		return true;
+	}
+
+	$result = activate_plugin( $plugin_basename, '', is_network_admin() );
+
+	return ! is_wp_error( $result ) && is_plugin_active( $plugin_basename );
+}
+
 /**
  * Repozytorium GitHub: stała COLORIFY_GITHUB_REPO (owner/repo) lub opcja colorify_github_repo.
  *
@@ -289,6 +345,8 @@ function colorify_run_manual_github_update(): array {
 	);
 	set_site_transient( 'update_plugins', $updates );
 
+	colorify_remember_plugin_active_before_update( $plugin_basename );
+
 	$skin     = new Automatic_Upgrader_Skin();
 	$upgrader = new Plugin_Upgrader( $skin );
 	$result   = $upgrader->upgrade( $plugin_basename );
@@ -317,6 +375,8 @@ function colorify_run_manual_github_update(): array {
 			'message' => $message,
 		);
 	}
+
+	colorify_reactivate_plugin_after_update( $plugin_basename );
 
 	return array(
 		'success' => true,
@@ -351,7 +411,9 @@ final class Colorify_Github_Updater {
 
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'inject_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 20, 3 );
+		add_filter( 'upgrader_pre_install', array( $this, 'remember_active_before_install' ), 10, 2 );
 		add_action( 'upgrader_process_complete', array( $this, 'purge_cache' ), 10, 2 );
+		add_action( 'upgrader_process_complete', array( $this, 'reactivate_after_update' ), 11, 2 );
 		add_action( 'admin_init', array( $this, 'maybe_force_check' ) );
 		add_action( 'admin_init', array( $this, 'maybe_run_manual_update' ) );
 	}
@@ -425,6 +487,64 @@ final class Colorify_Github_Updater {
 			),
 			'last_updated'  => $release['published'],
 		);
+	}
+
+	/**
+	 * Przed instalacją paczki — zapamiętaj, czy Colorify był włączony.
+	 *
+	 * @param bool|WP_Error $response   Wynik filtra.
+	 * @param array         $hook_extra Kontekst upgradera.
+	 * @return bool|WP_Error
+	 */
+	public function remember_active_before_install( $response, array $hook_extra ) {
+		if ( empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+			return $response;
+		}
+
+		$targets = array();
+		if ( ! empty( $hook_extra['plugin'] ) && is_string( $hook_extra['plugin'] ) ) {
+			$targets[] = $hook_extra['plugin'];
+		}
+		if ( ! empty( $hook_extra['plugins'] ) && is_array( $hook_extra['plugins'] ) ) {
+			$targets = array_merge( $targets, $hook_extra['plugins'] );
+		}
+
+		if ( in_array( $this->plugin_basename, $targets, true ) ) {
+			colorify_remember_plugin_active_before_update( $this->plugin_basename );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Po aktualizacji z ekranu Wtyczki — włącz ponownie, jeśli była aktywna.
+	 *
+	 * @param WP_Upgrader $upgrader Upgrader.
+	 * @param array       $options  Opcje.
+	 */
+	public function reactivate_after_update( $upgrader, array $options ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		if (
+			empty( $options['action'] )
+			|| 'update' !== $options['action']
+			|| empty( $options['type'] )
+			|| 'plugin' !== $options['type']
+		) {
+			return;
+		}
+
+		$updated = array();
+		if ( ! empty( $options['plugin'] ) && is_string( $options['plugin'] ) ) {
+			$updated[] = $options['plugin'];
+		}
+		if ( ! empty( $options['plugins'] ) && is_array( $options['plugins'] ) ) {
+			$updated = array_merge( $updated, $options['plugins'] );
+		}
+
+		if ( ! in_array( $this->plugin_basename, $updated, true ) ) {
+			return;
+		}
+
+		colorify_reactivate_plugin_after_update( $this->plugin_basename );
 	}
 
 	/**
