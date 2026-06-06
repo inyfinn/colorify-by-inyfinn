@@ -7,7 +7,73 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const COLORIFY_WAS_ACTIVE_TRANSIENT = 'colorify_plugin_was_active_before_update';
+const COLORIFY_WAS_ACTIVE_TRANSIENT     = 'colorify_plugin_was_active_before_update';
+const COLORIFY_UPDATE_LOCK_TRANSIENT    = 'colorify_update_in_progress';
+const COLORIFY_PENDING_REACTIVATE_OPTION = 'colorify_pending_reactivate';
+
+/**
+ * Czy paczka wtyczki na dysku ma poprawną strukturę katalogów.
+ */
+function colorify_plugin_install_is_valid(): bool {
+	$required = array(
+		COLORIFY_PLUGIN_DIR . 'colorify-by-inyfinn.php',
+		COLORIFY_PLUGIN_DIR . 'includes/colorify-scope.php',
+		COLORIFY_PLUGIN_DIR . 'includes/colorify-toolbar-actions.php',
+	);
+
+	foreach ( $required as $path ) {
+		if ( ! is_readable( $path ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Blokada równoległych aktualizacji (cron + ręczna + auto).
+ */
+function colorify_acquire_update_lock(): bool {
+	if ( get_transient( COLORIFY_UPDATE_LOCK_TRANSIENT ) ) {
+		return false;
+	}
+
+	set_transient( COLORIFY_UPDATE_LOCK_TRANSIENT, '1', 10 * MINUTE_IN_SECONDS );
+
+	return true;
+}
+
+/**
+ * Zdejmuje blokadę aktualizacji.
+ */
+function colorify_release_update_lock(): void {
+	delete_transient( COLORIFY_UPDATE_LOCK_TRANSIENT );
+}
+
+/**
+ * Reaktywacja w następnym żądaniu admina (po rozpakowaniu plików na dysku).
+ */
+function colorify_schedule_reactivate_after_update(): void {
+	update_option( COLORIFY_PENDING_REACTIVATE_OPTION, '1', false );
+}
+
+/**
+ * Wykonuje zaplanowaną reaktywację — tylko gdy instalacja jest kompletna.
+ */
+function colorify_maybe_run_pending_reactivate(): void {
+	if ( '1' !== get_option( COLORIFY_PENDING_REACTIVATE_OPTION ) ) {
+		return;
+	}
+
+	delete_option( COLORIFY_PENDING_REACTIVATE_OPTION );
+
+	if ( ! colorify_plugin_install_is_valid() ) {
+		return;
+	}
+
+	colorify_reactivate_plugin_after_update();
+}
+add_action( 'admin_init', 'colorify_maybe_run_pending_reactivate', 2 );
 
 /**
  * Zapamiętuje, czy wtyczka była aktywna przed aktualizacją (WP często zostawia ją wyłączoną).
@@ -48,6 +114,10 @@ function colorify_reactivate_plugin_after_update( ?string $plugin_basename = nul
 
 	if ( '1' !== $was_active ) {
 		return is_plugin_active( $plugin_basename );
+	}
+
+	if ( ! colorify_plugin_install_is_valid() ) {
+		return false;
 	}
 
 	if ( ! function_exists( 'is_plugin_active' ) || ! function_exists( 'activate_plugin' ) ) {
@@ -105,6 +175,37 @@ function colorify_purge_github_release_cache(): void {
 }
 
 /**
+ * Wybiera URL zipa z assets release (tylko poprawny build, bez zipball).
+ *
+ * @param array<int,array<string,mixed>> $assets Assets z GitHub API.
+ */
+function colorify_pick_github_release_zip_url( array $assets ): string {
+	$fallback = '';
+
+	foreach ( $assets as $asset ) {
+		if (
+			empty( $asset['browser_download_url'] )
+			|| ! is_string( $asset['name'] ?? null )
+			|| '.zip' !== substr( strtolower( $asset['name'] ), -4 )
+		) {
+			continue;
+		}
+
+		$name = strtolower( $asset['name'] );
+
+		if ( 'colorify-by-inyfinn.zip' === $name ) {
+			return (string) $asset['browser_download_url'];
+		}
+
+		if ( '' === $fallback ) {
+			$fallback = (string) $asset['browser_download_url'];
+		}
+	}
+
+	return $fallback;
+}
+
+/**
  * Odczyt najnowszego release z GitHub API (cache 12 h).
  *
  * @param bool $force_refresh Pomiń cache i pobierz na świeżo.
@@ -157,24 +258,7 @@ function colorify_fetch_github_release( bool $force_refresh = false ): ?array {
 	}
 
 	$version  = ltrim( (string) $data['tag_name'], 'vV' );
-	$download = '';
-
-	if ( ! empty( $data['assets'] ) && is_array( $data['assets'] ) ) {
-		foreach ( $data['assets'] as $asset ) {
-			if (
-				! empty( $asset['browser_download_url'] )
-				&& is_string( $asset['name'] ?? null )
-				&& '.zip' === substr( strtolower( $asset['name'] ), -4 )
-			) {
-				$download = (string) $asset['browser_download_url'];
-				break;
-			}
-		}
-	}
-
-	if ( '' === $download && ! empty( $data['zipball_url'] ) ) {
-		$download = (string) $data['zipball_url'];
-	}
+	$download = colorify_pick_github_release_zip_url( $data['assets'] ?? array() );
 
 	$release = array(
 		'version'   => $version,
@@ -294,10 +378,19 @@ function colorify_run_manual_github_update(): array {
 		);
 	}
 
+	if ( ! colorify_acquire_update_lock() ) {
+		return array(
+			'success' => false,
+			'code'    => 'update_locked',
+			'message' => __( 'Aktualizacja Colorify jest już w toku. Odśwież stronę za chwilę.', 'colorify-by-inyfinn' ),
+		);
+	}
+
 	colorify_purge_github_release_cache();
 
 	$release = colorify_fetch_github_release( true );
 	if ( ! $release || empty( $release['version'] ) || empty( $release['download'] ) ) {
+		colorify_release_update_lock();
 		return array(
 			'success' => false,
 			'code'    => 'fetch_failed',
@@ -309,6 +402,7 @@ function colorify_run_manual_github_update(): array {
 	$remote  = (string) $release['version'];
 
 	if ( version_compare( $current, $remote, '>=' ) ) {
+		colorify_release_update_lock();
 		return array(
 			'success' => true,
 			'code'    => 'already_latest',
@@ -352,6 +446,7 @@ function colorify_run_manual_github_update(): array {
 	$result   = $upgrader->upgrade( $plugin_basename );
 
 	colorify_purge_github_release_cache();
+	colorify_release_update_lock();
 
 	if ( is_wp_error( $result ) ) {
 		return array(
@@ -376,7 +471,18 @@ function colorify_run_manual_github_update(): array {
 		);
 	}
 
-	colorify_reactivate_plugin_after_update( $plugin_basename );
+	if ( ! colorify_plugin_install_is_valid() ) {
+		return array(
+			'success' => false,
+			'code'    => 'invalid_package',
+			'message' => __(
+				'Paczka została rozpakowana niepoprawnie (uszkodzona struktura katalogów). Zainstaluj ponownie ręcznie zip colorify-by-inyfinn.zip z GitHub Releases.',
+				'colorify-by-inyfinn'
+			),
+		);
+	}
+
+	colorify_schedule_reactivate_after_update();
 
 	return array(
 		'success' => true,
@@ -496,8 +602,12 @@ final class Colorify_Github_Updater {
 	 * @param array         $hook_extra Kontekst upgradera.
 	 * @return bool|WP_Error
 	 */
-	public function remember_active_before_install( $response, array $hook_extra ) {
-		if ( empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+	public function remember_active_before_install( $response, $hook_extra ) {
+		if ( ! is_array( $hook_extra ) || empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+			return $response;
+		}
+
+		if ( ! colorify_acquire_update_lock() ) {
 			return $response;
 		}
 
@@ -522,9 +632,12 @@ final class Colorify_Github_Updater {
 	 * @param WP_Upgrader $upgrader Upgrader.
 	 * @param array       $options  Opcje.
 	 */
-	public function reactivate_after_update( $upgrader, array $options ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+	public function reactivate_after_update( $upgrader, $options ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		colorify_release_update_lock();
+
 		if (
-			empty( $options['action'] )
+			! is_array( $options )
+			|| empty( $options['action'] )
 			|| 'update' !== $options['action']
 			|| empty( $options['type'] )
 			|| 'plugin' !== $options['type']
@@ -544,7 +657,9 @@ final class Colorify_Github_Updater {
 			return;
 		}
 
-		colorify_reactivate_plugin_after_update( $this->plugin_basename );
+		if ( colorify_plugin_install_is_valid() ) {
+			colorify_schedule_reactivate_after_update();
+		}
 	}
 
 	/**
