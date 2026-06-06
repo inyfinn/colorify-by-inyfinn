@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.0
+ * Version: 1.0.9
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,8 +39,8 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.3' );
-define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.3' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.9' );
+define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.6' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -67,11 +67,11 @@ function colorify_mu_module_exists(): bool {
 const COLORIFY_BRANDING_NAME     = 'Colorify';
 const COLORIFY_CREDITS         = 'inyfinn.art © 2026';
 const COLORIFY_CREDITS_URL     = 'https://inyfinn.art';
-const COLORIFY_BRANDING_CSS_VERSION    = '1.14.9';
-const COLORIFY_APPEARANCE_JS_VERSION   = '1.15.2';
+const COLORIFY_BRANDING_CSS_VERSION    = '1.14.13';
+const COLORIFY_APPEARANCE_JS_VERSION   = '1.16.1';
 const COLORIFY_ADMIN_OVERRIDES_VER     = '1.11.0';
 const COLORIFY_ADMIN_COLORS_VER        = '1.1.1';
-const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.4';
+const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.9';
 const COLORIFY_TABLE_READABLE_VER      = '1.0.2';
 
 /**
@@ -87,6 +87,7 @@ function colorify_load_textdomain(): void {
 add_action( 'plugins_loaded', 'colorify_load_textdomain', 0 );
 
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-scope.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-toolbar-actions.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-admin-schemes.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/class-colorify-settings.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/class-colorify-updater.php';
@@ -204,7 +205,20 @@ add_filter(
 );
 
 /**
- * Pasek narzędzi + JS (zawsze — także gdy motyw wyłączony).
+ * Czy bieżący ekran to edytor wyglądu (profil / ustawienia wtyczki).
+ */
+function colorify_is_appearance_editor_screen(): bool {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	return $screen && in_array(
+		$screen->id,
+		array( 'profile', 'user-edit', 'settings_page_colorify-by-inyfinn' ),
+		true
+	);
+}
+
+/**
+ * Pasek narzędzi — sam CSS (przełączniki = linki GET w PHP).
  *
  * @param int $context_user_id User ID.
  */
@@ -220,28 +234,8 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		COLORIFY_ADMIN_TOOLBAR_VER
 	);
 
-	$appearance_deps = array( 'jquery' );
-	if ( wp_script_is( 'user-profile', 'registered' ) ) {
-		$appearance_deps[] = 'user-profile';
-	}
-
-	wp_enqueue_script(
-		'colorify-admin-appearance',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-appearance.js',
-		$appearance_deps,
-		COLORIFY_APPEARANCE_JS_VERSION,
-		true
-	);
-
-	$scheme = colorify_get_effective_admin_color( $context_user_id );
-
-	wp_localize_script(
-		'colorify-admin-appearance',
-		'colorifyAdminAppearance',
-		colorify_admin_appearance_script_config( $context_user_id, $scheme )
-	);
-
 	if ( ! colorify_is_user_theme_enabled( $context_user_id ) ) {
+		$scheme = colorify_get_effective_admin_color( $context_user_id );
 		$mode   = colorify_get_effective_appearance_mode( $context_user_id );
 		$def    = colorify_admin_get_resolved_scheme( $scheme );
 		$tokens = colorify_admin_tokens_from_scheme( $mode, $def );
@@ -262,6 +256,34 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 			wp_add_inline_style( 'colorify-admin-toolbar', ':root{' . implode( ';', $vars ) . '}' );
 		}
 	}
+}
+
+/**
+ * JS edytora wyglądu — wyłącznie profil / ustawienia Colorify.
+ *
+ * @param int $context_user_id User ID.
+ */
+function colorify_enqueue_appearance_editor_script( int $context_user_id ): void {
+	$appearance_deps = array( 'jquery' );
+	if ( wp_script_is( 'user-profile', 'registered' ) ) {
+		$appearance_deps[] = 'user-profile';
+	}
+
+	wp_enqueue_script(
+		'colorify-admin-appearance',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-appearance.js',
+		$appearance_deps,
+		COLORIFY_APPEARANCE_JS_VERSION,
+		true
+	);
+
+	$scheme = colorify_get_effective_admin_color( $context_user_id );
+
+	wp_localize_script(
+		'colorify-admin-appearance',
+		'colorifyAdminAppearance',
+		colorify_admin_appearance_script_config( $context_user_id, $scheme )
+	);
 }
 
 /**
@@ -358,6 +380,44 @@ function colorify_admin_appearance_script_config( int $context_user_id, string $
 }
 
 /**
+ * Główny CSS motywu — jeden plik na typowych stronach admina.
+ */
+function colorify_enqueue_branding_admin_css(): void {
+	$style_deps = array();
+	foreach ( array( 'colors', 'common', 'forms', 'list-tables' ) as $handle ) {
+		if ( wp_style_is( $handle, 'registered' ) ) {
+			$style_deps[] = $handle;
+		}
+	}
+
+	wp_enqueue_style(
+		'colorify-branding-admin',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css',
+		$style_deps,
+		COLORIFY_BRANDING_CSS_VERSION
+	);
+}
+
+/**
+ * CSS edytora (profil / ustawienia) — nie ładuj na Wtyczkach, Kokpicie itd.
+ */
+function colorify_enqueue_appearance_editor_styles(): void {
+	wp_enqueue_style(
+		'colorify-admin-overrides',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
+		array( 'colorify-branding-admin' ),
+		COLORIFY_ADMIN_OVERRIDES_VER
+	);
+
+	wp_enqueue_style(
+		'colorify-settings',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
+		array( 'colorify-admin-overrides' ),
+		defined( 'COLORIFY_SETTINGS_CSS_VERSION' ) ? COLORIFY_SETTINGS_CSS_VERSION : COLORIFY_PLUGIN_VERSION
+	);
+}
+
+/**
  * Profil / ustawienia Colorify — sekcja personalizacji także przy wyłączonym motywie.
  */
 function colorify_enqueue_personalization_assets_when_theme_off(): void {
@@ -396,120 +456,28 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	}
 
 	colorify_enqueue_toolbar_assets( $context_user_id );
-	colorify_enqueue_personalization_assets_when_theme_off();
+
+	if ( colorify_is_appearance_editor_screen() ) {
+		colorify_enqueue_appearance_editor_script( $context_user_id );
+	}
 
 	if ( ! colorify_is_user_theme_enabled( $context_user_id ) ) {
+		colorify_enqueue_personalization_assets_when_theme_off();
 		return;
 	}
 
-	wp_enqueue_style(
-		'colorify-branding-fonts',
-		'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap',
-		array(),
-		null
-	);
+	colorify_enqueue_branding_admin_css();
 
-	$style_deps = array( 'colorify-branding-fonts' );
-	foreach ( array( 'colors', 'common', 'forms', 'list-tables' ) as $handle ) {
-		if ( wp_style_is( $handle, 'registered' ) ) {
-			$style_deps[] = $handle;
-		}
+	if ( colorify_is_appearance_editor_screen() ) {
+		colorify_enqueue_appearance_editor_styles();
 	}
-
-	wp_enqueue_style(
-		'colorify-branding-admin',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css',
-		$style_deps,
-		COLORIFY_BRANDING_CSS_VERSION
-	);
-
-	wp_enqueue_style(
-		'colorify-admin-overrides',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
-		array( 'colorify-branding-admin' ),
-		COLORIFY_ADMIN_OVERRIDES_VER
-	);
-
-	wp_enqueue_style(
-		'colorify-settings',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
-		array( 'colorify-admin-overrides' ),
-		defined( 'COLORIFY_SETTINGS_CSS_VERSION' ) ? COLORIFY_SETTINGS_CSS_VERSION : COLORIFY_PLUGIN_VERSION
-	);
 }
-
-/**
- * Tabele — CSS na samym końcu (po Elementorze).
- */
-function colorify_enqueue_table_readable_late(): void {
-	if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
-		return;
-	}
-
-	$deps = array( 'colorify-settings', 'colorify-admin-toolbar' );
-	foreach ( array( 'elementor-admin', 'elementor-editor-one', 'e-editor-one', 'editor-one-tables' ) as $handle ) {
-		if ( wp_style_is( $handle, 'enqueued' ) || wp_style_is( $handle, 'registered' ) ) {
-			$deps[] = $handle;
-		}
-	}
-
-	wp_enqueue_style(
-		'colorify-table-readable',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-table-readable.css',
-		$deps,
-		COLORIFY_TABLE_READABLE_VER
-	);
-}
-add_action( 'admin_enqueue_scripts', 'colorify_enqueue_table_readable_late', 999999 );
 
 function colorify_branding_admin_assets(): void {
 	colorify_enqueue_admin_assets();
-	if ( colorify_is_user_theme_enabled() ) {
-		echo '<style>#wpbody,#wpfooter{font-family:"Plus Jakarta Sans",system-ui,sans-serif;}</style>';
-	}
 }
-add_action( 'admin_enqueue_scripts', 'colorify_branding_admin_assets', 9999 );
-add_action( 'customize_controls_enqueue_scripts', 'colorify_branding_admin_assets', 9999 );
-
-/**
- * Ostatnia linia obrony — row-actions (po Elementorze, na końcu strony).
- */
-function colorify_admin_row_actions_guardrail_css(): void {
-	if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
-		return;
-	}
-	echo '<style id="colorify-row-actions-guardrail">'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions,'
-		. 'body.wp-admin #wpbody-content .widefat .row-actions{'
-		. 'position:static!important;left:auto!important;visibility:visible!important;opacity:1!important;}'
-		. 'body.wp-admin #wpbody-content .wp-list-table a.row-title,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-title,'
-		. 'body.wp-admin #wpbody-content .widefat a.row-title,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .column-title strong{'
-		. 'color:#eef0ef!important;-webkit-text-fill-color:#eef0ef!important;}'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody td .row-actions,'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody td .row-actions *,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions *,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions span,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions a,'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions .button-link,'
-		. 'body.wp-admin #wpbody-content .widefat .row-actions,'
-		. 'body.wp-admin #wpbody-content .widefat .row-actions *{'
-		. 'color:#b0bdb8!important;-webkit-text-fill-color:#b0bdb8!important;opacity:1!important;visibility:visible!important;}'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody tr:hover .row-actions,'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody tr:hover .row-actions *,'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody tr:hover .row-actions a,'
-		. 'body.wp-admin #wpbody-content .wp-list-table tbody tr:hover .row-actions .button-link,'
-		. 'body.wp-admin #wpbody-content tr:hover .row-actions,'
-		. 'body.wp-admin #wpbody-content tr:hover .row-actions *{'
-		. 'color:#eef0ef!important;-webkit-text-fill-color:#eef0ef!important;}'
-		. 'body.wp-admin #wpbody-content .wp-list-table .row-actions span.sep,'
-		. 'body.wp-admin #wpbody-content .widefat .row-actions span.sep{'
-		. 'color:#5a6560!important;-webkit-text-fill-color:#5a6560!important;}'
-		. '</style>';
-}
-add_action( 'admin_footer', 'colorify_admin_row_actions_guardrail_css', 99999 );
+add_action( 'admin_enqueue_scripts', 'colorify_branding_admin_assets', 100 );
+add_action( 'customize_controls_enqueue_scripts', 'colorify_branding_admin_assets', 100 );
 
 add_action(
 	'admin_head',
@@ -614,6 +582,27 @@ function colorify_plugin_action_links( array $links ): array {
 			esc_html__( 'Ustawienia globalne', 'colorify-by-inyfinn' )
 		);
 		array_unshift( $links, $settings_link );
+	}
+
+	if ( current_user_can( 'update_plugins' ) && '' !== colorify_get_github_repo() ) {
+		$cached     = colorify_get_cached_github_release();
+		$has_update = is_array( $cached ) && ! empty( $cached['version'] )
+			&& version_compare( COLORIFY_PLUGIN_VERSION, $cached['version'], '<' );
+		$label      = $has_update
+			? sprintf(
+				/* translators: %s: new version number */
+				__( 'Aktualizuj do %s', 'colorify-by-inyfinn' ),
+				$cached['version']
+			)
+			: __( 'Aktualizuj', 'colorify-by-inyfinn' );
+
+		$update_link = sprintf(
+			'<a href="%1$s"%2$s>%3$s</a>',
+			esc_url( colorify_get_manual_update_url( admin_url( 'plugins.php' ) ) ),
+			$has_update ? ' class="colorify-plugin-update-link"' : '',
+			$has_update ? '<strong>' . esc_html( $label ) . '</strong>' : esc_html( $label )
+		);
+		array_unshift( $links, $update_link );
 	}
 
 	return $links;

@@ -262,6 +262,13 @@
 	margin-top: 20px;
 }
 
+.colorify-settings-updates__version {
+	margin: 0 0 14px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--colorify-admin-text, #f4f4f5) !important;
+}
+
 .colorify-settings-updates__ok {
 	color: var(--colorify-admin-accent-muted, #92c200) !important;
 	font-weight: 600;
@@ -275,6 +282,30 @@
 	border-color: var(--colorify-admin-accent, #b4e717) !important;
 }
 
+.colorify-settings-callout--login {
+	margin: 12px 0 16px;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 35%, transparent) !important;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 8%, var(--colorify-admin-surface, #0b231c)) !important;
+}
+
+.colorify-settings-callout--login p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
 .colorify-settings-github-form .regular-text.code {
 	max-width: 420px;
+}
+
+.colorify-settings-submit--updates {
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+
+.colorify-settings-update-btn {
+	min-height: 44px !important;
+	padding: 10px 22px !important;
+	font-weight: 700 !important;
 }

@@ -1551,18 +1551,19 @@ function colorify_admin_change_style_icon_html(): string {
  * @param bool $enabled Czy styl jest włączony.
  */
 function colorify_admin_theme_switch_html( bool $enabled ): string {
-	return '<div class="colorify-theme-switch colorify-admin-toolbar__theme" role="group" aria-label="'
+	$off_class = $enabled ? '' : ' is-active';
+	$on_class  = $enabled ? ' is-active' : '';
+
+	return '<nav class="colorify-theme-switch colorify-toolbar-switch colorify-toolbar-pills" aria-label="'
 		. esc_attr( colorify_i18n( 'Colorify theme', 'Motyw Colorify' ) )
 		. '">'
-		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Off', 'Wył.' ) ) . '</span>'
-		. '<label class="colorify-mode-switch__track">'
-		. '<input type="checkbox" class="colorify-theme-switch__input" '
-		. ( $enabled ? 'checked ' : '' )
-		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' ) ) . '" />'
-		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
-		. '</label>'
-		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'On', 'Wł.' ) ) . '</span>'
-		. '</div>';
+		. '<a href="' . esc_url( colorify_toolbar_action_url( 'theme', '0' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $off_class ) . '">'
+		. esc_html( colorify_i18n( 'Off', 'Wył.' ) )
+		. '</a>'
+		. '<a href="' . esc_url( colorify_toolbar_action_url( 'theme', '1' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $on_class ) . '">'
+		. esc_html( colorify_i18n( 'On', 'Wł.' ) )
+		. '</a>'
+		. '</nav>';
 }
 
 /**
@@ -1580,6 +1581,7 @@ function colorify_admin_floating_toolbar_html(): string {
 		. '</a>'
 		. '<span class="colorify-admin-toolbar__sep" aria-hidden="true"></span>'
 		. colorify_admin_mode_switch_html( $mode )
+		. '<span class="colorify-admin-toolbar__sep" aria-hidden="true"></span>'
 		. colorify_admin_theme_switch_html( $theme_on )
 		. '</div>';
 }
@@ -1588,17 +1590,18 @@ function colorify_admin_floating_toolbar_html(): string {
  * @param string $mode dark|light
  */
 function colorify_admin_mode_switch_html( string $mode ): string {
-	$is_light = 'light' === $mode;
-	return '<div class="colorify-mode-switch" role="group" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
-		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Dark', 'Ciemny' ) ) . '</span>'
-		. '<label class="colorify-mode-switch__track">'
-		. '<input type="checkbox" class="colorify-mode-switch__input" '
-		. ( $is_light ? 'checked ' : '' )
-		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' ) ) . '" />'
-		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
-		. '</label>'
-		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Light', 'Jasny' ) ) . '</span>'
-		. '</div>';
+	$is_light    = 'light' === $mode;
+	$dark_class  = $is_light ? '' : ' is-active';
+	$light_class = $is_light ? ' is-active' : '';
+
+	return '<nav class="colorify-mode-switch colorify-toolbar-switch colorify-toolbar-pills" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
+		. '<a href="' . esc_url( colorify_toolbar_action_url( 'mode', 'dark' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $dark_class ) . '">'
+		. esc_html( colorify_i18n( 'Dark', 'Ciemny' ) )
+		. '</a>'
+		. '<a href="' . esc_url( colorify_toolbar_action_url( 'mode', 'light' ) ) . '" class="colorify-toolbar-pill' . esc_attr( $light_class ) . '">'
+		. esc_html( colorify_i18n( 'Light', 'Jasny' ) )
+		. '</a>'
+		. '</nav>';
 }
 
 /**
@@ -1632,7 +1635,7 @@ function colorify_admin_profile_scope_bar( int $user_id ): void {
 		'global' === $scope ? ' is-active' : '',
 		checked( $scope, 'global', false ),
 		esc_html__( 'Globalne (domyślne)', 'colorify-by-inyfinn' ),
-		esc_html__( 'Wtyczka narzuca kolory tylko bez własnego stylu.', 'colorify-by-inyfinn' )
+		esc_html__( 'Kolory logowania + domyślny panel.', 'colorify-by-inyfinn' )
 	);
 	echo '</div>';
 	echo '<p class="description colorify-profile-scope-bar__link">';
@@ -1748,9 +1751,32 @@ function colorify_admin_scheme_is_registered( string $key ): bool {
 }
 
 /**
+ * Rejestracja schematów WP — tylko ekrany edytora (nie na każdej stronie admina).
+ */
+function colorify_should_register_admin_color_schemes(): bool {
+	if ( ! is_admin() ) {
+		return false;
+	}
+
+	global $pagenow;
+
+	if ( in_array( $pagenow, array( 'profile.php', 'user-edit.php' ), true ) ) {
+		return true;
+	}
+
+	return 'options-general.php' === $pagenow
+		&& isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		&& 'colorify-by-inyfinn' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+}
+
+/**
  * Rejestracja schematów WP.
  */
 function colorify_register_admin_color_schemes(): void {
+	if ( ! colorify_should_register_admin_color_schemes() ) {
+		return;
+	}
+
 	global $_wp_admin_css_colors;
 
 	$_wp_admin_css_colors = array();
@@ -2033,16 +2059,21 @@ function colorify_admin_body_class( string $classes ): string {
 add_filter( 'admin_body_class', 'colorify_admin_body_class' );
 
 /**
- * Wczesny atrybut trybu na <html>.
+ * Atrybut trybu na <html> (bez JS — statycznie z PHP).
+ *
+ * @param string $output Istniejące atrybuty language_attributes.
+ * @return string
  */
-function colorify_admin_early_mode_script(): void {
+function colorify_admin_html_mode_attribute( string $output ): string {
+	if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
+		return $output;
+	}
+
 	$mode = colorify_get_effective_appearance_mode();
-	printf(
-		'<script id="colorify-admin-early-mode">document.documentElement.setAttribute("data-colorify-admin-mode","%s");</script>',
-		esc_attr( $mode )
-	);
+
+	return trim( $output . ' data-colorify-admin-mode="' . esc_attr( $mode ) . '"' );
 }
-add_action( 'admin_head', 'colorify_admin_early_mode_script', 1 );
+add_filter( 'language_attributes', 'colorify_admin_html_mode_attribute', 20 );
 
 /**
  * Login — tryb zawsze z ustawień globalnych.
@@ -2055,7 +2086,6 @@ function colorify_login_early_mode_script(): void {
 	);
 }
 add_action( 'login_head', 'colorify_login_early_mode_script', 1 );
-add_action( 'customize_controls_print_scripts', 'colorify_admin_early_mode_script', 1 );
 
 /**
  * Zapis wyglądu (profil / AJAX) z tablicy wejściowej.

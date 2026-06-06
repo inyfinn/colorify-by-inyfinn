@@ -130,17 +130,10 @@ final class Colorify_Settings {
 		$profile_url = admin_url( 'profile.php' );
 		$user        = wp_get_current_user();
 		$show_saved       = isset( $_GET['colorify_saved'] ) && '1' === $_GET['colorify_saved']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$github_repo      = colorify_get_github_repo();
+		$github_repo       = colorify_get_github_repo();
 		$github_from_const = defined( 'COLORIFY_GITHUB_REPO' ) && is_string( COLORIFY_GITHUB_REPO ) && '' !== COLORIFY_GITHUB_REPO;
-		$github_release   = '' !== $github_repo ? colorify_fetch_github_release() : null;
-		$github_update    = is_array( $github_release )
-			&& ! empty( $github_release['version'] )
-			&& version_compare( COLORIFY_PLUGIN_VERSION, $github_release['version'], '<' );
-		$plugins_url      = admin_url( 'plugins.php' );
-		$check_updates_url = wp_nonce_url(
-			add_query_arg( 'colorify_check_updates', '1', admin_url( 'options-general.php?page=colorify-by-inyfinn' ) ),
-			'colorify_check_updates'
-		);
+		$github_release    = '' !== $github_repo ? colorify_get_cached_github_release() : null;
+		$run_update_url    = colorify_get_manual_update_url( admin_url( 'options-general.php?page=colorify-by-inyfinn' ) );
 
 		?>
 		<div class="wrap colorify-settings-wrap">
@@ -186,7 +179,7 @@ final class Colorify_Settings {
 
 				<section class="colorify-settings-scope" aria-labelledby="colorify-scope-title">
 					<h2 id="colorify-scope-title"><?php esc_html_e( 'Zakres ustawień kolorów', 'colorify-by-inyfinn' ); ?></h2>
-					<p class="description"><?php esc_html_e( 'Globalne: wtyczka narzuca domyślny wygląd tylko użytkownikom bez własnego wyboru w profilu. Per użytkownik: każdy konfiguruje kolory samodzielnie.', 'colorify-by-inyfinn' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Globalne: wtyczka narzuca domyślny wygląd tylko użytkownikom bez własnego wyboru w profilu — w tym na stronie logowania. Per użytkownik: każdy konfiguruje kolory samodzielnie.', 'colorify-by-inyfinn' ); ?></p>
 
 					<div class="colorify-scope-toggle" role="radiogroup" aria-label="<?php esc_attr_e( 'Zakres ustawień', 'colorify-by-inyfinn' ); ?>">
 						<label class="colorify-scope-toggle__option<?php echo 'user' === $scope ? ' is-active' : ''; ?>">
@@ -221,6 +214,12 @@ final class Colorify_Settings {
 				<section class="colorify-settings-panel" id="colorify-global-scope-panel"<?php echo 'global' !== $scope ? ' hidden' : ''; ?>>
 					<h2><?php esc_html_e( 'Ustawienia globalne', 'colorify-by-inyfinn' ); ?></h2>
 					<p class="description"><?php esc_html_e( 'Poniżej ustawiasz domyślny wygląd witryny. Dotyczy tylko użytkowników, którzy nie wybrali własnego stylu w profilu.', 'colorify-by-inyfinn' ); ?></p>
+					<div class="colorify-settings-callout colorify-settings-callout--login" role="note">
+						<p>
+							<strong><?php esc_html_e( 'Panel logowania', 'colorify-by-inyfinn' ); ?></strong> —
+							<?php esc_html_e( 'Zmiana globalnego stylu aktualizuje także stronę logowania (wp-login.php). Kolory logowania zawsze pochodzą z ustawień globalnych.', 'colorify-by-inyfinn' ); ?>
+						</p>
+					</div>
 
 					<input type="hidden" name="colorify_admin_appearance" id="colorify-admin-appearance-field" value="<?php echo esc_attr( colorify_get_effective_appearance_mode() ); ?>" />
 
@@ -286,87 +285,61 @@ final class Colorify_Settings {
 			</form>
 
 			<section class="colorify-settings-panel colorify-settings-updates" aria-labelledby="colorify-updates-title">
-				<h2 id="colorify-updates-title"><?php esc_html_e( 'Aktualizacje wtyczki', 'colorify-by-inyfinn' ); ?></h2>
-				<p class="description">
+				<h2 id="colorify-updates-title"><?php esc_html_e( 'Aktualizacja', 'colorify-by-inyfinn' ); ?></h2>
+				<p class="colorify-settings-updates__version">
 					<?php
 					printf(
 						/* translators: %s: current plugin version */
-						esc_html__( 'Zainstalowana wersja: %s. Po podłączeniu repozytorium GitHub WordPress pokaże „Dostępna aktualizacja” na liście wtyczek — tak jak przy wtyczkach z wordpress.org.', 'colorify-by-inyfinn' ),
+						esc_html__( 'Wersja %s', 'colorify-by-inyfinn' ),
 						esc_html( COLORIFY_PLUGIN_VERSION )
 					);
 					?>
 				</p>
 
 				<?php if ( isset( $_GET['colorify_github'] ) && 'saved' === $_GET['colorify_github'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Ustawienia repozytorium GitHub zapisane.', 'colorify-by-inyfinn' ); ?></p></div>
+					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Repozytorium GitHub zapisane.', 'colorify-by-inyfinn' ); ?></p></div>
 				<?php elseif ( isset( $_GET['colorify_github'] ) && 'invalid' === $_GET['colorify_github'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-					<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'Nieprawidłowy format repozytorium. Użyj owner/repo, np. inyfinn/colorify-by-inyfinn.', 'colorify-by-inyfinn' ); ?></p></div>
+					<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'Nieprawidłowy format repozytorium. Użyj owner/repo.', 'colorify-by-inyfinn' ); ?></p></div>
 				<?php endif; ?>
 
-				<?php if ( $github_update && is_array( $github_release ) ) : ?>
-					<div class="colorify-settings-callout colorify-settings-callout--update">
-						<p>
-							<strong><?php esc_html_e( 'Dostępna nowa wersja:', 'colorify-by-inyfinn' ); ?></strong>
-							<?php echo esc_html( $github_release['version'] ); ?>
-						</p>
-						<p>
-							<a class="button button-primary" href="<?php echo esc_url( $plugins_url ); ?>">
-								<?php esc_html_e( 'Przejdź do wtyczek i zaktualizuj', 'colorify-by-inyfinn' ); ?>
-							</a>
-							<?php if ( ! empty( $github_release['url'] ) ) : ?>
-								<a class="button" href="<?php echo esc_url( $github_release['url'] ); ?>" target="_blank" rel="noopener noreferrer">
-									<?php esc_html_e( 'Release na GitHubie', 'colorify-by-inyfinn' ); ?>
-								</a>
-							<?php endif; ?>
-						</p>
-					</div>
-				<?php elseif ( '' !== $github_repo && is_array( $github_release ) ) : ?>
-					<p class="colorify-settings-updates__ok">
-						<?php esc_html_e( 'Masz najnowszą wersję z GitHub Releases.', 'colorify-by-inyfinn' ); ?>
-					</p>
-				<?php elseif ( '' !== $github_repo ) : ?>
-					<p class="colorify-settings-updates__warn">
-						<?php esc_html_e( 'Nie udało się odczytać release z GitHub (sprawdź nazwę repozytorium lub opublikuj release).', 'colorify-by-inyfinn' ); ?>
+				<?php if ( '' !== $github_repo && current_user_can( 'update_plugins' ) ) : ?>
+					<p class="colorify-settings-submit colorify-settings-submit--updates">
+						<a class="button button-primary button-hero colorify-settings-update-btn" href="<?php echo esc_url( $run_update_url ); ?>">
+							<?php
+							echo esc_html(
+								colorify_has_github_update() && is_array( $github_release ) && ! empty( $github_release['version'] )
+									? sprintf(
+										/* translators: %s: new version number */
+										__( 'Aktualizuj do %s', 'colorify-by-inyfinn' ),
+										$github_release['version']
+									)
+									: __( 'Aktualizuj', 'colorify-by-inyfinn' )
+							);
+							?>
+						</a>
 					</p>
 				<?php endif; ?>
 
-				<form method="post" action="" class="colorify-settings-github-form">
-					<?php wp_nonce_field( 'colorify_github_save', 'colorify_github_nonce' ); ?>
-					<input type="hidden" name="colorify_github_save" value="1" />
-					<p>
-						<label for="colorify-github-repo">
-							<?php esc_html_e( 'Repozytorium GitHub (owner/repo)', 'colorify-by-inyfinn' ); ?>
-						</label>
-						<input
-							type="text"
-							class="regular-text code"
-							id="colorify-github-repo"
-							name="colorify_github_repo"
-							value="<?php echo esc_attr( $github_from_const ? (string) COLORIFY_GITHUB_REPO : get_option( 'colorify_github_repo', '' ) ); ?>"
-							placeholder="inyfinn/colorify-by-inyfinn"
-							<?php echo $github_from_const ? 'readonly' : ''; ?>
-						/>
-					</p>
-					<?php if ( $github_from_const ) : ?>
-						<p class="description">
-							<?php esc_html_e( 'Repozytorium ustawione w wp-config.php (stała COLORIFY_GITHUB_REPO) — pole tylko do odczytu.', 'colorify-by-inyfinn' ); ?>
+				<?php if ( ! $github_from_const ) : ?>
+					<form method="post" action="" class="colorify-settings-github-form">
+						<?php wp_nonce_field( 'colorify_github_save', 'colorify_github_nonce' ); ?>
+						<input type="hidden" name="colorify_github_save" value="1" />
+						<p>
+							<label for="colorify-github-repo"><?php esc_html_e( 'Repozytorium GitHub', 'colorify-by-inyfinn' ); ?></label>
+							<input
+								type="text"
+								class="regular-text code"
+								id="colorify-github-repo"
+								name="colorify_github_repo"
+								value="<?php echo esc_attr( get_option( 'colorify_github_repo', '' ) ); ?>"
+								placeholder="inyfinn/colorify-by-inyfinn"
+							/>
 						</p>
-					<?php else : ?>
-						<p class="description">
-							<?php esc_html_e( 'Publiczne repo z GitHub Releases. Każdy release powinien mieć plik .zip (folder w środku: colorify-by-inyfinn/).', 'colorify-by-inyfinn' ); ?>
-						</p>
-					<?php endif; ?>
-					<p class="colorify-settings-submit">
-						<?php if ( ! $github_from_const ) : ?>
+						<p class="colorify-settings-submit">
 							<button type="submit" class="button button-secondary"><?php esc_html_e( 'Zapisz repozytorium', 'colorify-by-inyfinn' ); ?></button>
-						<?php endif; ?>
-						<?php if ( '' !== $github_repo && current_user_can( 'update_plugins' ) ) : ?>
-							<a class="button" href="<?php echo esc_url( $check_updates_url ); ?>">
-								<?php esc_html_e( 'Sprawdź aktualizacje teraz', 'colorify-by-inyfinn' ); ?>
-							</a>
-						<?php endif; ?>
-					</p>
-				</form>
+						</p>
+					</form>
+				<?php endif; ?>
 			</section>
 
 			<footer class="colorify-settings-footer">
