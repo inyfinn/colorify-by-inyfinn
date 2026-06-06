@@ -2,14 +2,15 @@
  * inyfinn.art style — wp-login + wp-admin branding.
  */
 
-/* ── Login ─────────────────────────────────────────────────────────────── */
+/* ── Login — kolory ze schematu Colorify (domyślnie Limonka, :root z login_head) ─ */
 
 html,
 body.login {
-	background: #0a0a0a !important;
+	background: var(--colorify-admin-bg, #050f0c) !important;
 	font-family: "Plus Jakarta Sans", system-ui, sans-serif;
 	min-height: 100vh;
 	margin: 0;
+	color: var(--colorify-admin-text, #eef0ef);
 }
 
 body.login {
@@ -22,9 +23,9 @@ body.login::before {
 	inset: 0;
 	pointer-events: none;
 	background:
-		radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.22), transparent 70%),
-		radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.1), transparent 55%),
-		radial-gradient(circle at 85% 85%, rgba(124, 58, 237, 0.12), transparent 45%);
+		radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 22%, transparent), transparent 70%),
+		radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 10%, transparent), transparent 55%),
+		radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--colorify-admin-sidebar, #0b231c) 65%, var(--colorify-admin-accent, #b4e717) 12%), transparent 45%);
 	z-index: 0;
 }
 
@@ -64,8 +65,8 @@ body.login .colorify-login-brand__icon {
 	width: 44px;
 	height: 44px;
 	border-radius: 999px;
-	background: color-mix(in srgb, #7c3aed 16%, transparent);
-	color: #c4b5fd;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 18%, transparent);
+	color: var(--colorify-admin-accent, #b4e717);
 	overflow: hidden;
 }
 
@@ -80,8 +81,8 @@ body.login .colorify-login-brand__icon-img {
 body.login .colorify-login-brand__icon-img--fallback {
 	width: 30px;
 	height: 30px;
-	color: #c4b5fd;
-	filter: brightness(0) saturate(100%) invert(78%) sepia(28%) saturate(1200%) hue-rotate(218deg) brightness(103%) contrast(98%);
+	color: var(--colorify-admin-accent, #b4e717);
+	filter: brightness(0) saturate(100%) invert(88%) sepia(45%) saturate(640%) hue-rotate(22deg) brightness(104%) contrast(96%);
 }
 
 body.login .colorify-login-brand__wordmark {
@@ -93,23 +94,23 @@ body.login .colorify-login-brand__wordmark {
 body.login .colorify-login-tagline {
 	margin: 0 0 1.25rem;
 	text-align: center;
-	color: #a1a1aa;
+	color: var(--colorify-admin-text-muted, #b0bdb8);
 	font-size: 0.875rem;
 	line-height: 1.45;
 }
 
 body.login form {
-	background: rgba(255, 255, 255, 0.04) !important;
-	border: 1px solid rgba(255, 255, 255, 0.1) !important;
+	background: color-mix(in srgb, var(--colorify-admin-sidebar, #0b231c) 72%, transparent) !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
 	border-radius: 20px !important;
-	box-shadow: 0 24px 64px -24px rgba(124, 58, 237, 0.35) !important;
+	box-shadow: 0 24px 64px -24px color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 28%, transparent) !important;
 	padding: 1.75rem 1.5rem 1.5rem !important;
 	backdrop-filter: blur(12px);
 }
 
 body.login form label,
 body.login form .forgetmenot label {
-	color: #e4e4e7 !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 	font-size: 0.8125rem;
 	font-weight: 500;
 }
@@ -117,10 +118,10 @@ body.login form .forgetmenot label {
 body.login input[type="text"],
 body.login input[type="password"],
 body.login input[type="email"] {
-	background: rgba(255, 255, 255, 0.06) !important;
-	border: 1px solid rgba(255, 255, 255, 0.12) !important;
+	background: var(--colorify-admin-field, #0b231c) !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
 	border-radius: 12px !important;
-	color: #f4f4f5 !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 	box-shadow: none !important;
 	padding: 0.55rem 0.75rem !important;
 }
@@ -128,19 +129,71 @@ body.login input[type="email"] {
 body.login input[type="text"]:focus,
 body.login input[type="password"]:focus,
 body.login input[type="email"]:focus {
-	border-color: rgba(124, 58, 237, 0.55) !important;
-	box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 55%, transparent) !important;
+	box-shadow: 0 0 0 3px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.18)) !important;
 	outline: none !important;
+}
+
+/* Hasło — ikona oka wewnątrz pola (login ma klasę wp-core-ui na <body>) */
+body.login .wp-pwd {
+	position: relative !important;
+	display: block !important;
+	width: 100% !important;
+}
+
+body.login input.password-input {
+	padding-right: 2.75rem !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	margin-bottom: 1rem !important;
+}
+
+body.login .button.wp-hide-pw {
+	position: absolute !important;
+	right: 0 !important;
+	top: 0 !important;
+	width: 2.5rem !important;
+	min-width: 2.5rem !important;
+	height: 2.5rem !important;
+	min-height: 2.5rem !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: 1px solid transparent !important;
+	border-radius: 0 12px 12px 0 !important;
+	box-shadow: none !important;
+	z-index: 2 !important;
+	transform: none !important;
+	line-height: 1 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+}
+
+body.login .button.wp-hide-pw:hover,
+body.login .button.wp-hide-pw:focus,
+body.login .button.wp-hide-pw:active {
+	background: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	transform: none !important;
+}
+
+body.login .button.wp-hide-pw .dashicons {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+	width: 1.25rem !important;
+	height: 1.25rem !important;
+	font-size: 1.25rem !important;
 }
 
 body.login .button-primary,
 body.login .button-primary:hover,
 body.login .button-primary:focus {
-	background: #7c3aed !important;
+	background: var(--colorify-admin-accent, #b4e717) !important;
 	border: none !important;
 	border-radius: 999px !important;
-	box-shadow: 0 8px 24px -8px rgba(124, 58, 237, 0.65) !important;
-	color: #fff !important;
+	box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 55%, transparent) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
 	font-weight: 600 !important;
 	padding: 0.4rem 1.25rem !important;
 	text-shadow: none !important;
@@ -149,7 +202,7 @@ body.login .button-primary:focus {
 }
 
 body.login .button-primary:hover {
-	background: #6d28d9 !important;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 88%, #ffffff 12%) !important;
 }
 
 body.login #nav,
@@ -169,14 +222,14 @@ body.login #backtoblog {
 body.login #nav a,
 body.login #backtoblog a,
 body.login .privacy-policy-page-link a {
-	color: #a78bfa !important;
+	color: var(--colorify-admin-accent-muted, var(--colorify-admin-accent, #b4e717)) !important;
 	transition: color 0.15s ease;
 }
 
 body.login #nav a:hover,
 body.login #backtoblog a:hover,
 body.login .privacy-policy-page-link a:hover {
-	color: #c4b5fd !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
 body.login .message,
@@ -194,9 +247,9 @@ body.login #login_error {
 
 body.login .message,
 body.login .success {
-	border-left-color: #7c3aed !important;
-	background: rgba(124, 58, 237, 0.1) !important;
-	color: #e4e4e7 !important;
+	border-left-color: var(--colorify-admin-accent, #b4e717) !important;
+	background: var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
 body.login .language-switcher {
@@ -229,11 +282,11 @@ body.login .language-switcher label {
 	margin: 0 !important;
 	display: inline-flex;
 	align-items: center;
-	color: #a1a1aa !important;
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
 }
 
 body.login .language-switcher label .dashicons {
-	color: #a78bfa !important;
+	color: var(--colorify-admin-accent, #b4e717) !important;
 	font-size: 18px;
 	width: 18px;
 	height: 18px;
@@ -265,15 +318,15 @@ body.login .language-switcher select option {
 body.login #language-switcher select:focus,
 body.login .language-switcher select:focus {
 	outline: none !important;
-	box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.35)) !important;
 }
 
 body.login .language-switcher .button {
 	margin: 0 !important;
 	border-radius: 999px !important;
-	border: 1px solid rgba(124, 58, 237, 0.45) !important;
-	color: #c4b5fd !important;
-	background: rgba(124, 58, 237, 0.12) !important;
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 45%, transparent) !important;
+	color: var(--colorify-admin-accent, #b4e717) !important;
+	background: var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.12)) !important;
 	font-size: 0.8125rem;
 	line-height: 1.6;
 	padding: 0.15rem 0.75rem !important;
@@ -282,12 +335,12 @@ body.login .language-switcher .button {
 
 body.login .language-switcher .button:hover,
 body.login .language-switcher .button:focus {
-	background: rgba(124, 58, 237, 0.22) !important;
-	color: #ede9fe !important;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 22%, transparent) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
 body.login input[type="checkbox"]:checked::before {
-	color: #7c3aed !important;
+	color: var(--colorify-admin-accent, #b4e717) !important;
 }
 
 body.login .colorify-login-credits {
@@ -303,13 +356,13 @@ body.login .colorify-login-credits {
 }
 
 body.login .colorify-login-credits a {
-	color: #a78bfa !important;
+	color: var(--colorify-admin-accent-muted, var(--colorify-admin-accent, #b4e717)) !important;
 	text-decoration: none;
 	font-weight: 500;
 }
 
 body.login .colorify-login-credits a:hover {
-	color: #c4b5fd !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
 /* ── Admin panel — dark mode (inyfinn.art style tokens) ─────────────────── */
@@ -328,6 +381,9 @@ body.login .colorify-login-credits a:hover {
 	--colorify-admin-accent: #b4e717;
 	--colorify-admin-accent-soft: rgba(180, 231, 23, 0.12);
 	--colorify-admin-accent-muted: #b4e717;
+	--colorify-admin-on-accent: #050f0c;
+	--colorify-admin-highlight-bg: var(--colorify-admin-accent);
+	--colorify-admin-highlight-text: #050f0c;
 	--wp-admin-theme-color: var(--colorify-admin-bg, #1c4b42);
 }
 
@@ -505,9 +561,9 @@ body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="checkbox"]:checke
 	opacity: 1;
 }
 
-/* Przyciski secondary */
-.wp-core-ui .button,
-.wp-core-ui .button-secondary {
+/* Przyciski secondary — tylko wp-admin (login też ma wp-core-ui na body) */
+body.wp-admin .wp-core-ui .button,
+body.wp-admin .wp-core-ui .button-secondary {
 	background: var(--colorify-admin-surface-2) !important;
 	border: 1px solid var(--colorify-admin-border) !important;
 	color: var(--colorify-admin-text) !important;
@@ -515,15 +571,15 @@ body.wp-admin:not(.colorify-admin-light) .wp-admin input[type="checkbox"]:checke
 	box-shadow: none !important;
 }
 
-.wp-core-ui .button:hover,
-.wp-core-ui .button-secondary:hover {
+body.wp-admin .wp-core-ui .button:hover,
+body.wp-admin .wp-core-ui .button-secondary:hover {
 	background: var(--colorify-admin-field-hover) !important;
 	border-color: color-mix(in srgb, var(--colorify-admin-accent) 35%, var(--colorify-admin-border)) !important;
 	color: var(--colorify-admin-text) !important;
 }
 
-.wp-core-ui .button:focus,
-.wp-core-ui .button-secondary:focus {
+body.wp-admin .wp-core-ui .button:focus,
+body.wp-admin .wp-core-ui .button-secondary:focus {
 	border-color: var(--colorify-admin-accent) !important;
 	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft) !important;
 	color: var(--colorify-admin-text) !important;
@@ -803,24 +859,82 @@ body.wp-admin.colorify-admin-light .wp-list-table tr:hover th {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-.wp-admin .subsubsub a {
+html[data-colorify-admin-mode="dark"] .wp-admin .subsubsub a,
+html[data-colorify-admin-mode="dark"] .wp-admin .subsubsub a .count {
+	color: var(--colorify-admin-text-muted) !important;
+	font-weight: 400 !important;
+}
+
+html[data-colorify-admin-mode="dark"] .wp-admin .subsubsub a.current {
+	color: var(--colorify-admin-text) !important;
+	font-weight: 600 !important;
+}
+
+.wp-admin.colorify-admin-light .subsubsub a {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-.wp-admin .subsubsub a.current {
+.wp-admin.colorify-admin-light .subsubsub a.current {
 	color: var(--colorify-admin-text) !important;
 	font-weight: 600;
 }
 
-/* Linki w treści admina */
-#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button) {
+/* Linki w treści — dark: czytelny muted, nie akcent (= tło w wielu schematach) */
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title) {
+	color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
+	font-weight: 400;
+}
+
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):hover,
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):focus {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+}
+
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title) {
 	color: var(--colorify-admin-link, var(--colorify-admin-accent)) !important;
 	font-weight: 500;
 }
 
-#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):hover,
-#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):focus {
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):hover,
+#wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):focus {
 	color: var(--colorify-admin-link-hover, var(--colorify-admin-accent)) !important;
+}
+
+/* Tytuły i akcje w tabelach — czytelny tekst, subtelny hover (nie neonowy akcent) */
+#wpbody-content .wp-list-table a.row-title,
+#wpbody-content .wp-list-table .row-title,
+#wpbody-content .widefat a.row-title,
+#wpbody-content .wp-list-table .column-title strong {
+	color: var(--colorify-admin-text) !important;
+	font-weight: 400 !important;
+}
+
+#wpbody-content .wp-list-table tr:hover a.row-title,
+#wpbody-content .wp-list-table tr:hover .row-title,
+#wpbody-content .widefat tr:hover a.row-title {
+	color: var(--colorify-admin-text-bright, var(--colorify-admin-text)) !important;
+	text-decoration: underline;
+}
+
+#wpbody-content .wp-list-table .row-actions a,
+#wpbody-content .widefat .row-actions a {
+	color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
+	font-weight: 400 !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
+}
+
+#wpbody-content .wp-list-table tr:hover .row-actions a,
+#wpbody-content .widefat tr:hover .row-actions a {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table .row-actions,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table .row-actions *,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat .row-actions,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat .row-actions * {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
 }
 
 /* Card / panel ustawień Voiceprint */
@@ -947,8 +1061,8 @@ body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a:focus {
 
 body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu li.current a,
 body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-submenu a.current {
-	color: var(--colorify-admin-accent-muted, var(--colorify-admin-text)) !important;
-	background: var(--colorify-admin-ui-selected-bg, var(--colorify-admin-surface)) !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
+	background: var(--colorify-admin-highlight-bg, var(--colorify-admin-accent)) !important;
 	font-weight: 600;
 }
 
@@ -976,7 +1090,7 @@ body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-menu-open .wp-submenu.su
 /* Light: ikony na aktywnym menu-top (ciemny akcent tła → jasna ikona) */
 body.wp-admin.colorify-admin-light #adminmenu li.current div.wp-menu-image::before,
 body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu div.wp-menu-image::before {
-	color: var(--colorify-admin-on-accent, #ffffff) !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 }
 
 #adminmenu .awaiting-mod,
@@ -1019,7 +1133,7 @@ body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu div.wp-m
 	box-sizing: border-box;
 	background: var(--colorify-admin-accent) !important;
 	background-color: var(--colorify-admin-accent) !important;
-	color: var(--colorify-admin-on-accent, #ffffff) !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 	border: none !important;
 	box-shadow: none !important;
 }
@@ -1032,7 +1146,7 @@ body.wp-admin:not(.colorify-admin-light) #adminmenu a[class*="Wordfence"] .updat
 body.wp-admin:not(.colorify-admin-light) #adminmenu .toplevel_page_Wordfence .update-plugins {
 	background: var(--colorify-admin-accent) !important;
 	background-color: var(--colorify-admin-accent) !important;
-	color: #fff !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 }
 
 #wpadminbar {
@@ -1422,11 +1536,13 @@ body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-title {
 
 body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions,
 body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions span {
-	color: var(--colorify-admin-text-dim) !important;
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .wp-list-table .row-actions a {
-	color: var(--colorify-admin-accent-muted) !important;
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .subsubsub a .count {
@@ -1504,11 +1620,15 @@ body.wp-admin:not(.colorify-admin-light) .plugins .column-description p {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a,
+body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
+}
+
 body.wp-admin:not(.colorify-admin-light) .plugins .plugin-description a,
 body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update a,
 body.wp-admin:not(.colorify-admin-light) .plugins .column-description a {
-	color: var(--colorify-admin-accent-muted) !important;
+	color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .plugins .row-actions a:hover,
@@ -1829,9 +1949,9 @@ body.wp-admin:not(.colorify-admin-light) #postcustomstuff a:focus {
 }
 
 .wp-admin .color-option.selected {
-	background: var(--colorify-admin-ui-selected-bg, var(--colorify-admin-surface)) !important;
-	border-color: color-mix(in srgb, var(--colorify-admin-accent-muted, var(--colorify-admin-accent)) 45%, var(--colorify-admin-border)) !important;
-	box-shadow: 0 0 0 1px var(--colorify-admin-border) !important;
+	background: var(--colorify-admin-surface-2, var(--colorify-admin-surface)) !important;
+	border: 2px solid var(--colorify-admin-highlight-bg, var(--colorify-admin-accent)) !important;
+	box-shadow: none !important;
 }
 
 .wp-admin .color-option label {
@@ -1924,6 +2044,24 @@ body.wp-admin:not(.colorify-admin-light) #postcustomstuff a:focus {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
+.colorify-profile-mode-bar__tuning-btn {
+	margin-left: auto;
+	min-height: 36px;
+	padding: 0 14px !important;
+	border-radius: 8px !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	background: var(--colorify-admin-surface-2, var(--colorify-admin-field, #0b231c)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	font-weight: 600 !important;
+}
+
+.colorify-profile-mode-bar__tuning-btn:hover,
+.colorify-profile-mode-bar__tuning-btn:focus {
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+	color: var(--colorify-admin-accent-muted, #b4e717) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.12)) !important;
+}
+
 .colorify-profile-mode-bar--global a {
 	color: var(--colorify-admin-accent-muted) !important;
 }
@@ -1957,103 +2095,7 @@ body.wp-admin:not(.colorify-admin-light) #postcustomstuff a:focus {
 	display: none;
 }
 
-/* ── Switch dark/light (pływający, prawy górny róg — poza admin barem) ── */
-
-.colorify-mode-switch-float {
-	position: fixed;
-	top: 0;
-	right: 168px;
-	height: 32px;
-	display: flex;
-	align-items: center;
-	z-index: 99999;
-	pointer-events: none;
-}
-
-.colorify-mode-switch {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-	font-size: 11px;
-	font-weight: 600;
-	letter-spacing: 0.02em;
-	text-transform: uppercase;
-	color: var(--colorify-admin-text-muted, #a1a1aa);
-	pointer-events: auto;
-}
-
-.colorify-mode-switch__label {
-	line-height: 1;
-	user-select: none;
-}
-
-.colorify-mode-switch__track {
-	position: relative;
-	display: inline-block;
-	flex-shrink: 0;
-	width: 44px;
-	height: 24px;
-	margin: 0;
-	cursor: pointer;
-	overflow: hidden;
-}
-
-.colorify-mode-switch__input {
-	position: absolute;
-	inset: 0;
-	opacity: 0;
-	width: 44px;
-	height: 24px;
-	margin: 0;
-	padding: 0;
-	cursor: pointer;
-	z-index: 2;
-}
-
-.colorify-mode-switch__thumb {
-	position: absolute;
-	inset: 0;
-	border-radius: 999px;
-	background: color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 35%, #3f3f46);
-	border: 1px solid color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 55%, transparent);
-	transition: background 0.2s ease;
-	pointer-events: none;
-}
-
-.colorify-mode-switch__thumb::after {
-	content: "";
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	width: 18px;
-	height: 18px;
-	border-radius: 50%;
-	background: #f4f4f5;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-	transition: transform 0.2s ease;
-}
-
-.colorify-mode-switch__input:checked + .colorify-mode-switch__thumb {
-	background: color-mix(in srgb, var(--colorify-admin-accent, #7c3aed) 75%, #ffffff);
-}
-
-.colorify-mode-switch__input:checked + .colorify-mode-switch__thumb::after {
-	transform: translateX(20px);
-}
-
-.colorify-mode-switch__input:focus-visible + .colorify-mode-switch__thumb {
-	outline: 2px solid var(--colorify-admin-accent, #7c3aed);
-	outline-offset: 2px;
-}
-
-@media screen and (max-width: 782px) {
-	.colorify-mode-switch-float {
-		top: 46px;
-		right: 12px;
-		height: auto;
-	}
-}
+/* Pasek narzędzi (Zmień styl, tryb, motyw) → colorify-admin-toolbar.css */
 
 /* ── v1.5 — Customizer, Astra, WPForms, uniwersalny dark mode ───────────── */
 
@@ -2130,7 +2172,8 @@ body.wp-customizer:not(.colorify-admin-light) #customize-save-button-wrapper .sa
 body.wp-customizer:not(.colorify-admin-light) #customize-header-actions .button-primary {
 	background: var(--colorify-admin-accent) !important;
 	border-color: color-mix(in srgb, var(--colorify-admin-accent) 85%, #000) !important;
-	color: #fff !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
 }
 
 body.wp-customizer:not(.colorify-admin-light) #customize-controls .button,
@@ -2259,7 +2302,7 @@ body.wp-admin:not(.colorify-admin-light) :is(
 ) {
 	background: var(--colorify-admin-accent) !important;
 	background-color: var(--colorify-admin-accent) !important;
-	color: #fff !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 	border-color: color-mix(in srgb, var(--colorify-admin-accent) 80%, #000) !important;
 }
 
@@ -2344,8 +2387,8 @@ body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-t
 }
 
 body.wp-admin:not(.colorify-admin-light) .colorify-theme-panel .colorify-field-tip.colorify-tip-open {
-	background: var(--colorify-admin-accent) !important;
-	color: #fff !important;
+	background: var(--colorify-admin-highlight-bg, var(--colorify-admin-accent)) !important;
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .colorify-tip-popover {

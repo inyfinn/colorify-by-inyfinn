@@ -135,9 +135,15 @@
 }
 
 .colorify-scope-toggle__option.is-active {
-	border-color: color-mix(in srgb, var(--colorify-admin-accent) 55%, var(--colorify-admin-border));
-	background: color-mix(in srgb, var(--colorify-admin-accent) 10%, var(--colorify-admin-bg));
-	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.12));
+	border-color: var(--colorify-admin-highlight-bg, var(--colorify-admin-accent));
+	background: var(--colorify-admin-highlight-bg, var(--colorify-admin-accent));
+	box-shadow: none;
+}
+
+.colorify-scope-toggle__option.is-active .colorify-scope-toggle__label,
+.colorify-scope-toggle__option.is-active .colorify-scope-toggle__hint {
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
+	-webkit-text-fill-color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
 }
 
 .colorify-scope-toggle__option input {
@@ -250,4 +256,25 @@
 
 #colorify-global-appearance-mount #colorify-custom-palette-mount[hidden] {
 	display: block !important;
+}
+
+.colorify-settings-updates {
+	margin-top: 20px;
+}
+
+.colorify-settings-updates__ok {
+	color: var(--colorify-admin-accent-muted, #92c200) !important;
+	font-weight: 600;
+}
+
+.colorify-settings-updates__warn {
+	color: #fbbf24 !important;
+}
+
+.colorify-settings-callout--update {
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+.colorify-settings-github-form .regular-text.code {
+	max-width: 420px;
 }
