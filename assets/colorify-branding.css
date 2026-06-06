@@ -339,8 +339,32 @@ body.login .language-switcher .button:focus {
 	color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
-body.login input[type="checkbox"]:checked::before {
-	color: var(--colorify-admin-accent, #b4e717) !important;
+/* Remember Me — checkbox/radio w kolorach schematu (nie domyślny WP blue) */
+body.login input[type="checkbox"],
+body.login input[type="radio"] {
+	background: var(--colorify-admin-field, #0b231c) !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	box-shadow: none !important;
+	accent-color: var(--colorify-admin-accent, #b4e717);
+}
+
+body.login input[type="checkbox"]:checked,
+body.login input[type="checkbox"]:indeterminate,
+body.login input[type="radio"]:checked {
+	background: var(--colorify-admin-accent, #b4e717) !important;
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+body.login input[type="checkbox"]:checked::before,
+body.login input[type="checkbox"]:indeterminate::before {
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
+}
+
+body.login input[type="checkbox"]:focus,
+body.login input[type="radio"]:focus {
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft, rgba(180, 231, 23, 0.18)) !important;
+	outline: none !important;
 }
 
 body.login .colorify-login-credits {
