@@ -1230,7 +1230,17 @@
 	}
 
 	function queueAutosaveAppearance() {
+		if (!canAutosaveAppearance()) {
+			return;
+		}
 		suppressLeavePageWarning();
+		if (autosaveTimer) {
+			window.clearTimeout(autosaveTimer);
+		}
+		autosaveTimer = window.setTimeout(function () {
+			autosaveTimer = null;
+			saveAppearanceState({ showStatus: false });
+		}, 420);
 	}
 
 	function bindLeaveWarningBypass() {
