@@ -1784,7 +1784,7 @@ function colorify_register_admin_color_schemes(): void {
 	global $_wp_admin_css_colors;
 
 	$_wp_admin_css_colors = array();
-	$colors_ver           = defined( 'COLORIFY_ADMIN_COLORS_VER' ) ? COLORIFY_ADMIN_COLORS_VER : COLORIFY_PLUGIN_VERSION;
+	$colors_ver           = COLORIFY_PLUGIN_VERSION;
 	$colors_css_url       = add_query_arg( 'ver', $colors_ver, COLORIFY_PLUGIN_URL . 'assets/colorify-admin-colors.css' );
 	$mode                 = colorify_get_effective_appearance_mode();
 	$user_id              = get_current_user_id();

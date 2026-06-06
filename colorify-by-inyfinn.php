@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.15
+ * Version: 1.0.16
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,8 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.15' );
-define( 'COLORIFY_SETTINGS_CSS_VERSION', '1.2.6' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.16' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -67,12 +66,11 @@ function colorify_mu_module_exists(): bool {
 const COLORIFY_BRANDING_NAME     = 'Colorify';
 const COLORIFY_CREDITS         = 'inyfinn.art © 2026';
 const COLORIFY_CREDITS_URL     = 'https://inyfinn.art';
-const COLORIFY_BRANDING_CSS_VERSION    = '1.14.14';
-const COLORIFY_APPEARANCE_JS_VERSION   = '1.16.3';
-const COLORIFY_ADMIN_OVERRIDES_VER     = '1.11.0';
-const COLORIFY_ADMIN_COLORS_VER        = '1.1.1';
-const COLORIFY_ADMIN_TOOLBAR_VER       = '1.1.3';
-const COLORIFY_TABLE_READABLE_VER      = '1.0.2';
+
+/**
+ * Jedna wersja wtyczki wszędzie: stopka admina, ustawienia, cache CSS/JS (?ver=).
+ * Przy każdym release podbij tylko COLORIFY_PLUGIN_VERSION (nagłówek pluginu + stała poniżej).
+ */
 
 /**
  * Ładuje tłumaczenia wtyczki (język = locale WordPressa).
@@ -154,7 +152,7 @@ function colorify_branding_login_assets(): void {
 		'colorify-branding',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css',
 		array( 'colorify-branding-fonts', 'login' ),
-		COLORIFY_BRANDING_CSS_VERSION
+		COLORIFY_PLUGIN_VERSION
 	);
 }
 add_action( 'login_enqueue_scripts', 'colorify_branding_login_assets' );
@@ -234,7 +232,7 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		'colorify-admin-toolbar',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-toolbar.css',
 		array(),
-		COLORIFY_ADMIN_TOOLBAR_VER
+		COLORIFY_PLUGIN_VERSION
 	);
 
 	// Krytyczne pozycjonowanie inline — nie zależy od cache / uszkodzonego pliku CSS.
@@ -283,7 +281,7 @@ function colorify_enqueue_appearance_editor_script( int $context_user_id ): void
 		'colorify-admin-appearance',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-appearance.js',
 		$appearance_deps,
-		COLORIFY_APPEARANCE_JS_VERSION,
+		COLORIFY_PLUGIN_VERSION,
 		true
 	);
 
@@ -378,13 +376,9 @@ function colorify_admin_appearance_script_config( int $context_user_id, string $
 		),
 		'schemesPanelUrl' => colorify_admin_schemes_panel_url(),
 		'assets'          => array(
-			'branding'  => add_query_arg( 'ver', COLORIFY_BRANDING_CSS_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css' ),
-			'overrides' => add_query_arg( 'ver', COLORIFY_ADMIN_OVERRIDES_VER, COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css' ),
-			'settings'  => add_query_arg(
-				'ver',
-				defined( 'COLORIFY_SETTINGS_CSS_VERSION' ) ? COLORIFY_SETTINGS_CSS_VERSION : COLORIFY_PLUGIN_VERSION,
-				COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css'
-			),
+			'branding'  => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css' ),
+			'overrides' => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css' ),
+			'settings'  => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css' ),
 		),
 	);
 }
@@ -404,7 +398,7 @@ function colorify_enqueue_branding_admin_css(): void {
 		'colorify-branding-admin',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css',
 		$style_deps,
-		COLORIFY_BRANDING_CSS_VERSION
+		COLORIFY_PLUGIN_VERSION
 	);
 }
 
@@ -416,14 +410,14 @@ function colorify_enqueue_appearance_editor_styles(): void {
 		'colorify-admin-overrides',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
 		array( 'colorify-branding-admin' ),
-		COLORIFY_ADMIN_OVERRIDES_VER
+		COLORIFY_PLUGIN_VERSION
 	);
 
 	wp_enqueue_style(
 		'colorify-settings',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
 		array( 'colorify-admin-overrides' ),
-		defined( 'COLORIFY_SETTINGS_CSS_VERSION' ) ? COLORIFY_SETTINGS_CSS_VERSION : COLORIFY_PLUGIN_VERSION
+		COLORIFY_PLUGIN_VERSION
 	);
 }
 
@@ -444,14 +438,14 @@ function colorify_enqueue_personalization_assets_when_theme_off(): void {
 		'colorify-admin-overrides',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
 		array( 'colorify-admin-toolbar' ),
-		COLORIFY_ADMIN_OVERRIDES_VER
+		COLORIFY_PLUGIN_VERSION
 	);
 
 	wp_enqueue_style(
 		'colorify-settings',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
 		array( 'colorify-admin-overrides' ),
-		defined( 'COLORIFY_SETTINGS_CSS_VERSION' ) ? COLORIFY_SETTINGS_CSS_VERSION : COLORIFY_PLUGIN_VERSION
+		COLORIFY_PLUGIN_VERSION
 	);
 }
 
@@ -532,10 +526,10 @@ add_action(
 );
 
 /**
- * Wersja buildu w prawym dolnym rogu stopki (bump przy zmianach assetów).
+ * Wersja wtyczki w prawym dolnym rogu stopki admina.
  */
 function colorify_admin_footer_version(): string {
-	return COLORIFY_APPEARANCE_JS_VERSION;
+	return COLORIFY_PLUGIN_VERSION;
 }
 
 add_filter(
