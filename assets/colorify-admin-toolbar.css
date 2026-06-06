@@ -30,6 +30,18 @@
 	white-space: nowrap;
 }
 
+.colorify-admin-toolbar__segment {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	flex-shrink: 0;
+	min-width: max-content;
+}
+
+.colorify-admin-toolbar__segment--controls {
+	gap: 20px;
+}
+
 .colorify-change-style-btn {
 	display: inline-flex;
 	align-items: center;
@@ -132,6 +144,20 @@
 	line-height: 1.2;
 	user-select: none;
 	white-space: nowrap;
+	text-align: center;
+}
+
+/* ~6.5px/znak przy 11px uppercase — szerokość w ch, żeby etykiety nie nachodziły na suwak */
+.colorify-mode-switch:not(.colorify-theme-switch) .colorify-mode-switch__label {
+	min-width: 5.5ch;
+}
+
+.colorify-theme-switch .colorify-mode-switch__label:first-child {
+	min-width: 3.8ch;
+}
+
+.colorify-theme-switch .colorify-mode-switch__label:last-child {
+	min-width: 2.8ch;
 }
 
 .colorify-mode-switch:not(.colorify-theme-switch) .colorify-mode-switch__label:first-child {
