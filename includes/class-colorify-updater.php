@@ -82,6 +82,55 @@ function colorify_release_update_lock(): void {
 }
 
 /**
+ * Odczyt wersji z nagłówka pluginu na dysku (opcjonalnie po czyszczeniu cache WP / OPcache).
+ */
+function colorify_get_installed_plugin_version( bool $fresh = false ): string {
+	if ( $fresh ) {
+		if ( function_exists( 'wp_clean_plugins_cache' ) ) {
+			wp_clean_plugins_cache( true );
+		}
+		if ( function_exists( 'opcache_invalidate' ) && is_readable( COLORIFY_PLUGIN_FILE ) ) {
+			opcache_invalidate( COLORIFY_PLUGIN_FILE, true );
+		}
+	}
+
+	if ( ! function_exists( 'get_plugin_data' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	if ( ! is_readable( COLORIFY_PLUGIN_FILE ) ) {
+		return '';
+	}
+
+	$data = get_plugin_data( COLORIFY_PLUGIN_FILE, false, false );
+
+	return isset( $data['Version'] ) ? (string) $data['Version'] : '';
+}
+
+/**
+ * Po aktualizacji — czy pliki na dysku mają oczekiwaną wersję.
+ *
+ * @return array{ok:bool,installed:string,expected:string}
+ */
+function colorify_verify_installed_version_after_update( string $expected_version ): array {
+	$installed = colorify_get_installed_plugin_version( true );
+
+	if ( '' === $installed ) {
+		return array(
+			'ok'        => false,
+			'installed' => '',
+			'expected'  => $expected_version,
+		);
+	}
+
+	return array(
+		'ok'        => version_compare( $installed, $expected_version, '>=' ),
+		'installed' => $installed,
+		'expected'  => $expected_version,
+	);
+}
+
+/**
  * Reaktywacja w następnym żądaniu admina (po rozpakowaniu plików na dysku).
  */
 function colorify_schedule_reactivate_after_update(): void {
@@ -100,6 +149,10 @@ function colorify_maybe_run_pending_reactivate(): void {
 
 	if ( ! colorify_plugin_install_is_valid() ) {
 		return;
+	}
+
+	if ( function_exists( 'wp_clean_plugins_cache' ) ) {
+		wp_clean_plugins_cache( true );
 	}
 
 	colorify_reactivate_plugin_after_update();
@@ -356,14 +409,48 @@ function colorify_render_update_result_notice(): void {
 	}
 
 	if ( 'updated' === $update_result ) {
-		$message = '' !== $new_version
+		$installed = colorify_get_installed_plugin_version( true );
+
+		if ( '' !== $new_version && '' !== $installed && version_compare( $installed, $new_version, '<' ) ) {
+			printf(
+				'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+						/* translators: 1: version on disk, 2: expected version */
+						__( 'Aktualizacja Colorify nie zakończyła się poprawnie: na serwerze nadal wersja %1$s (oczekiwano %2$s). Spróbuj ponownie lub zainstaluj ZIP z GitHub Releases.', 'colorify-by-inyfinn' ),
+						$installed,
+						$new_version
+					)
+				)
+			);
+			return;
+		}
+
+		$display_version = '' !== $installed ? $installed : $new_version;
+		$message         = '' !== $display_version
 			? sprintf(
-				/* translators: %s: version number */
+				/* translators: %s: version number read from plugin files */
 				__( 'Colorify zaktualizowany do wersji %s.', 'colorify-by-inyfinn' ),
-				$new_version
+				$display_version
 			)
 			: __( 'Colorify został zaktualizowany.', 'colorify-by-inyfinn' );
 		printf( '<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html( $message ) );
+		return;
+	}
+
+	if ( 'version_mismatch' === $update_result ) {
+		$installed = colorify_get_installed_plugin_version( true );
+		printf(
+			'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: 1: version on disk, 2: expected version */
+					__( 'Aktualizacja Colorify nie zakończyła się poprawnie: na serwerze wersja %1$s (oczekiwano %2$s).', 'colorify-by-inyfinn' ),
+					'' !== $installed ? $installed : '?',
+					'' !== $new_version ? $new_version : '?'
+				)
+			)
+		);
 		return;
 	}
 
@@ -385,6 +472,30 @@ function colorify_render_update_result_notice(): void {
 
 	printf( '<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html( $message ) );
 }
+
+/**
+ * Informacja gdy aktualizacja trwa w tle (blokada równoległych update).
+ */
+function colorify_render_update_in_progress_notice(): void {
+	if ( ! is_admin() || ! current_user_can( 'update_plugins' ) ) {
+		return;
+	}
+
+	if ( ! get_transient( COLORIFY_UPDATE_LOCK_TRANSIENT ) ) {
+		return;
+	}
+
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || ! in_array( $screen->id, array( 'plugins', 'settings_page_colorify-by-inyfinn' ), true ) ) {
+		return;
+	}
+
+	printf(
+		'<div class="notice notice-info"><p>%s</p></div>',
+		esc_html__( 'Trwa aktualizacja Colorify — pobieranie i rozpakowywanie plików. Odśwież stronę za chwilę.', 'colorify-by-inyfinn' )
+	);
+}
+add_action( 'admin_notices', 'colorify_render_update_in_progress_notice', 4 );
 add_action( 'admin_notices', 'colorify_render_update_result_notice', 5 );
 
 /**
@@ -513,6 +624,22 @@ function colorify_run_manual_github_update(): array {
 		);
 	}
 
+	$verify = colorify_verify_installed_version_after_update( $remote );
+	if ( ! $verify['ok'] ) {
+		return array(
+			'success' => false,
+			'code'    => 'version_mismatch',
+			'message' => sprintf(
+				/* translators: 1: version on disk, 2: expected version */
+				__( 'Pliki na serwerze: wersja %1$s (oczekiwano %2$s). Spróbuj ponownie.', 'colorify-by-inyfinn' ),
+				'' !== $verify['installed'] ? $verify['installed'] : '?',
+				$remote
+			),
+			'version' => $verify['installed'],
+			'remote'  => $remote,
+		);
+	}
+
 	colorify_schedule_reactivate_after_update();
 
 	return array(
@@ -521,9 +648,9 @@ function colorify_run_manual_github_update(): array {
 		'message' => sprintf(
 			/* translators: %s: new version number */
 			__( 'Zaktualizowano do wersji %s.', 'colorify-by-inyfinn' ),
-			$remote
+			$verify['installed']
 		),
-		'version' => $remote,
+		'version' => $verify['installed'],
 		'remote'  => $remote,
 	);
 }
@@ -844,6 +971,9 @@ final class Colorify_Github_Updater {
 		}
 
 		if ( colorify_plugin_install_is_valid() ) {
+			if ( function_exists( 'wp_clean_plugins_cache' ) ) {
+				wp_clean_plugins_cache( true );
+			}
 			colorify_schedule_reactivate_after_update();
 		}
 	}
