@@ -67,11 +67,11 @@ function colorify_mu_module_exists(): bool {
 const COLORIFY_BRANDING_NAME     = 'Colorify';
 const COLORIFY_CREDITS         = 'inyfinn.art © 2026';
 const COLORIFY_CREDITS_URL     = 'https://inyfinn.art';
-const COLORIFY_BRANDING_CSS_VERSION    = '1.14.13';
+const COLORIFY_BRANDING_CSS_VERSION    = '1.14.14';
 const COLORIFY_APPEARANCE_JS_VERSION   = '1.16.1';
 const COLORIFY_ADMIN_OVERRIDES_VER     = '1.11.0';
 const COLORIFY_ADMIN_COLORS_VER        = '1.1.1';
-const COLORIFY_ADMIN_TOOLBAR_VER       = '1.0.9';
+const COLORIFY_ADMIN_TOOLBAR_VER       = '1.1.3';
 const COLORIFY_TABLE_READABLE_VER      = '1.0.2';
 
 /**
@@ -235,6 +235,13 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-toolbar.css',
 		array(),
 		COLORIFY_ADMIN_TOOLBAR_VER
+	);
+
+	// Krytyczne pozycjonowanie inline — nie zależy od cache / uszkodzonego pliku CSS.
+	wp_add_inline_style(
+		'colorify-admin-toolbar',
+		'.colorify-mode-switch-float{position:fixed!important;top:0!important;right:148px!important;left:auto!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;z-index:100001!important;pointer-events:none!important;max-width:calc(100vw - 320px)!important}'
+		. '.colorify-mode-switch-float .colorify-admin-toolbar{display:flex!important;align-items:center!important;pointer-events:auto!important;white-space:nowrap!important}'
 	);
 
 	if ( ! colorify_is_user_theme_enabled( $context_user_id ) ) {
@@ -512,6 +519,7 @@ function colorify_admin_render_mode_switch(): void {
 	echo colorify_admin_floating_toolbar_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	echo '</div>';
 }
+add_action( 'in_admin_header', 'colorify_admin_render_mode_switch', 1 );
 add_action( 'admin_footer', 'colorify_admin_render_mode_switch', 1 );
 
 add_action(

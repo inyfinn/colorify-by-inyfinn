@@ -480,8 +480,11 @@ body.wp-admin.colorify-admin-light {
 #wpcontent,
 #wpbody,
 #wpbody-content,
-.wrap,
-#screen-meta-links,
+.wrap {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
 #screen-meta {
 	background: var(--colorify-admin-bg) !important;
 	color: var(--colorify-admin-text) !important;
@@ -983,16 +986,23 @@ body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat .row-actions *
 	color: var(--colorify-admin-text) !important;
 }
 
+#screen-meta-links {
+	background: transparent !important;
+	position: relative;
+	z-index: 100000;
+	pointer-events: auto !important;
+}
+
 #screen-meta-links .show-settings {
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-#screen-meta,
-#screen-meta-links,
-#screen-meta-links .show-settings,
 #contextual-help-link-wrap {
 	position: relative;
-	z-index: 2;
+	z-index: 100000;
 	pointer-events: auto !important;
 }
 
