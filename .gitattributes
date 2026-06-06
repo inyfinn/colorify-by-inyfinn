@@ -1,0 +1,6 @@
+# git archive (GitHub Releases) — wykluczenia ze spakowanej wtyczki.
+/scripts export-ignore
+/dist export-ignore
+/.github export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore

@@ -12,22 +12,53 @@ const COLORIFY_UPDATE_LOCK_TRANSIENT    = 'colorify_update_in_progress';
 const COLORIFY_PENDING_REACTIVATE_OPTION = 'colorify_pending_reactivate';
 
 /**
- * Czy paczka wtyczki na dysku ma poprawną strukturę katalogów.
+ * Wymagane pliki w paczce (ścieżki względem katalogu wtyczki).
+ *
+ * @return list<string>
  */
-function colorify_plugin_install_is_valid(): bool {
-	$required = array(
-		COLORIFY_PLUGIN_DIR . 'colorify-by-inyfinn.php',
-		COLORIFY_PLUGIN_DIR . 'includes/colorify-scope.php',
-		COLORIFY_PLUGIN_DIR . 'includes/colorify-toolbar-actions.php',
+function colorify_required_plugin_files(): array {
+	return array(
+		'colorify-by-inyfinn.php',
+		'includes/colorify-scope.php',
+		'includes/colorify-toolbar-actions.php',
 	);
+}
 
-	foreach ( $required as $path ) {
-		if ( ! is_readable( $path ) ) {
+/**
+ * Czy instalacja wtyczki ma strukturę wymaganą przez WordPress.
+ *
+ * @param string|null $plugin_dir Katalog docelowy (domyślnie bieżąca instalacja).
+ */
+function colorify_plugin_install_is_valid( ?string $plugin_dir = null ): bool {
+	$base = null !== $plugin_dir ? trailingslashit( $plugin_dir ) : COLORIFY_PLUGIN_DIR;
+
+	foreach ( colorify_required_plugin_files() as $relative ) {
+		if ( ! is_readable( $base . $relative ) ) {
 			return false;
 		}
 	}
 
-	return true;
+	return ! colorify_plugin_dir_has_flattened_entries( $base );
+}
+
+/**
+ * Wykrywa uszkodzoną paczkę (spłaszczone ścieżki z niepoprawnego zipa).
+ *
+ * @param string $plugin_dir Katalog wtyczki.
+ */
+function colorify_plugin_dir_has_flattened_entries( string $plugin_dir ): bool {
+	$entries = scandir( $plugin_dir );
+	if ( ! is_array( $entries ) ) {
+		return false;
+	}
+
+	foreach ( $entries as $entry ) {
+		if ( preg_match( '#^(assets|includes|languages)(%5C|%5c|\\\\|\\\).+#', $entry ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -476,7 +507,7 @@ function colorify_run_manual_github_update(): array {
 			'success' => false,
 			'code'    => 'invalid_package',
 			'message' => __(
-				'Paczka została rozpakowana niepoprawnie (uszkodzona struktura katalogów). Zainstaluj ponownie ręcznie zip colorify-by-inyfinn.zip z GitHub Releases.',
+				'Paczka nie przeszła walidacji WordPress po rozpakowaniu. Użyj oficjalnego ZIP z GitHub Releases (tag v*).',
 				'colorify-by-inyfinn'
 			),
 		);
@@ -518,10 +549,132 @@ final class Colorify_Github_Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'inject_update' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 20, 3 );
 		add_filter( 'upgrader_pre_install', array( $this, 'remember_active_before_install' ), 10, 2 );
+		add_filter( 'upgrader_source_selection', array( $this, 'select_package_source' ), 10, 4 );
+		add_filter( 'upgrader_post_install', array( $this, 'verify_post_install' ), 10, 3 );
 		add_action( 'upgrader_process_complete', array( $this, 'purge_cache' ), 10, 2 );
 		add_action( 'upgrader_process_complete', array( $this, 'reactivate_after_update' ), 11, 2 );
 		add_action( 'admin_init', array( $this, 'maybe_force_check' ) );
 		add_action( 'admin_init', array( $this, 'maybe_run_manual_update' ) );
+	}
+
+	/**
+	 * Czy hook upgradera dotyczy tej wtyczki.
+	 *
+	 * @param array<string,mixed> $hook_extra Kontekst upgradera.
+	 */
+	private function hook_extra_targets_us( array $hook_extra ): bool {
+		if ( empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+			return false;
+		}
+
+		$targets = array();
+		if ( ! empty( $hook_extra['plugin'] ) && is_string( $hook_extra['plugin'] ) ) {
+			$targets[] = $hook_extra['plugin'];
+		}
+		if ( ! empty( $hook_extra['plugins'] ) && is_array( $hook_extra['plugins'] ) ) {
+			$targets = array_merge( $targets, $hook_extra['plugins'] );
+		}
+
+		return in_array( $this->plugin_basename, $targets, true );
+	}
+
+	/**
+	 * WordPress: wybór katalogu źródłowego po rozpakowaniu zipa.
+	 * Paczka MUSI mieć jeden folder slug/ (Plugin Handbook).
+	 *
+	 * @param string      $source         Bieżące źródło.
+	 * @param string      $remote_source  Katalog rozpakowany.
+	 * @param WP_Upgrader $upgrader       Upgrader.
+	 * @param array       $hook_extra     Kontekst.
+	 * @return string|WP_Error
+	 */
+	public function select_package_source( $source, $remote_source, $upgrader, $hook_extra ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		if ( ! is_array( $hook_extra ) || ! $this->hook_extra_targets_us( $hook_extra ) ) {
+			return $source;
+		}
+
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			return $source;
+		}
+
+		$slug_root = trailingslashit( $remote_source ) . $this->plugin_slug;
+		$main_file = $slug_root . '/colorify-by-inyfinn.php';
+
+		if ( $wp_filesystem->is_dir( $slug_root ) && $wp_filesystem->exists( $main_file ) ) {
+			return $slug_root;
+		}
+
+		return $source;
+	}
+
+	/**
+	 * WordPress: walidacja po instalacji — WP_Error cofa aktualizację (rollback).
+	 *
+	 * @param bool|WP_Error        $response   Wynik filtra.
+	 * @param array<string,mixed>  $hook_extra Kontekst.
+	 * @param array<string,mixed>  $result     M.in. destination.
+	 * @return bool|WP_Error
+	 */
+	public function verify_post_install( $response, $hook_extra, $result ) {
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		if ( ! is_array( $hook_extra ) || ! $this->hook_extra_targets_us( $hook_extra ) ) {
+			return $response;
+		}
+
+		if ( ! is_array( $result ) || empty( $result['destination'] ) ) {
+			return new WP_Error(
+				'colorify_invalid_install',
+				__( 'Aktualizacja Colorify: brak katalogu docelowego po rozpakowaniu.', 'colorify-by-inyfinn' )
+			);
+		}
+
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		if ( ! $wp_filesystem ) {
+			return new WP_Error(
+				'colorify_no_filesystem',
+				__( 'Aktualizacja Colorify: brak dostępu do systemu plików WordPress.', 'colorify-by-inyfinn' )
+			);
+		}
+
+		$destination = trailingslashit( $result['destination'] );
+
+		foreach ( colorify_required_plugin_files() as $relative ) {
+			if ( ! $wp_filesystem->exists( $destination . $relative ) ) {
+				return new WP_Error(
+					'colorify_invalid_package',
+					sprintf(
+						/* translators: %s: relative file path */
+						__( 'Niepoprawna paczka Colorify — brakuje pliku: %s. Użyj oficjalnego ZIP z GitHub Releases (tag v*).', 'colorify-by-inyfinn' ),
+						$relative
+					)
+				);
+			}
+		}
+
+		$list = $wp_filesystem->dirlist( $destination, false, false );
+		if ( is_array( $list ) ) {
+			foreach ( array_keys( $list ) as $name ) {
+				if ( preg_match( '#^(assets|includes|languages)(%5C|%5c|\\\\|\\\).+#', $name ) ) {
+					return new WP_Error(
+						'colorify_invalid_package',
+						__( 'Niepoprawna paczka Colorify — uszkodzona struktura katalogów. Zainstaluj oficjalny ZIP z GitHub Releases.', 'colorify-by-inyfinn' )
+					);
+				}
+			}
+		}
+
+		return $response;
 	}
 
 	/**
@@ -537,6 +690,10 @@ final class Colorify_Github_Updater {
 		}
 
 		// Tylko cache — nigdy HTTP na plugins.php (wp_update_plugins blokuje request do 20 s).
+		if ( get_transient( COLORIFY_UPDATE_LOCK_TRANSIENT ) ) {
+			return $transient;
+		}
+
 		$release = colorify_get_cached_github_release();
 		if ( ! $release || empty( $release['version'] ) || empty( $release['download'] ) ) {
 			return $transient;
@@ -603,25 +760,18 @@ final class Colorify_Github_Updater {
 	 * @return bool|WP_Error
 	 */
 	public function remember_active_before_install( $response, $hook_extra ) {
-		if ( ! is_array( $hook_extra ) || empty( $hook_extra['type'] ) || 'plugin' !== $hook_extra['type'] ) {
+		if ( is_wp_error( $response ) || ! is_array( $hook_extra ) || ! $this->hook_extra_targets_us( $hook_extra ) ) {
 			return $response;
 		}
 
 		if ( ! colorify_acquire_update_lock() ) {
-			return $response;
+			return new WP_Error(
+				'colorify_update_locked',
+				__( 'Aktualizacja Colorify jest już w toku. Odśwież stronę za chwilę.', 'colorify-by-inyfinn' )
+			);
 		}
 
-		$targets = array();
-		if ( ! empty( $hook_extra['plugin'] ) && is_string( $hook_extra['plugin'] ) ) {
-			$targets[] = $hook_extra['plugin'];
-		}
-		if ( ! empty( $hook_extra['plugins'] ) && is_array( $hook_extra['plugins'] ) ) {
-			$targets = array_merge( $targets, $hook_extra['plugins'] );
-		}
-
-		if ( in_array( $this->plugin_basename, $targets, true ) ) {
-			colorify_remember_plugin_active_before_update( $this->plugin_basename );
-		}
+		colorify_remember_plugin_active_before_update( $this->plugin_basename );
 
 		return $response;
 	}
