@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.0.18
+ * Version: 1.0.19
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.0.18' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.0.19' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -260,11 +260,16 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 		)
 	);
 
-	// Krytyczne pozycjonowanie inline — nie zależy od cache / uszkodzonego pliku CSS.
+	// Krytyczne pozycjonowanie + suwaki inline (fallback gdy cache/encoding CSS).
 	wp_add_inline_style(
 		'colorify-admin-toolbar',
 		'.colorify-mode-switch-float{position:fixed!important;top:0!important;right:148px!important;left:auto!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;z-index:100001!important;pointer-events:none!important;max-width:calc(100vw - 320px)!important}'
 		. '.colorify-mode-switch-float .colorify-admin-toolbar{display:flex!important;align-items:center!important;pointer-events:auto!important;white-space:nowrap!important}'
+		. '.colorify-toolbar-switch,.colorify-mode-switch,.colorify-theme-switch{display:inline-flex!important;align-items:center!important;gap:8px!important;flex-flow:row nowrap!important}'
+		. '.colorify-switch,.colorify-mode-switch__input,.colorify-theme-switch__input{position:relative!important;flex:0 0 48px!important;width:48px!important;height:24px!important;margin:0!important;appearance:none!important;-webkit-appearance:none!important;border-radius:9999px!important;background:rgba(100,116,139,.38)!important;border:1px solid rgba(255,255,255,.14)!important;cursor:pointer!important}'
+		. '.colorify-switch::before,.colorify-mode-switch__input::before,.colorify-theme-switch__input::before{content:""!important;position:absolute!important;top:2px!important;left:2px!important;width:18px!important;height:18px!important;border-radius:50%!important;background:#fff!important;box-shadow:0 2px 6px rgba(0,0,0,.28)!important;transition:transform .25s ease!important}'
+		. '.colorify-switch:checked,.colorify-mode-switch__input:checked,.colorify-theme-switch__input:checked{background:color-mix(in srgb,var(--colorify-admin-accent,#ec4899) 90%,#fff)!important}'
+		. '.colorify-switch:checked::before,.colorify-mode-switch__input:checked::before,.colorify-theme-switch__input:checked::before{transform:translateX(24px)!important}'
 	);
 
 	if ( ! colorify_is_user_theme_enabled( $context_user_id ) ) {

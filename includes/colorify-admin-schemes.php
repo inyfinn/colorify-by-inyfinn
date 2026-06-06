@@ -1559,12 +1559,9 @@ function colorify_admin_theme_switch_html( bool $enabled ): string {
 		. esc_attr( colorify_i18n( 'Colorify theme', 'Motyw Colorify' ) )
 		. '">'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Off', 'Wył.' ) ) . '</span>'
-		. '<label class="colorify-mode-switch__track">'
-		. '<input type="checkbox" class="colorify-theme-switch__input" '
+		. '<input type="checkbox" class="colorify-switch colorify-theme-switch__input" '
 		. ( $enabled ? 'checked ' : '' )
 		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' ) ) . '" />'
-		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
-		. '</label>'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'On', 'Wł.' ) ) . '</span>'
 		. '</div>';
 }
@@ -1601,12 +1598,9 @@ function colorify_admin_mode_switch_html( string $mode ): string {
 
 	return '<div class="colorify-mode-switch colorify-toolbar-switch" role="group" aria-label="' . esc_attr( colorify_i18n( 'Panel mode', 'Tryb panelu' ) ) . '">'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Dark', 'Ciemny' ) ) . '</span>'
-		. '<label class="colorify-mode-switch__track">'
-		. '<input type="checkbox" class="colorify-mode-switch__input" '
+		. '<input type="checkbox" class="colorify-switch colorify-mode-switch__input" '
 		. ( $is_light ? 'checked ' : '' )
 		. 'aria-label="' . esc_attr( colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' ) ) . '" />'
-		. '<span class="colorify-mode-switch__thumb" aria-hidden="true"></span>'
-		. '</label>'
 		. '<span class="colorify-mode-switch__label">' . esc_html( colorify_i18n( 'Light', 'Jasny' ) ) . '</span>'
 		. '</div>';
 }
