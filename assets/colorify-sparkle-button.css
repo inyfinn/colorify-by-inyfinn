@@ -9,8 +9,8 @@
 .colorify-login-btn {
 	--colorify-login-accent: var(--colorify-admin-accent, #b4e717);
 	--colorify-login-on: var(--colorify-admin-on-accent, #050f0c);
-	--colorify-login-accent-hover: color-mix(in srgb, var(--colorify-login-accent) 86%, #ffffff);
-	--colorify-login-glow: color-mix(in srgb, var(--colorify-login-accent) 48%, #ffffff);
+	--colorify-login-accent-hover: color-mix(in srgb, var(--colorify-login-accent) 92%, #ffffff);
+	--colorify-login-glow: color-mix(in srgb, var(--colorify-login-accent) 10%, transparent);
 
 	border: none;
 	min-width: 12.5rem;
@@ -28,15 +28,15 @@
 	color: var(--colorify-login-on);
 	cursor: pointer;
 	transition:
-		background 220ms ease,
-		box-shadow 220ms ease,
-		transform 180ms ease,
-		color 220ms ease;
+		background 200ms ease,
+		box-shadow 200ms ease,
+		transform 160ms ease,
+		color 200ms ease;
 	margin: 0 auto;
 	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	box-shadow:
-		0 1px 0 0 color-mix(in srgb, #ffffff 35%, transparent) inset,
-		0 6px 20px -8px color-mix(in srgb, var(--colorify-login-accent) 65%, transparent) !important;
+		0 1px 0 0 color-mix(in srgb, #ffffff 28%, transparent) inset,
+		0 4px 14px -8px var(--colorify-login-glow) !important;
 	text-shadow: none !important;
 	line-height: 1.2;
 	appearance: none;
@@ -65,25 +65,24 @@
 	background: var(--colorify-login-accent-hover) !important;
 	color: var(--colorify-login-on) !important;
 	box-shadow:
-		0 1px 0 0 color-mix(in srgb, #ffffff 45%, transparent) inset,
-		0 0 0 3px color-mix(in srgb, var(--colorify-login-accent) 28%, transparent),
-		0 10px 32px -8px var(--colorify-login-glow),
-		0 0 48px -12px var(--colorify-login-glow) !important;
-	transform: translateY(-2px);
+		0 1px 0 0 color-mix(in srgb, #ffffff 34%, transparent) inset,
+		0 6px 16px -6px var(--colorify-login-glow),
+		0 0 0 1px var(--colorify-login-glow) !important;
+	transform: translateY(-1px);
 	outline: none;
 	border: none !important;
 }
 
 .colorify-login-btn:focus-visible {
-	outline: 2px solid color-mix(in srgb, var(--colorify-login-accent) 70%, #ffffff);
-	outline-offset: 3px;
+	outline: 2px solid var(--colorify-login-glow);
+	outline-offset: 2px;
 }
 
 .colorify-login-btn:active {
 	transform: translateY(0);
 	box-shadow:
-		0 1px 0 0 color-mix(in srgb, #ffffff 25%, transparent) inset,
-		0 4px 12px -6px color-mix(in srgb, var(--colorify-login-accent) 55%, transparent) !important;
+		0 1px 0 0 color-mix(in srgb, #ffffff 22%, transparent) inset,
+		0 2px 8px -4px var(--colorify-login-glow) !important;
 }
 
 .colorify-login-btn:hover .colorify-login-btn__text,
