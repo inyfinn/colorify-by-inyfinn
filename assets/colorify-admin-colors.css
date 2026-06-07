@@ -10,6 +10,13 @@ body {
 	color: var(--colorify-admin-text, #f4f4f5);
 }
 
+body.wp-admin.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-admin,
+body.wp-customizer.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-customizer {
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
 a {
 	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted, #b0bdb8));
 }

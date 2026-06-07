@@ -5,8 +5,10 @@
 /* ── GUARDRAIL: tekst NIGDY nie może być kolorem tła (stałe fallbacki dark) ─ */
 
 html[data-colorify-admin-mode="dark"] body.wp-admin,
+html[data-colorify-admin-mode="dark"] body.wp-customizer,
 html[data-colorify-admin-mode="dark"],
-body.wp-admin:not(.colorify-admin-light) {
+body.wp-admin:not(.colorify-admin-light),
+body.wp-customizer:not(.colorify-admin-light) {
 	--colorify-admin-readable-text: #eef0ef !important;
 	--colorify-admin-readable-muted: #b0bdb8 !important;
 	--colorify-admin-readable-dim: #8a9691 !important;
@@ -28,6 +30,33 @@ body.wp-admin:not(.colorify-admin-light) {
 	--e-a-color-txt-hover: #eef0ef !important;
 	--e-a-color-txt-active: #eef0ef !important;
 	color: var(--colorify-admin-readable-text) !important;
+}
+
+/* GUARDRAIL light — ciemny tekst/ikony na jasnych powierzchniach (WCAG 4.5:1) */
+html[data-colorify-admin-mode="light"] body.wp-admin,
+html[data-colorify-admin-mode="light"] body.wp-customizer,
+body.wp-admin.colorify-admin-light,
+body.wp-customizer.colorify-admin-light {
+	--colorify-admin-readable-text: #18181b !important;
+	--colorify-admin-readable-muted: #3f3f46 !important;
+	--colorify-admin-readable-dim: #52525b !important;
+	--colorify-admin-readable-icon: #3f3f46 !important;
+	--colorify-admin-text: #18181b !important;
+	--colorify-admin-text-muted: #3f3f46 !important;
+	--colorify-admin-text-dim: #52525b !important;
+	--colorify-admin-icon: #3f3f46 !important;
+	--colorify-admin-link: var(--colorify-admin-accent, #b4e717) !important;
+	--colorify-admin-link-hover: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 78%, #000) !important;
+	--e-one-palette-text-primary: #18181b !important;
+	--e-one-palette-text-secondary: #3f3f46 !important;
+	--e-one-palette-text-tertiary: #52525b !important;
+	--e-one-palette-text-disabled: #71717a !important;
+	--e-one-palette-text-tab: #3f3f46 !important;
+	--e-a-color-txt: #18181b !important;
+	--e-a-color-txt-muted: #3f3f46 !important;
+	--e-a-color-txt-hover: #18181b !important;
+	--e-a-color-txt-active: #18181b !important;
+	color: var(--colorify-admin-readable-text, #18181b) !important;
 }
 
 html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content,
@@ -98,8 +127,10 @@ html[data-colorify-admin-mode="dark"] body.wp-admin {
 }
 
 body.wp-admin.colorify-admin-light,
-html[data-colorify-admin-mode="light"] body.wp-admin {
-	--wp-admin-theme-color: var(--colorify-admin-bg, #1C4B42) !important;
+html[data-colorify-admin-mode="light"] body.wp-admin,
+body.wp-customizer.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-customizer {
+	--wp-admin-theme-color: var(--colorify-admin-accent, #b4e717) !important;
 	color-scheme: light !important;
 	background: var(--colorify-admin-bg) !important;
 	color: var(--colorify-admin-text) !important;
@@ -373,6 +404,11 @@ body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu a.wp-has
 	border-left: 3px solid var(--colorify-admin-on-accent, #050f0c) !important;
 }
 
+body.wp-admin.colorify-admin-light #adminmenu li.menu-top:hover,
+body.wp-admin.colorify-admin-light #adminmenu a.menu-top:hover {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 10%, var(--colorify-admin-sidebar)) !important;
+}
+
 body.wp-admin.colorify-admin-light #adminmenu .wp-submenu,
 body.wp-admin.colorify-admin-light #adminmenu .wp-submenu-wrap {
 	background: var(--colorify-admin-surface-2) !important;
@@ -576,12 +612,25 @@ body.wp-admin.colorify-admin-light #wpadminbar .ab-top-menu > li.hover > .ab-ite
 
 /* Menu boczne — ikony */
 body.wp-admin.colorify-admin-light #adminmenu div.wp-menu-image::before {
-	color: var(--colorify-admin-icon, #4a5f59) !important;
+	color: var(--colorify-admin-icon, #3f3f46) !important;
 }
 
 body.wp-admin.colorify-admin-light #adminmenu a:hover div.wp-menu-image::before,
-body.wp-admin.colorify-admin-light #adminmenu li.menu-top:hover div.wp-menu-image::before {
-	color: var(--colorify-admin-link) !important;
+body.wp-admin.colorify-admin-light #adminmenu li.menu-top:hover div.wp-menu-image::before,
+body.wp-admin.colorify-admin-light #adminmenu li.opensub div.wp-menu-image::before {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent, #b4e717)) !important;
+}
+
+body.wp-admin.colorify-admin-light #adminmenu li.current div.wp-menu-image::before,
+body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu div.wp-menu-image::before,
+body.wp-admin.colorify-admin-light #adminmenu li.current a.menu-top div.wp-menu-image::before,
+body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu a.menu-top div.wp-menu-image::before {
+	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
+}
+
+body.wp-admin.colorify-admin-light #adminmenu li.current a.menu-top,
+body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu {
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
 }
 
 /* Dashicons w treści (postbox, screen options, view switch) */

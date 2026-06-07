@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.1.0' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.1.1' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -461,16 +461,21 @@ function colorify_enqueue_branding_admin_css(): void {
 }
 
 /**
- * CSS edytora (profil / ustawienia) — nie ładuj na Wtyczkach, Kokpicie itd.
+ * Overrides — czytelność light/dark na całym wp-admin (w tym Customizer).
  */
-function colorify_enqueue_appearance_editor_styles(): void {
+function colorify_enqueue_admin_overrides_css(): void {
 	wp_enqueue_style(
 		'colorify-admin-overrides',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css',
 		array( 'colorify-branding-admin' ),
 		COLORIFY_PLUGIN_VERSION
 	);
+}
 
+/**
+ * CSS edytora (profil / ustawienia) — tylko siatka schematów.
+ */
+function colorify_enqueue_appearance_editor_styles(): void {
 	wp_enqueue_style(
 		'colorify-settings',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
@@ -506,7 +511,7 @@ function colorify_enqueue_customizer_styles(): void {
 	wp_enqueue_style(
 		'colorify-customizer',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-customizer.css',
-		array( 'colorify-branding-admin' ),
+		array( 'colorify-admin-overrides' ),
 		COLORIFY_PLUGIN_VERSION
 	);
 }
@@ -533,6 +538,7 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	}
 
 	colorify_enqueue_branding_admin_css();
+	colorify_enqueue_admin_overrides_css();
 
 	if ( colorify_is_customizer_controls_screen() ) {
 		colorify_enqueue_customizer_styles();

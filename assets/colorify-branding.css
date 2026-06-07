@@ -1126,17 +1126,17 @@ body.wp-admin:not(.colorify-admin-light) #adminmenu .wp-menu-open .wp-submenu.su
 	background: var(--colorify-admin-surface-2) !important;
 }
 
-#adminmenu div.wp-menu-image::before {
+body.wp-admin:not(.colorify-admin-light) #adminmenu div.wp-menu-image::before {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-#adminmenu li.current div.wp-menu-image::before,
-#adminmenu li.wp-has-current-submenu div.wp-menu-image::before,
-#adminmenu a:hover div.wp-menu-image::before {
+body.wp-admin:not(.colorify-admin-light) #adminmenu li.current div.wp-menu-image::before,
+body.wp-admin:not(.colorify-admin-light) #adminmenu li.wp-has-current-submenu div.wp-menu-image::before,
+body.wp-admin:not(.colorify-admin-light) #adminmenu a:hover div.wp-menu-image::before {
 	color: var(--colorify-admin-accent-muted) !important;
 }
 
-/* Light: ikony na aktywnym menu-top (ciemny akcent tła → jasna ikona) */
+/* Light: ikony na aktywnym menu-top (ciemny akcent tła → ciemna ikona) */
 body.wp-admin.colorify-admin-light #adminmenu li.current div.wp-menu-image::before,
 body.wp-admin.colorify-admin-light #adminmenu li.wp-has-current-submenu div.wp-menu-image::before {
 	color: var(--colorify-admin-highlight-text, var(--colorify-admin-on-accent, #050f0c)) !important;
