@@ -219,10 +219,10 @@ body.wp-customizer #customize-save-button-wrapper .save.has-next-sibling:disable
 	opacity: 1 !important;
 }
 
-body.wp-customizer #customize-controls .button,
+body.wp-customizer #customize-controls .button:not(.button-primary):not(.save),
 body.wp-customizer #customize-controls .button-secondary,
-body.wp-customizer .customize-info .button,
-body.wp-customizer .theme-overlay .button {
+body.wp-customizer .customize-info .button:not(.button-primary),
+body.wp-customizer .theme-overlay .button:not(.button-primary) {
 	background: var(--colorify-admin-surface-2, #1c4b42) !important;
 	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
 	color: var(--colorify-admin-text, #eef0ef) !important;
@@ -470,4 +470,162 @@ body.wp-customizer.colorify-admin-light .media-frame .attachment-preview img,
 html[data-colorify-admin-mode="light"] body.wp-customizer .media-frame .attachment-preview img {
 	opacity: 1 !important;
 	filter: none !important;
+}
+
+/* ── Chrome: nagłówek, wstecz, X, stopka urządzeń (dark) ──────────────── */
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-controls-close,
+html[data-colorify-admin-mode="dark"] body.wp-customizer #customize-header-actions .customize-controls-close,
+body.wp-customizer:not(.colorify-admin-light) .customize-controls-close,
+body.wp-customizer:not(.colorify-admin-light) #customize-header-actions .customize-controls-close {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	border-top-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	border-right-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-controls-close:hover,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-controls-close:focus,
+body.wp-customizer:not(.colorify-admin-light) .customize-controls-close:hover,
+body.wp-customizer:not(.colorify-admin-light) .customize-controls-close:focus {
+	background: var(--colorify-admin-surface-2, #1c4b42) !important;
+	background-color: var(--colorify-admin-surface-2, #1c4b42) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-controls-close::before,
+body.wp-customizer:not(.colorify-admin-light) .customize-controls-close::before {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-back,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-panel-back,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back {
+	background: var(--colorify-admin-sidebar, #0b231c) !important;
+	background-color: var(--colorify-admin-sidebar, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	border-left-color: var(--colorify-admin-sidebar, #0b231c) !important;
+	border-right-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-back:hover,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-back:focus,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-panel-back:hover,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-panel-back:focus,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back:hover,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back:focus {
+	background: var(--colorify-admin-surface-2, #1c4b42) !important;
+	background-color: var(--colorify-admin-surface-2, #1c4b42) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-back::before,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-panel-back::before,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-back::before,
+body.wp-customizer:not(.colorify-admin-light) .customize-panel-back::before {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-title,
+html[data-colorify-admin-mode="dark"] body.wp-customizer div.customize-section-title,
+html[data-colorify-admin-mode="dark"] body.wp-customizer h3.customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) div.customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) h3.customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) .in-sub-panel .wp-full-overlay-sidebar .wp-full-overlay-header {
+	background: var(--colorify-admin-sidebar, #0b231c) !important;
+	background-color: var(--colorify-admin-sidebar, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .customize-section-title span.customize-action,
+body.wp-customizer:not(.colorify-admin-light) .customize-section-title span.customize-action {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay-sidebar .wp-full-overlay-header,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-sidebar .wp-full-overlay-header {
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer.expanded .wp-full-overlay-footer,
+html[data-colorify-admin-mode="dark"] body.wp-customizer #customize-footer-actions.wp-full-overlay-footer,
+body.wp-customizer:not(.colorify-admin-light).expanded .wp-full-overlay-footer,
+body.wp-customizer:not(.colorify-admin-light) #customize-footer-actions.wp-full-overlay-footer {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay-footer .devices,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer .devices {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	box-shadow: none !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay-footer .devices button::before,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer .devices button::before {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay-footer .devices button.active::before,
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay-footer .devices button.active,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer .devices button.active::before,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay-footer .devices button.active {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+	border-bottom-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-customizer .wp-full-overlay .collapse-sidebar-arrow::before,
+body.wp-customizer:not(.colorify-admin-light) .wp-full-overlay .collapse-sidebar-arrow::before {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) .collapse-sidebar,
+body.wp-customizer:not(.colorify-admin-light) #customize-footer-actions .collapse-sidebar {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+/* ── Opublikuj / Opublikowany — zawsze akcent + ciemny tekst ───────────── */
+
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save,
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper input.save,
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save.button-primary,
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save.button-primary:disabled,
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save.button-primary[disabled],
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save.button-primary[aria-disabled="true"],
+body.wp-customizer.wp-core-ui #customize-header-actions .button-primary,
+body.wp-customizer.wp-core-ui #customize-header-actions .button-primary:disabled,
+body.wp-customizer.wp-core-ui #customize-header-actions .button-primary[disabled],
+body.wp-customizer.wp-core-ui #publish-settings,
+html[data-colorify-admin-mode="dark"] body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save,
+html[data-colorify-admin-mode="dark"] body.wp-customizer.wp-core-ui #customize-header-actions .button-primary {
+	background: var(--colorify-admin-accent, #b4e717) !important;
+	background-color: var(--colorify-admin-accent, #b4e717) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 82%, #000) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+	opacity: 1 !important;
+	text-shadow: none !important;
+	box-shadow: 0 4px 14px -8px color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 55%, transparent) !important;
+}
+
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save:hover,
+body.wp-customizer.wp-core-ui #customize-save-button-wrapper .save:focus,
+body.wp-customizer.wp-core-ui #customize-header-actions .button-primary:hover,
+body.wp-customizer.wp-core-ui #customize-header-actions .button-primary:focus,
+body.wp-customizer.wp-core-ui #publish-settings:hover,
+body.wp-customizer.wp-core-ui #publish-settings:focus {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 90%, #ffffff) !important;
+	background-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 90%, #ffffff) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
 }

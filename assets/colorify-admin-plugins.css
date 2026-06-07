@@ -1,0 +1,240 @@
+/**
+ * Globalny styl paneli wtyczek / motywów (VamTam Finovate, Elementor, …).
+ * Ładowany po admin-overrides — nadpisuje guardrail span/p na jasnych wyspach wtyczek.
+ */
+
+/* ── Hosty wtyczek (wspólna lista selektorów) ─────────────────────────── */
+
+body.wp-admin #wpbody-content :is(
+	.vamtam-ts,
+	.vamtam-config-page,
+	.vamtam-notice,
+	[class*="vamtam-ts"],
+	.elementor-admin-page,
+	.elementor-admin,
+	#elementor-deactivation-feedback-modal,
+	.e-admin-top-bar-root,
+	#e-admin-top-bar-root,
+	#wpforms-admin-wrap,
+	.wpforms-admin-wrap,
+	.wf-wrap,
+	.wf-container,
+	#wpseo-wizard,
+	.yoast,
+	[class*="yoast-"],
+	#rank_math,
+	.rank-math-wrap,
+	.toplevel_page_branda,
+	.toplevel_page_snapshot,
+	.toplevel_page_hustle,
+	.toplevel_page_ai1wm,
+	.toplevel_page_wp_file_manager,
+	.toplevel_page_w3tc_dashboard,
+	.toplevel_page_litespeed,
+	.toplevel_page_redirection,
+	.toplevel_page_wordfence,
+	.toplevel_page_wc-admin,
+	.woocommerce-admin-page,
+	.toplevel_page_mailpoet,
+	.toplevel_page_gravityforms,
+	.toplevel_page_wpseo_dashboard
+) {
+	--colorify-plugin-text: var(--colorify-admin-text);
+	--colorify-plugin-text-muted: var(--colorify-admin-text-muted);
+	--colorify-plugin-surface: var(--colorify-admin-surface);
+	--colorify-plugin-surface-2: var(--colorify-admin-surface-2);
+	--colorify-plugin-border: var(--colorify-admin-border);
+}
+
+/* ── DARK — powierzchnie (jasne boxy wtyczek → schemat) ───────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.vamtam-ts,
+	.vamtam-config-page
+) {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts #vamtam-ts-side {
+	background-color: var(--colorify-admin-sidebar, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts #vamtam-ts-main {
+	background-color: var(--colorify-admin-bg, #050f0c) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts :is(
+	.vamtam-box-wrap,
+	.vamtam-box-wrap > header,
+	#vamtam-ts-nav-menu > ul > li a,
+	#vamtam-ts-nav-menu > a#vamtam-hs-btn,
+	.vamtam-box-button,
+	.vamtam-ts#vamtam-ts-tgmpa #tgmpa-plugins .tablenav.top,
+	.vamtam-ts#vamtam-ts-tgmpa #tgmpa-plugins .tablenav.bottom
+) {
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts .vamtam-box-wrap > header {
+	background-color: var(--colorify-admin-surface-2, #1c4b42) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts #vamtam-ts-nav-menu > ul > li.is-active a {
+	background-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 16%, var(--colorify-admin-sidebar, #0b231c)) !important;
+	border-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts #vamtam-theme-title #vamtam-ts-greeter-ver {
+	background-color: var(--colorify-admin-surface-2, #1c4b42) !important;
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts .input,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts #vamtam-envato-license-key {
+	background-color: var(--colorify-admin-field, #0b231c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	border: 1px solid var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* ── DARK — tekst (nadpisuje guardrail span/p w #wpbody-content) ───────── */
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content :is(
+	.vamtam-ts,
+	.vamtam-config-page,
+	.elementor-admin-page,
+	.elementor-admin,
+	#wpforms-admin-wrap,
+	.wf-wrap,
+	.yoast,
+	[class*="yoast-"],
+	.rank-math-wrap,
+	#rank_math,
+	.woocommerce-admin-page
+) :is(
+	h1, h2, h3, h4, h5, h6,
+	p, li, label, td, th, strong, em, small, figcaption,
+	span:not(.dashicons):not(.count):not(.spinner):not(.screen-reader-text):not(.icon)
+) {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts :is(
+	.vamtam-description,
+	.help,
+	.howto,
+	#vamtam-check-license-disclaimer,
+	#vamtam-ts-greeter-ver,
+	.vamtam-ts#vamtam-ts-homepage #vamtam-check-license-disclaimer
+) {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts #vamtam-theme-title,
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts #vamtam-theme-title #vamtam-ts-greeter,
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts #vamtam-theme-title #vamtam-ts-greeter-title {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts #vamtam-ts-nav-menu :is(
+	a,
+	.ts-icon,
+	.ts-icon.dashicons,
+	span.label
+) {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts svg:not([fill="none"]) {
+	fill: currentColor !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #wpbody-content .vamtam-ts a:not(.button-primary):not(.vamtam-ts-button):not(.button) {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted, #b0bdb8)) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link, var(--colorify-admin-accent-muted, #b0bdb8)) !important;
+}
+
+/* ── DARK — przyciski CTA w panelach wtyczek (akcent + ciemny tekst) ─── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.vamtam-ts,
+	.elementor-admin-page,
+	.wf-wrap,
+	.yoast,
+	.rank-math-wrap,
+	.woocommerce-admin-page
+) :is(
+	.button-primary,
+	a.button-primary,
+	input.button-primary,
+	.vamtam-ts-button.button-primary,
+	a.vamtam-ts-button.button,
+	button.vamtam-ts-button
+):not(.disabled):not([disabled]) {
+	background: var(--colorify-admin-accent, #b4e717) !important;
+	background-color: var(--colorify-admin-accent, #b4e717) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 82%, #000) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	-webkit-text-fill-color: var(--colorify-admin-on-accent, #050f0c) !important;
+	text-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts .vamtam-ts-button.disabled,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .vamtam-ts .vamtam-ts-button[disabled] {
+	opacity: 0.55 !important;
+}
+
+/* ── LIGHT — jasne panele wtyczek: ciemny tekst (WCAG) ───────────────── */
+
+body.wp-admin.colorify-admin-light #wpbody-content :is(
+	.vamtam-ts,
+	.vamtam-config-page,
+	.elementor-admin-page,
+	.wf-wrap,
+	.yoast,
+	.rank-math-wrap
+) :is(
+	h1, h2, h3, h4, h5, h6,
+	p, li, label, td, th, strong,
+	span:not(.dashicons):not(.count):not(.spinner):not(.screen-reader-text)
+) {
+	color: var(--colorify-admin-text, #18181b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #18181b) !important;
+}
+
+html[data-colorify-admin-mode="light"] body.wp-admin #wpbody-content .vamtam-ts :is(
+	.vamtam-description,
+	#vamtam-check-license-disclaimer
+) {
+	color: var(--colorify-admin-text-dim, #52525b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-dim, #52525b) !important;
+}
+
+/* ── Generic: białe/szare tła klasowe w #wpbody-content (dark) ─────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.vamtam-ts,
+	.elementor-admin-page,
+	.wf-wrap,
+	.yoast,
+	.rank-math-wrap,
+	#wpforms-admin-wrap
+) [class*="white"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.vamtam-ts,
+	.elementor-admin-page,
+	.wf-wrap
+) [class*="light"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.vamtam-ts,
+	.elementor-admin-page,
+	.wf-wrap
+) .bg-white {
+	background-color: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
