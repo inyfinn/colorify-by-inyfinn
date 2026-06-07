@@ -1412,6 +1412,9 @@ body.wp-admin:not(.colorify-admin-light) .view-switch a.current:before {
 body.wp-admin:not(.colorify-admin-light) .attachments-browser,
 body.wp-admin:not(.colorify-admin-light) .media-toolbar,
 body.wp-admin:not(.colorify-admin-light) .media-sidebar,
+body.wp-customizer:not(.colorify-admin-light) .attachments-browser,
+body.wp-customizer:not(.colorify-admin-light) .media-toolbar,
+body.wp-customizer:not(.colorify-admin-light) .media-sidebar,
 body.wp-admin:not(.colorify-admin-light) .upload-ui,
 body.wp-admin:not(.colorify-admin-light) .media-upload-form .media-item,
 body.wp-admin:not(.colorify-admin-light) .uploader-inline,
@@ -1450,9 +1453,17 @@ body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item:hover {
 }
 
 body.wp-admin:not(.colorify-admin-light) .media-modal,
-body.wp-admin:not(.colorify-admin-light) .media-frame {
+body.wp-admin:not(.colorify-admin-light) .media-frame,
+body.wp-customizer:not(.colorify-admin-light) .media-modal,
+body.wp-customizer:not(.colorify-admin-light) .media-frame {
 	background: var(--colorify-admin-bg) !important;
 	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment-preview img,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachment-preview img {
+	opacity: 1 !important;
+	filter: none !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .attachment .check,
@@ -2196,12 +2207,29 @@ body.wp-customizer:not(.colorify-admin-light) .customize-section-description-con
 body.wp-customizer:not(.colorify-admin-light) .customize-themes-section {
 	background: var(--colorify-admin-sidebar) !important;
 	background-color: var(--colorify-admin-sidebar) !important;
-	color: var(--colorify-admin-text-muted) !important;
+	color: var(--colorify-admin-text) !important;
 	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls h3.accordion-section-title,
+body.wp-customizer:not(.colorify-admin-light) #customize-info .accordion-section-title,
+body.wp-customizer:not(.colorify-admin-light) #customize-info div.accordion-section-title {
+	background: var(--colorify-admin-sidebar) !important;
+	background-color: var(--colorify-admin-sidebar) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-customizer:not(.colorify-admin-light) #customize-controls button.accordion-trigger,
+body.wp-customizer:not(.colorify-admin-light) #customize-info button.accordion-trigger {
+	background: transparent !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
 }
 
 body.wp-customizer:not(.colorify-admin-light) .customize-panel-title,
 body.wp-customizer:not(.colorify-admin-light) .customize-section-title,
+body.wp-customizer:not(.colorify-admin-light) .accordion-section-title,
 body.wp-customizer:not(.colorify-admin-light) .customize-control-title,
 body.wp-customizer:not(.colorify-admin-light) #customize-controls label,
 body.wp-customizer:not(.colorify-admin-light) #customize-controls h3,
