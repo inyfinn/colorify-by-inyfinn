@@ -401,6 +401,11 @@ function colorify_fetch_github_release( bool $force_refresh = false ): ?array {
 	$version  = ltrim( (string) $data['tag_name'], 'vV' );
 	$download = colorify_pick_github_release_zip_url( $data['assets'] ?? array() );
 
+	if ( '' === $download ) {
+		set_transient( $cache_key, array( 'error' => true ), 15 * MINUTE_IN_SECONDS );
+		return null;
+	}
+
 	$release = array(
 		'version'   => $version,
 		'url'       => ! empty( $data['html_url'] ) ? (string) $data['html_url'] : sprintf( 'https://github.com/%s/releases', $repo ),
@@ -441,7 +446,7 @@ function colorify_has_github_update(): bool {
 		return false;
 	}
 
-	return version_compare( COLORIFY_PLUGIN_VERSION, $release['version'], '<' );
+	return version_compare( colorify_get_current_version_for_update_check(), $release['version'], '<' );
 }
 
 /**
@@ -469,6 +474,20 @@ function colorify_render_update_result_notice(): void {
 	if ( 'updated' === $update_result ) {
 		$installed = colorify_get_installed_plugin_version( true );
 		$expected  = '' !== $new_version ? $new_version : $installed;
+
+		if ( '' !== $expected && '' !== $installed && version_compare( $installed, $expected, '>=' ) ) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+						/* translators: %s: version number read from plugin files */
+						__( 'Colorify zaktualizowany do wersji %s.', 'colorify-by-inyfinn' ),
+						$installed
+					)
+				)
+			);
+			return;
+		}
 
 		if ( '' !== $expected && '' !== $installed && version_compare( $installed, $expected, '<' ) ) {
 			printf(
@@ -502,6 +521,26 @@ function colorify_render_update_result_notice(): void {
 		if ( '' === $installed && '' !== $installed_q ) {
 			$installed = $installed_q;
 		}
+
+		if (
+			'' !== $new_version
+			&& '' !== $installed
+			&& version_compare( $installed, $new_version, '>=' )
+			&& colorify_plugin_install_is_valid()
+		) {
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+						/* translators: %s: version number */
+						__( 'Colorify zaktualizowany do wersji %s.', 'colorify-by-inyfinn' ),
+						$installed
+					)
+				)
+			);
+			return;
+		}
+
 		printf(
 			'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
 			esc_html(
@@ -602,7 +641,7 @@ function colorify_run_manual_github_update(): array {
 		);
 	}
 
-	$current = COLORIFY_PLUGIN_VERSION;
+	$current = colorify_get_installed_plugin_version( true );
 	$remote  = (string) $release['version'];
 
 	if ( version_compare( $current, $remote, '>=' ) ) {
@@ -610,7 +649,12 @@ function colorify_run_manual_github_update(): array {
 		return array(
 			'success' => true,
 			'code'    => 'already_latest',
-			'message' => __( 'To aktualna wersja.', 'colorify-by-inyfinn' ),
+			'message' => sprintf(
+				/* translators: 1: installed version, 2: GitHub version */
+				__( 'Zainstalowana wersja %1$s — na GitHubie latest to %2$s.', 'colorify-by-inyfinn' ),
+				$current,
+				$remote
+			),
 			'version' => $current,
 			'remote'  => $remote,
 		);
@@ -619,59 +663,23 @@ function colorify_run_manual_github_update(): array {
 	if ( ! function_exists( 'get_plugins' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
-	require_once ABSPATH . 'wp-admin/includes/file.php';
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$plugin_basename = plugin_basename( COLORIFY_PLUGIN_FILE );
-
-	$updates = get_site_transient( 'update_plugins' );
-	if ( ! is_object( $updates ) ) {
-		$updates = new stdClass();
-	}
-	if ( ! isset( $updates->response ) || ! is_array( $updates->response ) ) {
-		$updates->response = array();
-	}
-
-	$updates->response[ $plugin_basename ] = (object) array(
-		'id'          => 'colorify-by-inyfinn',
-		'slug'        => 'colorify-by-inyfinn',
-		'plugin'      => $plugin_basename,
-		'new_version' => $remote,
-		'url'         => $release['url'],
-		'package'     => $release['download'],
-		'tested'      => get_bloginfo( 'version' ),
-	);
-	set_site_transient( 'update_plugins', $updates );
-
 	colorify_remember_plugin_active_before_update( $plugin_basename );
 
-	$skin     = new Automatic_Upgrader_Skin();
-	$upgrader = new Plugin_Upgrader( $skin );
-	$result   = $upgrader->upgrade( $plugin_basename );
+	$direct = colorify_direct_install_from_download_url(
+		(string) $release['download'],
+		COLORIFY_PLUGIN_DIR
+	);
 
 	colorify_purge_github_release_cache();
 	colorify_release_update_lock();
 
-	if ( is_wp_error( $result ) ) {
+	if ( is_wp_error( $direct ) ) {
 		return array(
 			'success' => false,
 			'code'    => 'upgrade_error',
-			'message' => $result->get_error_message(),
-		);
-	}
-
-	if ( false === $result ) {
-		$message = __( 'Aktualizacja nie powiodła się.', 'colorify-by-inyfinn' );
-		if ( method_exists( $skin, 'get_error_messages' ) ) {
-			$errors = $skin->get_error_messages();
-			if ( ! empty( $errors ) && is_array( $errors ) ) {
-				$message = implode( ' ', array_map( 'wp_strip_all_tags', $errors ) );
-			}
-		}
-		return array(
-			'success' => false,
-			'code'    => 'upgrade_failed',
-			'message' => $message,
+			'message' => $direct->get_error_message(),
 			'remote'  => $remote,
 		);
 	}
@@ -682,29 +690,22 @@ function colorify_run_manual_github_update(): array {
 	}
 
 	if ( ! colorify_plugin_install_is_valid() ) {
+		colorify_repair_flattened_plugin_dir_native( COLORIFY_PLUGIN_DIR );
+	}
+
+	if ( ! colorify_plugin_install_is_valid() ) {
 		return array(
 			'success' => false,
 			'code'    => 'invalid_package',
 			'message' => __(
-				'Paczka nie przeszła walidacji WordPress po rozpakowaniu. Użyj oficjalnego ZIP z GitHub Releases (tag v*).',
+				'Paczka nie przeszła walidacji po rozpakowaniu. Użyj oficjalnego ZIP z GitHub Releases (tag v*).',
 				'colorify-by-inyfinn'
 			),
+			'remote'  => $remote,
 		);
 	}
 
 	$verify = colorify_verify_installed_version_after_update( $remote );
-	if ( ! $verify['ok'] ) {
-		global $wp_filesystem;
-		if ( $wp_filesystem ) {
-			colorify_repair_flattened_plugin_dir( COLORIFY_PLUGIN_DIR, $wp_filesystem );
-			colorify_invalidate_plugin_opcache();
-			if ( function_exists( 'wp_clean_plugins_cache' ) ) {
-				wp_clean_plugins_cache( true );
-			}
-			$verify = colorify_verify_installed_version_after_update( $remote );
-		}
-	}
-
 	if ( ! $verify['ok'] ) {
 		return array(
 			'success' => false,
@@ -736,6 +737,18 @@ function colorify_run_manual_github_update(): array {
 }
 
 /**
+ * Wersja zainstalowana do porównań z GitHub (nagłówek pliku, nie stała PHP).
+ */
+function colorify_get_current_version_for_update_check(): string {
+	$from_disk = colorify_get_installed_plugin_version( true );
+	if ( '' !== $from_disk ) {
+		return $from_disk;
+	}
+
+	return COLORIFY_PLUGIN_VERSION;
+}
+
+/**
  * Wstrzyknięcie informacji o aktualizacji do WordPressa.
  */
 final class Colorify_Github_Updater {
@@ -759,6 +772,7 @@ final class Colorify_Github_Updater {
 		add_filter( 'upgrader_pre_install', array( $this, 'remember_active_before_install' ), 10, 2 );
 		add_filter( 'upgrader_source_selection', array( $this, 'select_package_source' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'verify_post_install' ), 10, 3 );
+		add_action( 'upgrader_process_complete', array( $this, 'maybe_direct_install_fallback' ), 9, 2 );
 		add_action( 'upgrader_process_complete', array( $this, 'purge_cache' ), 10, 2 );
 		add_action( 'upgrader_process_complete', array( $this, 'reactivate_after_update' ), 11, 2 );
 		add_action( 'admin_init', array( $this, 'maybe_force_check' ) );
@@ -906,16 +920,21 @@ final class Colorify_Github_Updater {
 		colorify_invalidate_plugin_opcache( $destination );
 
 		foreach ( colorify_required_plugin_files() as $relative ) {
-			if ( ! $wp_filesystem->exists( $destination . $relative ) ) {
-				return new WP_Error(
-					'colorify_invalid_package',
-					sprintf(
-						/* translators: %s: relative file path */
-						__( 'Niepoprawna paczka Colorify — brakuje pliku: %s po rozpakowaniu.', 'colorify-by-inyfinn' ),
-						$relative
-					)
-				);
+			$path = $destination . $relative;
+			if ( is_readable( $path ) ) {
+				continue;
 			}
+			if ( $wp_filesystem && $wp_filesystem->exists( $path ) ) {
+				continue;
+			}
+			return new WP_Error(
+				'colorify_invalid_package',
+				sprintf(
+					/* translators: %s: relative file path */
+					__( 'Niepoprawna paczka Colorify — brakuje pliku: %s po rozpakowaniu.', 'colorify-by-inyfinn' ),
+					$relative
+				)
+			);
 		}
 
 		return $response;
@@ -943,7 +962,7 @@ final class Colorify_Github_Updater {
 			return $transient;
 		}
 
-		$current = COLORIFY_PLUGIN_VERSION;
+		$current = colorify_get_current_version_for_update_check();
 		$item    = (object) array(
 			'id'          => $this->plugin_slug,
 			'slug'        => $this->plugin_slug,
@@ -1018,6 +1037,61 @@ final class Colorify_Github_Updater {
 		colorify_remember_plugin_active_before_update( $this->plugin_basename );
 
 		return $response;
+	}
+
+	/**
+	 * Gdy natywny Plugin_Upgrader nie podmieni plików (dysk sieciowy) — instalacja bezpośrednia z GitHub.
+	 *
+	 * @param WP_Upgrader $upgrader Upgrader.
+	 * @param array       $options  Opcje.
+	 */
+	public function maybe_direct_install_fallback( $upgrader, $options ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		if (
+			! is_array( $options )
+			|| empty( $options['action'] )
+			|| 'update' !== $options['action']
+			|| empty( $options['type'] )
+			|| 'plugin' !== $options['type']
+		) {
+			return;
+		}
+
+		$updated = array();
+		if ( ! empty( $options['plugin'] ) && is_string( $options['plugin'] ) ) {
+			$updated[] = $options['plugin'];
+		}
+		if ( ! empty( $options['plugins'] ) && is_array( $options['plugins'] ) ) {
+			$updated = array_merge( $updated, $options['plugins'] );
+		}
+
+		if ( ! in_array( $this->plugin_basename, $updated, true ) ) {
+			return;
+		}
+
+		colorify_purge_github_release_cache();
+		$release = colorify_fetch_github_release( true );
+		if ( ! $release || empty( $release['version'] ) || empty( $release['download'] ) ) {
+			return;
+		}
+
+		$installed = colorify_get_installed_plugin_version( true );
+		if ( '' === $installed || version_compare( $installed, $release['version'], '>=' ) ) {
+			return;
+		}
+
+		$direct = colorify_direct_install_from_download_url(
+			(string) $release['download'],
+			COLORIFY_PLUGIN_DIR
+		);
+
+		if ( is_wp_error( $direct ) ) {
+			return;
+		}
+
+		colorify_invalidate_plugin_opcache();
+		if ( function_exists( 'wp_clean_plugins_cache' ) ) {
+			wp_clean_plugins_cache( true );
+		}
 	}
 
 	/**
