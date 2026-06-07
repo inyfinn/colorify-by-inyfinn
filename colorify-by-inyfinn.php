@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.1.6' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.1.7' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -485,6 +485,18 @@ function colorify_enqueue_admin_plugins_css(): void {
 }
 
 /**
+ * Biblioteka mediów + modal (upload.php, edytor, Customizer).
+ */
+function colorify_enqueue_admin_media_css(): void {
+	wp_enqueue_style(
+		'colorify-admin-media',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-media.css',
+		array( 'colorify-admin-plugins' ),
+		COLORIFY_PLUGIN_VERSION
+	);
+}
+
+/**
  * CSS edytora (profil / ustawienia) — tylko siatka schematów.
  */
 function colorify_enqueue_appearance_editor_styles(): void {
@@ -523,7 +535,7 @@ function colorify_enqueue_customizer_styles(): void {
 	wp_enqueue_style(
 		'colorify-customizer',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-customizer.css',
-		array( 'colorify-admin-plugins' ),
+		array( 'colorify-admin-media' ),
 		COLORIFY_PLUGIN_VERSION
 	);
 }
@@ -552,6 +564,7 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	colorify_enqueue_branding_admin_css();
 	colorify_enqueue_admin_overrides_css();
 	colorify_enqueue_admin_plugins_css();
+	colorify_enqueue_admin_media_css();
 
 	if ( colorify_is_customizer_controls_screen() ) {
 		colorify_enqueue_customizer_styles();

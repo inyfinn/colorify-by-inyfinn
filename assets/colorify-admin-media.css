@@ -1,0 +1,212 @@
+/**
+ * Biblioteka mediów + modal w wp-admin i Customizerze.
+ * Fix: modal pod .wp-full-overlay (z-index 500000), miniatury na upload.php.
+ */
+
+/* ── Customizer: modal MUSI być nad .wp-full-overlay (WP core 500000) ─── */
+
+body.wp-customizer .media-modal-backdrop {
+	z-index: 560000 !important;
+}
+
+body.wp-customizer .media-modal {
+	z-index: 560001 !important;
+}
+
+body.wp-customizer .media-modal .media-frame {
+	z-index: 560002 !important;
+}
+
+/* ── Wspólne: modal i siatka — dark ───────────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) .media-modal,
+body.wp-admin:not(.colorify-admin-light) .media-frame,
+body.wp-admin:not(.colorify-admin-light) .media-frame-content,
+body.wp-admin:not(.colorify-admin-light) .media-frame-title,
+body.wp-admin:not(.colorify-admin-light) .media-frame-router,
+body.wp-admin:not(.colorify-admin-light) .media-frame-toolbar,
+body.wp-admin:not(.colorify-admin-light) .media-frame-menu,
+body.wp-admin:not(.colorify-admin-light) .media-modal-content,
+body.wp-admin:not(.colorify-admin-light) .attachments-browser,
+body.wp-admin:not(.colorify-admin-light) .media-toolbar,
+body.wp-admin:not(.colorify-admin-light) .media-sidebar,
+body.wp-admin:not(.colorify-admin-light) .uploader-inline,
+body.wp-admin:not(.colorify-admin-light) .uploader-inline-content,
+body.wp-admin:not(.colorify-admin-light) .upload-ui,
+body.wp-admin:not(.colorify-admin-light) .media-upload-form,
+body.wp-customizer:not(.colorify-admin-light) .media-modal,
+body.wp-customizer:not(.colorify-admin-light) .media-frame,
+body.wp-customizer:not(.colorify-admin-light) .media-frame-content,
+body.wp-customizer:not(.colorify-admin-light) .attachments-browser,
+body.wp-customizer:not(.colorify-admin-light) .media-toolbar,
+body.wp-customizer:not(.colorify-admin-light) .media-sidebar,
+body.wp-customizer:not(.colorify-admin-light) .uploader-inline-content {
+	background: var(--colorify-admin-bg, #050f0c) !important;
+	background-color: var(--colorify-admin-bg, #050f0c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+/* upload.php — siatka miniatur (poza .media-frame) */
+body.wp-admin:not(.colorify-admin-light).upload-php .wrap,
+body.wp-admin:not(.colorify-admin-light).upload-php .media-frame.mode-grid,
+body.wp-admin:not(.colorify-admin-light).upload-php ul.attachments,
+body.wp-admin:not(.colorify-admin-light).upload-php li.attachment,
+body.wp-admin:not(.colorify-admin-light).upload-php .media-grid,
+body.wp-admin:not(.colorify-admin-light).upload-php .wp-media-grid {
+	background: transparent !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachments,
+body.wp-admin:not(.colorify-admin-light) .media-frame li.attachment,
+body.wp-admin:not(.colorify-admin-light) ul.attachments li.attachment,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachments,
+body.wp-customizer:not(.colorify-admin-light) .media-frame li.attachment {
+	background: transparent !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment-preview,
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment-preview,
+body.wp-customizer:not(.colorify-admin-light) .attachment-preview,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachment-preview {
+	background: var(--colorify-admin-surface-2, #1c4b42) !important;
+	background-color: var(--colorify-admin-surface-2, #1c4b42) !important;
+	box-shadow: inset 0 0 0 1px var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+	opacity: 1 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment-preview .thumbnail,
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment-preview .thumbnail,
+body.wp-customizer:not(.colorify-admin-light) .attachment-preview .thumbnail,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachment-preview .thumbnail {
+	background: color-mix(in srgb, var(--colorify-admin-surface, #0b231c) 55%, #3a3a3a) !important;
+	background-color: color-mix(in srgb, var(--colorify-admin-surface, #0b231c) 55%, #3a3a3a) !important;
+	opacity: 1 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment-preview .thumbnail img,
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment-preview img,
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment-preview .thumbnail img,
+body.wp-admin:not(.colorify-admin-light) .media-frame .attachment .thumbnail img,
+body.wp-admin:not(.colorify-admin-light) li.attachment img,
+body.wp-customizer:not(.colorify-admin-light) .attachment-preview .thumbnail img,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachment-preview img,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .attachment .thumbnail img {
+	display: block !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	filter: none !important;
+	-webkit-text-fill-color: unset !important;
+	color: inherit !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment .filename,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .filename,
+body.wp-admin:not(.colorify-admin-light) .media-sidebar .setting,
+body.wp-admin:not(.colorify-admin-light) .media-frame-title h1,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .name,
+body.wp-admin:not(.colorify-admin-light) .attachment-details label,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .setting,
+body.wp-admin:not(.colorify-admin-light) .attachment-details .value,
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item,
+body.wp-admin:not(.colorify-admin-light) .media-toolbar-primary .media-button,
+body.wp-admin:not(.colorify-admin-light) .media-toolbar-secondary .media-button,
+body.wp-customizer:not(.colorify-admin-light) .media-frame-title h1,
+body.wp-customizer:not(.colorify-admin-light) .attachment-details .name,
+body.wp-customizer:not(.colorify-admin-light) .media-sidebar label,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .media-menu-item {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item.active,
+body.wp-admin:not(.colorify-admin-light) .media-frame .media-menu-item:hover,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .media-menu-item.active,
+body.wp-customizer:not(.colorify-admin-light) .media-frame .media-menu-item:hover {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	color: var(--colorify-admin-text, #eef0ef) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .attachment .check,
+body.wp-admin:not(.colorify-admin-light) .media-selection .attachment.selection.details,
+body.wp-customizer:not(.colorify-admin-light) .attachment .check,
+body.wp-customizer:not(.colorify-admin-light) .media-selection .attachment.selection.details {
+	box-shadow: inset 0 0 0 3px var(--colorify-admin-accent, #b4e717) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-modal .media-toolbar,
+body.wp-admin:not(.colorify-admin-light) .media-frame-toolbar,
+body.wp-customizer:not(.colorify-admin-light) .media-modal .media-toolbar,
+body.wp-customizer:not(.colorify-admin-light) .media-frame-toolbar {
+	background: var(--colorify-admin-surface, #0b231c) !important;
+	border-color: var(--colorify-admin-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .uploader-inline .upload-message,
+body.wp-admin:not(.colorify-admin-light) .no-media,
+body.wp-admin:not(.colorify-admin-light) .upload-inline-status,
+body.wp-customizer:not(.colorify-admin-light) .uploader-inline .upload-message,
+body.wp-customizer:not(.colorify-admin-light) .no-media {
+	color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted, #b0bdb8) !important;
+}
+
+/* ── Light mode ───────────────────────────────────────────────────────── */
+
+body.wp-admin.colorify-admin-light .media-modal,
+body.wp-admin.colorify-admin-light .media-frame,
+body.wp-admin.colorify-admin-light .media-frame-content,
+body.wp-admin.colorify-admin-light .attachments-browser,
+body.wp-admin.colorify-admin-light .media-toolbar,
+body.wp-admin.colorify-admin-light .media-sidebar,
+body.wp-customizer.colorify-admin-light .media-modal,
+body.wp-customizer.colorify-admin-light .media-frame,
+body.wp-customizer.colorify-admin-light .attachments-browser,
+html[data-colorify-admin-mode="light"] body.wp-admin .media-modal,
+html[data-colorify-admin-mode="light"] body.wp-admin .media-frame,
+html[data-colorify-admin-mode="light"] body.wp-customizer .media-modal,
+html[data-colorify-admin-mode="light"] body.wp-customizer .media-frame {
+	background: var(--colorify-admin-bg, #fafafa) !important;
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
+body.wp-admin.colorify-admin-light .attachment-preview,
+body.wp-admin.colorify-admin-light .media-frame .attachment-preview,
+body.wp-customizer.colorify-admin-light .attachment-preview,
+html[data-colorify-admin-mode="light"] body.wp-admin .attachment-preview,
+html[data-colorify-admin-mode="light"] body.wp-customizer .attachment-preview {
+	background: var(--colorify-admin-surface, #ffffff) !important;
+	box-shadow: inset 0 0 0 1px var(--colorify-admin-border, rgba(24, 24, 27, 0.12)) !important;
+}
+
+body.wp-admin.colorify-admin-light .attachment-preview .thumbnail,
+body.wp-customizer.colorify-admin-light .attachment-preview .thumbnail,
+html[data-colorify-admin-mode="light"] body.wp-admin .attachment-preview .thumbnail,
+html[data-colorify-admin-mode="light"] body.wp-customizer .attachment-preview .thumbnail {
+	background: #ececec !important;
+}
+
+body.wp-admin.colorify-admin-light .attachment-preview .thumbnail img,
+body.wp-admin.colorify-admin-light .media-frame .attachment-preview img,
+body.wp-customizer.colorify-admin-light .attachment-preview .thumbnail img,
+html[data-colorify-admin-mode="light"] body.wp-admin .media-frame .attachment-preview img,
+html[data-colorify-admin-mode="light"] body.wp-customizer .media-frame .attachment-preview img {
+	opacity: 1 !important;
+	filter: none !important;
+	-webkit-text-fill-color: unset !important;
+}
+
+body.wp-admin.colorify-admin-light .media-frame-title h1,
+body.wp-admin.colorify-admin-light .attachment-details .name,
+body.wp-admin.colorify-admin-light .attachment .filename,
+body.wp-customizer.colorify-admin-light .media-frame-title h1,
+html[data-colorify-admin-mode="light"] body.wp-admin .attachment-details .name,
+html[data-colorify-admin-mode="light"] body.wp-customizer .media-frame-title h1 {
+	color: var(--colorify-admin-text, #18181b) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #18181b) !important;
+}
