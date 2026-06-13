@@ -1,0 +1,38 @@
+# Polish translations for Colorify by INYFINN.
+# Copyright (C) 2026 INYFINN
+msgid ""
+msgstr ""
+"Project-Id-Version: Colorify by INYFINN 1.0.0\n"
+"Report-Msgid-Bugs-To: https://inyfinn.art\n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Dark"
+msgstr "Ciemny"
+
+msgid "Light"
+msgstr "Jasny"
+
+msgid "Panel mode"
+msgstr "Tryb panelu"
+
+msgid "Toggle dark or light mode"
+msgstr "Przełącz tryb jasny/ciemny"
+
+msgid "Change style"
+msgstr "Zmień styl"
+
+msgid "Enable theme"
+msgstr "Włącz motyw"
+
+msgid "Disable theme"
+msgstr "Wyłącz motyw"
+
+msgid "Toggle Colorify theme"
+msgstr "Przełącz motyw Colorify"
+
+msgid "Colorify theme"
+msgstr "Motyw Colorify"

@@ -1,0 +1,83 @@
+/**
+ * inyfinn.art style — WP admin color scheme (shell).
+ * Dynamiczne --wp-admin-theme-color* z colorify-scheme-vars (inline).
+ *
+ * UWAGA: --wp-admin-theme-color = AKCENT schematu (czytelny na tle panelu w obu trybach).
+ */
+
+body {
+	background: var(--colorify-admin-bg, #050f0c);
+	color: var(--colorify-admin-text, #f4f4f5);
+}
+
+body.wp-admin.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-admin,
+body.wp-customizer.colorify-admin-light,
+html[data-colorify-admin-mode="light"] body.wp-customizer {
+	color: var(--colorify-admin-text, #18181b) !important;
+}
+
+a {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted, #b0bdb8));
+}
+
+body.wp-admin.wp-core-ui .button-link,
+body.wp-admin.wp-core-ui .button.button-link,
+body.wp-admin .wp-core-ui .button-link,
+body.wp-admin .wp-core-ui .button.button-link {
+	color: var(--colorify-admin-link, var(--colorify-admin-readable-muted, #b0bdb8));
+}
+
+body.wp-admin.wp-core-ui .button-link:hover,
+body.wp-admin.wp-core-ui .button-link:focus,
+body.wp-admin.wp-core-ui .button.button-link:hover,
+body.wp-admin.wp-core-ui .button.button-link:focus,
+body.wp-admin .wp-core-ui .button-link:hover,
+body.wp-admin .wp-core-ui .button-link:focus,
+body.wp-admin .wp-core-ui .button.button-link:hover,
+body.wp-admin .wp-core-ui .button.button-link:focus {
+	color: var(--colorify-admin-link-hover, var(--colorify-admin-readable-text, #eef0ef));
+}
+
+.view-switch a.current:before {
+	color: var(--colorify-admin-accent, var(--colorify-admin-link, #b4e717));
+}
+
+.filter-links .current {
+	border-bottom-color: var(--colorify-admin-accent, var(--colorify-admin-link, #b4e717));
+	color: var(--colorify-admin-text, #f4f4f5);
+}
+
+/* ── Tabele WP / Elementor Editor One — tytuły i akcje wiersza (ładowane jako colors-*) ─ */
+
+body.wp-admin #wpbody-content .wp-list-table a.row-title,
+body.wp-admin #wpbody-content .wp-list-table .row-title,
+body.wp-admin #wpbody-content .widefat a.row-title,
+body.wp-admin #wpbody-content .wp-list-table .column-title strong {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions,
+body.wp-admin #wpbody-content .wp-list-table .row-actions *,
+body.wp-admin #wpbody-content .widefat .row-actions,
+body.wp-admin #wpbody-content .widefat .row-actions * {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table tr:hover .row-actions,
+body.wp-admin #wpbody-content .wp-list-table tr:hover .row-actions *,
+body.wp-admin #wpbody-content .widefat tr:hover .row-actions,
+body.wp-admin #wpbody-content .widefat tr:hover .row-actions * {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions span.sep,
+body.wp-admin #wpbody-content .widefat .row-actions span.sep {
+	color: #5a6560 !important;
+	-webkit-text-fill-color: #5a6560 !important;
+}

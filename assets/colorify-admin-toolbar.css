@@ -1,0 +1,172 @@
+/**
+ * Pływający pasek Colorify (Zmień styl + tryb + Wył./Wł.).
+ */
+
+.colorify-mode-switch-float {
+	position: fixed;
+	top: 0;
+	right: 148px;
+	left: auto;
+	transform: none;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	z-index: 100001;
+	pointer-events: none;
+	max-width: calc(100vw - 320px);
+	overflow: visible;
+}
+
+.colorify-admin-toolbar {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 20px;
+	height: 32px;
+	padding: 0 6px;
+	flex-shrink: 0;
+	pointer-events: auto;
+	white-space: nowrap;
+	overflow: visible;
+}
+
+.colorify-admin-toolbar__segment {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	flex-shrink: 0;
+	min-width: max-content;
+	overflow: visible;
+}
+
+.colorify-admin-toolbar__segment--style {
+	overflow: visible;
+	border-radius: 100px;
+	flex-shrink: 0;
+}
+
+.colorify-admin-toolbar__segment--controls {
+	gap: 20px;
+}
+
+.colorify-admin-toolbar__sep {
+	display: block;
+	flex: 0 0 2px;
+	width: 2px;
+	height: 20px;
+	margin: 0 4px;
+	background: var(--colorify-admin-accent, #b4e717);
+	border-radius: 2px;
+	opacity: 0.85;
+}
+
+.colorify-toolbar-switch,
+.colorify-mode-switch,
+.colorify-theme-switch {
+	display: inline-flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	flex: 0 0 auto;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 10%, var(--colorify-admin-bg, #050f0c));
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 22%, var(--colorify-admin-border, rgba(255, 255, 255, 0.12)));
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: var(--colorify-admin-text, #eef0ef);
+	pointer-events: auto;
+}
+
+.colorify-mode-switch__label {
+	display: block;
+	flex: 0 0 auto;
+	line-height: 1.2;
+	user-select: none;
+	white-space: nowrap;
+	color: inherit;
+}
+
+.colorify-mode-switch:not(.colorify-theme-switch) .colorify-mode-switch__label:first-child {
+	min-width: 4.8em;
+	padding-right: 2px;
+	text-align: right;
+}
+
+.colorify-mode-switch:not(.colorify-theme-switch) .colorify-mode-switch__label:last-child {
+	min-width: 4.2em;
+	padding-left: 2px;
+	text-align: left;
+}
+
+.colorify-theme-switch .colorify-mode-switch__label:first-child {
+	min-width: 2.6em;
+	padding-right: 2px;
+	text-align: right;
+}
+
+.colorify-theme-switch .colorify-mode-switch__label:last-child {
+	min-width: 2.2em;
+	padding-left: 2px;
+	text-align: left;
+}
+
+body.wp-admin.colorify-admin-light .colorify-toolbar-switch,
+body.wp-admin.colorify-admin-light .colorify-mode-switch,
+body.wp-admin.colorify-admin-light .colorify-theme-switch {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 12%, var(--colorify-admin-bg, #fafafa));
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 32%, var(--colorify-admin-border, rgba(24, 24, 27, 0.12)));
+	color: var(--colorify-admin-text, #18181b);
+}
+
+body.wp-admin.colorify-admin-light .colorify-mode-switch__label {
+	color: var(--colorify-admin-text, #18181b);
+}
+
+body.wp-admin.colorify-theme-off .colorify-mode-switch-float {
+	z-index: 100001;
+}
+
+body.wp-admin.colorify-theme-off .colorify-toolbar-switch,
+body.wp-admin.colorify-theme-off .colorify-mode-switch,
+body.wp-admin.colorify-theme-off .colorify-theme-switch {
+	color: #646970;
+	background: rgba(255, 255, 255, 0.92);
+	border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.wp-admin.colorify-theme-off .colorify-mode-switch:not(.colorify-theme-switch) {
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+@media screen and (max-width: 1200px) {
+	.colorify-mode-switch-float {
+		right: 96px;
+		max-width: calc(100vw - 200px);
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.colorify-mode-switch-float {
+		top: 46px;
+		right: 8px;
+		left: auto;
+		max-width: calc(100vw - 16px);
+		justify-content: flex-end;
+	}
+
+	.colorify-admin-toolbar {
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		height: auto;
+		row-gap: 8px;
+		max-width: 100%;
+	}
+}

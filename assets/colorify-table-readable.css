@@ -1,0 +1,74 @@
+/**
+ * Tabele WP — tekst ZAWSZE czytelny (obejście WP left:-9999em + Elementor text-primary).
+ */
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions,
+body.wp-admin #wpbody-content .widefat .row-actions {
+	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	clip: auto !important;
+	clip-path: none !important;
+	width: auto !important;
+	height: auto !important;
+	overflow: visible !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	color: #b0bdb8 !important;
+	padding-top: 4px !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions *,
+body.wp-admin #wpbody-content .widefat .row-actions * {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
+	background-color: transparent !important;
+	background-image: none !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions a,
+body.wp-admin #wpbody-content .wp-list-table .row-actions .button-link,
+body.wp-admin #wpbody-content .widefat .row-actions a,
+body.wp-admin #wpbody-content .widefat .row-actions .button-link {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
+	text-decoration: none !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions a:hover,
+body.wp-admin #wpbody-content .wp-list-table .row-actions .button-link:hover,
+body.wp-admin #wpbody-content .widefat .row-actions a:hover,
+body.wp-admin #wpbody-content .widefat .row-actions .button-link:hover {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+	text-decoration: underline !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table .row-actions span.sep,
+body.wp-admin #wpbody-content .widefat .row-actions span.sep {
+	color: #5a6560 !important;
+	-webkit-text-fill-color: #5a6560 !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table a.row-title,
+body.wp-admin #wpbody-content .wp-list-table .row-title,
+body.wp-admin #wpbody-content .widefat a.row-title,
+body.wp-admin #wpbody-content .wp-list-table .column-title strong,
+body.wp-admin #wpbody-content .wp-list-table .column-title > a {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+	font-weight: 400 !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table tbody td,
+body.wp-admin #wpbody-content .widefat tbody td {
+	color: #eef0ef !important;
+}
+
+body.wp-admin #wpbody-content .wp-list-table tbody td a:not(.submitdelete):not(.delete),
+body.wp-admin #wpbody-content .widefat tbody td a:not(.submitdelete):not(.delete) {
+	color: #b0bdb8 !important;
+	-webkit-text-fill-color: #b0bdb8 !important;
+}

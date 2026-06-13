@@ -1,0 +1,430 @@
+/**
+ * Sparkle / login button — Colorify
+ * Login: Uiverse.io by AlimurtuzaCodes (jeden element, bez warstw).
+ * Toolbar: kompaktowy sparkle (JkHuger).
+ */
+
+/* ── Login — primary CTA (akcent ze schematu Colorify) ───────────────── */
+
+.colorify-login-btn {
+	--colorify-login-accent: var(--colorify-admin-accent, #b4e717);
+	--colorify-login-on: var(--colorify-admin-on-accent, #050f0c);
+	--colorify-login-accent-hover: color-mix(in srgb, var(--colorify-login-accent) 90%, #ffffff);
+	--colorify-login-glow-idle: color-mix(in srgb, var(--colorify-login-accent) 22%, transparent);
+	--colorify-login-glow-hover: color-mix(in srgb, var(--colorify-login-accent) 38%, transparent);
+	--colorify-login-glow-halo: color-mix(in srgb, var(--colorify-login-accent) 30%, #ffffff 70%);
+
+	border: none;
+	min-width: 12.5rem;
+	width: auto;
+	max-width: min(100%, 16rem);
+	min-height: 3rem;
+	height: auto;
+	padding: 0.875rem 1.75rem;
+	border-radius: 9999px;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	background: var(--colorify-login-accent);
+	color: var(--colorify-login-on);
+	cursor: pointer;
+	transition:
+		background 220ms ease,
+		box-shadow 220ms ease,
+		transform 180ms ease,
+		color 220ms ease;
+	margin: 0 auto;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 30%, transparent) inset,
+		0 6px 18px -3px var(--colorify-login-glow-idle) !important;
+	text-shadow: none !important;
+	line-height: 1.2;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.colorify-login-btn__sparkle {
+	fill: currentColor;
+	color: var(--colorify-login-on);
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	transition: transform 220ms ease;
+}
+
+.colorify-login-btn__text {
+	font-weight: 600;
+	color: var(--colorify-login-on);
+	font-size: 1rem;
+	letter-spacing: 0.01em;
+	transition: color 220ms ease;
+}
+
+.colorify-login-btn:hover,
+.colorify-login-btn:focus-visible {
+	background: var(--colorify-login-accent-hover) !important;
+	color: var(--colorify-login-on) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 42%, transparent) inset,
+		0 10px 26px -2px var(--colorify-login-glow-hover),
+		0 0 28px 2px color-mix(in srgb, var(--colorify-login-glow-halo) 45%, transparent) !important;
+	transform: translateY(-1px);
+	outline: none;
+	border: none !important;
+}
+
+.colorify-login-btn:focus-visible {
+	outline: 2px solid color-mix(in srgb, var(--colorify-login-accent) 45%, transparent);
+	outline-offset: 3px;
+}
+
+.colorify-login-btn:active {
+	transform: translateY(0);
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 24%, transparent) inset,
+		0 4px 14px -2px var(--colorify-login-glow-idle) !important;
+}
+
+.colorify-login-btn:hover .colorify-login-btn__text,
+.colorify-login-btn:focus-visible .colorify-login-btn__text,
+.colorify-login-btn:hover .colorify-login-btn__sparkle,
+.colorify-login-btn:focus-visible .colorify-login-btn__sparkle {
+	color: var(--colorify-login-on);
+	fill: currentColor;
+}
+
+.colorify-login-btn:hover .colorify-login-btn__sparkle,
+.colorify-login-btn:focus-visible .colorify-login-btn__sparkle {
+	transform: scale(1.08);
+}
+
+body.login form p.forgetmenot {
+	float: none !important;
+	width: 100% !important;
+	clear: both !important;
+	margin: 0.75rem 0 0 !important;
+}
+
+body.login form p.submit {
+	float: none !important;
+	width: 100% !important;
+	clear: both !important;
+	margin: 1.25rem 0 0 !important;
+	padding: 0 0 0.85rem !important;
+	text-align: center !important;
+	display: flex !important;
+	justify-content: center !important;
+	overflow: visible;
+	background: none !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body.login .colorify-login-btn,
+body.login .colorify-login-btn:hover,
+body.login .colorify-login-btn:focus,
+body.login .colorify-login-btn:active {
+	height: auto !important;
+	min-height: 3rem !important;
+	width: auto !important;
+	min-width: 12.5rem !important;
+	max-width: min(100%, 16rem) !important;
+	background: var(--colorify-login-accent) !important;
+	color: var(--colorify-login-on) !important;
+}
+
+body.login .colorify-login-btn:hover,
+body.login .colorify-login-btn:focus-visible {
+	background: var(--colorify-login-accent-hover) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 42%, transparent) inset,
+		0 10px 26px -2px var(--colorify-login-glow-hover),
+		0 0 28px 2px color-mix(in srgb, var(--colorify-login-glow-halo) 45%, transparent) !important;
+}
+
+@media (max-width: 480px) {
+	.colorify-login-btn {
+		min-width: min(12.5rem, 100%);
+		width: 100%;
+		max-width: 100%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.colorify-login-btn,
+	.colorify-login-btn__sparkle,
+	.colorify-login-btn__text {
+		transition: none;
+	}
+}
+
+/* ── Toolbar — kompaktowy sparkle ─────────────────────────────────────── */
+
+.colorify-sparkle-button-wrap {
+	display: inline-flex;
+	vertical-align: middle;
+	border-radius: 100px;
+	overflow: hidden;
+	isolation: isolate;
+	max-width: 100%;
+}
+
+.colorify-sparkle-button-wrap--compact {
+	flex: 0 0 auto;
+}
+
+.colorify-sparkle-button {
+	--active: 0;
+	--transition: 0.3s;
+	--spark: 1.35s;
+	--cut: 0.08em;
+	--glow-scale: 1;
+	--sparkle-accent: var(--colorify-admin-accent, #b4e717);
+	--sparkle-accent-bright: color-mix(in srgb, var(--sparkle-accent) 42%, #ffffff);
+	--sparkle-accent-soft: color-mix(in srgb, var(--sparkle-accent) 72%, #ffffff);
+	--sparkle-on: var(--colorify-admin-on-accent, #050f0c);
+	--bg: var(--sparkle-accent);
+
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.55em;
+	width: auto;
+	margin: 0;
+	padding: 0.85em 1.35em;
+	border: 0;
+	border-radius: 100px;
+	background: var(--bg);
+	color: var(--sparkle-on);
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.2;
+	white-space: nowrap;
+	cursor: pointer;
+	text-decoration: none !important;
+	box-shadow:
+		0 0 calc(var(--active) * var(--glow-scale) * 2.2em) calc(var(--active) * var(--glow-scale) * 0.55em)
+			var(--sparkle-accent-bright),
+		0 8px 22px -8px color-mix(in srgb, var(--sparkle-accent) 50%, transparent);
+	transform: scale(calc(1 + (var(--active) * 0.04)));
+	transition: box-shadow var(--transition), transform var(--transition), background var(--transition);
+	overflow: visible;
+}
+
+.colorify-sparkle-button--compact {
+	--glow-scale: 0.38;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	padding: 0 14px;
+	height: 28px;
+	min-height: 28px;
+	gap: 6px;
+}
+
+.colorify-sparkle-button:is(:hover, :focus-visible) {
+	--active: 1;
+	color: var(--sparkle-on) !important;
+	text-decoration: none !important;
+	outline: none;
+}
+
+.colorify-sparkle-button:active {
+	transform: scale(1);
+}
+
+.colorify-sparkle-button:focus-visible {
+	outline: 2px solid var(--sparkle-accent);
+	outline-offset: 3px;
+}
+
+.colorify-sparkle-button__text {
+	position: relative;
+	z-index: 2;
+	letter-spacing: 0.01em;
+	color: var(--sparkle-on);
+	transition: color var(--transition);
+}
+
+.colorify-sparkle-button--compact .colorify-sparkle-button__text {
+	color: var(--sparkle-on) !important;
+	background: transparent;
+}
+
+/* Toolbar „Zmień styl” — pełny CTA ze schematu (bez background:none na <a>) */
+.colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn {
+	--sparkle-accent: var(--colorify-admin-accent, #b4e717);
+	--sparkle-on: var(--colorify-admin-on-accent, #050f0c);
+	--bg: var(--sparkle-accent);
+	background: var(--bg) !important;
+	color: var(--sparkle-on) !important;
+	border: 1px solid color-mix(in srgb, var(--sparkle-accent) 82%, #000) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 28%, transparent) inset,
+		0 6px 16px -8px color-mix(in srgb, var(--sparkle-accent) 52%, transparent) !important;
+}
+
+.colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn:is(:hover, :focus-visible) {
+	background: color-mix(in srgb, var(--sparkle-accent) 90%, #ffffff) !important;
+	color: var(--sparkle-on) !important;
+	box-shadow:
+		0 1px 0 0 color-mix(in srgb, #ffffff 36%, transparent) inset,
+		0 8px 20px -6px color-mix(in srgb, var(--sparkle-accent) 58%, transparent) !important;
+}
+
+body.wp-admin.colorify-admin-light .colorify-mode-switch-float .colorify-sparkle-button.colorify-change-style-btn {
+	border-color: color-mix(in srgb, var(--sparkle-accent) 70%, #000) !important;
+}
+
+.colorify-sparkle-button__stars {
+	inline-size: 1.15em;
+	flex-shrink: 0;
+	position: relative;
+	z-index: 2;
+	margin: 0;
+}
+
+.colorify-sparkle-button--compact .colorify-sparkle-button__stars {
+	inline-size: 0.95em;
+	translate: -8% -4%;
+}
+
+.colorify-sparkle-button__stars path {
+	fill: currentColor;
+	stroke: currentColor;
+	color: var(--sparkle-on);
+	transform-box: fill-box;
+	transform-origin: center;
+	transition: color var(--transition);
+}
+
+.colorify-sparkle-button:is(:hover, :focus-visible) .colorify-sparkle-button__stars path {
+	animation-name: colorify-sparkle-bounce;
+	animation-duration: 0.55s;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(1) {
+	animation-delay: 0.05s;
+	--scale: 0.5;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(2) {
+	animation-delay: 0.12s;
+	--scale: 1.4;
+}
+
+.colorify-sparkle-button__stars path:nth-of-type(3) {
+	animation-delay: 0.2s;
+	--scale: 2.2;
+}
+
+@keyframes colorify-sparkle-bounce {
+	35%,
+	65% {
+		transform: scale(var(--scale, 1));
+	}
+}
+
+.colorify-sparkle-button__spark {
+	position: absolute;
+	inset: 0;
+	border-radius: 100px;
+	overflow: hidden;
+	mask: linear-gradient(white, transparent 55%);
+	pointer-events: none;
+	z-index: 0;
+	animation: colorify-sparkle-flip calc(var(--spark) * 2) infinite steps(2, end);
+}
+
+.colorify-sparkle-button__spark::before {
+	content: "";
+	position: absolute;
+	width: 200%;
+	aspect-ratio: 1;
+	top: 0;
+	left: 50%;
+	z-index: -1;
+	translate: -50% -15%;
+	opacity: calc(var(--active) + 0.35);
+	background: conic-gradient(from 0deg, transparent 0 340deg, rgba(255, 255, 255, 0.95) 360deg);
+	animation: colorify-sparkle-rotate var(--spark) linear infinite both;
+	transition: opacity var(--transition);
+}
+
+.colorify-sparkle-button__backdrop {
+	position: absolute;
+	inset: var(--cut);
+	background: var(--bg);
+	border-radius: 100px;
+	z-index: 1;
+	transition: background var(--transition);
+	pointer-events: none;
+}
+
+.colorify-sparkle-button::before {
+	content: "";
+	position: absolute;
+	inset: -0.15em;
+	z-index: -1;
+	border: 0.2em solid color-mix(in srgb, var(--sparkle-accent-bright) 65%, transparent);
+	border-radius: 100px;
+	opacity: var(--active);
+	transition: opacity var(--transition);
+	pointer-events: none;
+}
+
+.colorify-sparkle-button--compact::before {
+	inset: -0.08em;
+	border-width: 0.12em;
+}
+
+@keyframes colorify-sparkle-flip {
+	to {
+		rotate: 360deg;
+	}
+}
+
+@keyframes colorify-sparkle-rotate {
+	to {
+		transform: rotate(90deg);
+	}
+}
+
+.colorify-sparkle-button.colorify-change-style-btn .colorify-change-style-btn__icon {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.colorify-sparkle-button.colorify-change-style-btn .colorify-change-style-btn__icon svg {
+	display: block;
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+	color: var(--sparkle-on);
+}
+
+.colorify-admin-toolbar__segment--style {
+	overflow: hidden;
+	border-radius: 100px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.colorify-sparkle-button__spark,
+	.colorify-sparkle-button__spark::before,
+	.colorify-sparkle-button__stars path {
+		animation: none !important;
+	}
+
+	.colorify-sparkle-button {
+		transition: none;
+	}
+}

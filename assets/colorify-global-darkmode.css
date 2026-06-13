@@ -1,0 +1,846 @@
+/**
+ * Colorify — GLOBALNY DARK MODE
+ * ============================================================
+ * Zamiast naprawiać per-plugin, nadpisujemy GLOBALNE WARTOŚCI
+ * których używają wszyscy developerzy WordPressa:
+ *
+ *  1) WP & Gutenberg CSS Custom Properties → zmienne schematu
+ *  2) Hardcoded WP-core kolory w [style] inline
+ *  3) Globalne wzorce strukturalne (.wrap, [id*="-wrap"] itd.)
+ *  4) Standardowe elementy HTML w kontekście wp-admin
+ *
+ * Zasada: im wyżej w drzewie nadpiszemy źródło, tym mniej
+ * reguł "per-plugin" jest potrzebnych.
+ * ============================================================
+ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   1. WP / GUTENBERG CSS CUSTOM PROPERTIES — jeden blok na całą paletę
+   Deweloperzy pluginów budują UI pod te zmienne; zmień je raz = zmień
+   wszystko co je konsumuje.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light),
+html[data-colorify-admin-mode="dark"] body.wp-admin {
+
+	/* ── WP Core admin (wp-admin.css używa tych) ─────────────────────── */
+	--wp-admin-color-body:               var(--colorify-admin-bg)      !important;
+	--wp-admin--admin-bar--background:   var(--colorify-admin-sidebar) !important;
+	--wp-admin--admin-bar--color:        var(--colorify-admin-text)    !important;
+	--wp-admin-color-white:              var(--colorify-admin-surface) !important;
+	--wp-admin-color-header-bg:          var(--colorify-admin-surface) !important;
+	--wp-admin-border-width-focus:       2px                           !important;
+
+	/* ── Gutenberg / @wordpress/components ──────────────────────────── */
+	--wp-components-color-accent:            var(--colorify-admin-accent)   !important;
+	--wp-components-color-accent-darker-10:  color-mix(in srgb, var(--colorify-admin-accent) 90%, #000) !important;
+	--wp-components-color-accent-darker-20:  color-mix(in srgb, var(--colorify-admin-accent) 80%, #000) !important;
+	--wp-components-color-background:        var(--colorify-admin-bg)       !important;
+	--wp-components-color-foreground:        var(--colorify-admin-text)     !important;
+	--wp-components-color-foreground-inverted: var(--colorify-admin-bg)     !important;
+
+	/* ── WP Editor (Gutenberg block editor global surface) ─────────── */
+	--wp-admin-theme-color:            var(--colorify-admin-accent)    !important;
+	--wp-admin-theme-color--rgb:       var(--colorify-admin-accent--rgb, 180, 231, 23) !important;
+
+	/* ── WooCommerce Design Tokens ──────────────────────────────────── */
+	--wc-background:    var(--colorify-admin-bg)       !important;
+	--wc-card-bg:       var(--colorify-admin-surface)  !important;
+	--wc-border-color:  var(--colorify-admin-border)   !important;
+	--wc-primary:       var(--colorify-admin-accent)   !important;
+	--wc-secondary:     var(--colorify-admin-accent-muted, var(--colorify-admin-text-muted)) !important;
+	--wc-text:          var(--colorify-admin-text)     !important;
+	--wc-text-dim:      var(--colorify-admin-text-muted) !important;
+
+	/* ── Elementor Design Tokens ────────────────────────────────────── */
+	--e-a-bg-default:        var(--colorify-admin-bg)       !important;
+	--e-a-bg-hover:          var(--colorify-admin-surface-2) !important;
+	--e-a-bg-active:         var(--colorify-admin-surface)  !important;
+	--e-a-border-color:      var(--colorify-admin-border)   !important;
+	--e-a-color-txt:         var(--colorify-admin-text)     !important;
+	--e-a-color-txt-muted:   var(--colorify-admin-text-muted) !important;
+	--e-one-palette-surface: var(--colorify-admin-surface)  !important;
+	--e-one-palette-surface-2: var(--colorify-admin-surface-2) !important;
+	--e-one-palette-border:  var(--colorify-admin-border)   !important;
+
+	/* ── Generic variables używane przez plugin-kit starters ─────────── */
+	--color-bg:             var(--colorify-admin-bg)         !important;
+	--color-surface:        var(--colorify-admin-surface)    !important;
+	--color-text:           var(--colorify-admin-text)       !important;
+	--color-text-muted:     var(--colorify-admin-text-muted) !important;
+	--color-border:         var(--colorify-admin-border)     !important;
+	--color-accent:         var(--colorify-admin-accent)     !important;
+	--background-color:     var(--colorify-admin-bg)         !important;
+	--text-color:           var(--colorify-admin-text)       !important;
+	--border-color:         var(--colorify-admin-border)     !important;
+	--primary-color:        var(--colorify-admin-accent)     !important;
+	--secondary-color:      var(--colorify-admin-text-muted) !important;
+	--link-color:           var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   2. INLINE STYLES — hardcoded kolory WP core + pluginów
+   WordPress i pluginy często ustawiają kolory jako inline style.
+   Attribute selector [style*=] łapie je wszystkie w jednym bloku.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Białe i bardzo jasne tła (najczęstsza przyczyna "białe na białym") */
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#fff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background: #fff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#fff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color: #fff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#ffffff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background: #ffffff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#ffffff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color: #ffffff"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:white"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background: white"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:white"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color: white"] {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+}
+
+/* Standardowe WP-admin jasne szarości */
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#f0f0f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background: #f0f0f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#f0f0f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color: #f0f0f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#f6f7f7"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background: #f6f7f7"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#f6f7f7"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color: #f6f7f7"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#f9f9f9"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#f9f9f9"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#fcfcfc"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#fcfcfc"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#fafafa"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#fafafa"] {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+}
+
+/* Ciemne teksty WP-core w inline-style — zamień na jasne dla dark mode */
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#1d2327"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #1d2327"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#2c3338"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #2c3338"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#3c434a"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #3c434a"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#000"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #000;"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#000000"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #000000"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:black"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: black"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#333"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #333"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#333333"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#444"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#555"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color:#666"],
+body.wp-admin:not(.colorify-admin-light) *[style*="color: #666"] {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   3. GLOBALNE WZORCE STRUKTURALNE
+   Wszyscy deweloperzy WP budują admin page tak samo:
+   - główny wrapper: .wrap
+   - sekcje: .inside, .postbox, .stuffbox, .metabox-holder
+   - plugin-specific: [id*="-wrap"], [class*="-settings"] etc.
+   Tutaj nadpisujemy te WZORCE, a nie konkretne pluginy.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/*
+ * SCHEMAT KOLOROWANIA:
+ *   bg (najciemniejsze)           → strona, body
+ *   surface (ciemna karta)        → .wrap, .postbox, główne kontenery
+ *   surface-2 (nieco jaśniejsza)  → nagłówki sekcji, thead, sidebar-items
+ *   field (pola input)            → input, select, textarea
+ */
+
+/* A) Główny content wrapper + .wrap (KAŻDY plugin to ma) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content > .wrap,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content > div > .wrap,
+body.wp-admin:not(.colorify-admin-light) .wp-admin-wrap {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* B) Standardowe karty / boksy */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.postbox,
+	.stuffbox,
+	.metabox-holder,
+	.inside,
+	.card,
+	.notice,
+	.updated,
+	div.error,
+	.welcome-panel,
+	.health-check-accordion-panel,
+	.about-wrap
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.postbox-header,
+	.postbox h2,
+	.postbox h3,
+	.stuffbox h2,
+	.stuffbox h3
+) {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* C) Globalne wzorce nazewnicze — devloperzy WP ZAWSZE używają sufixów:
+   -wrap, -container, -panel, -section, -box, -content, -area, -body
+   Łapane przez :where() (zerowa specyficzność — łatwo nadpisać) */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :where(
+	[id$="-wrap"]:not(#wpwrap):not(#wpcontent):not(#adminmenuwrap):not(.iris-picker-wrap),
+	[id$="-container"]:not([id*="color"]),
+	[id$="-panel"],
+	[id$="-section"],
+	[id$="-settings"],
+	[id$="-options"],
+	[id$="-content"]:not(#wpbody-content):not(#post-body-content),
+	[id$="-area"],
+	[id$="-header"]:not(#wpadminbar):not(#adminmenu),
+	[id$="-footer"]
+) {
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :where(
+	[class$="-wrap"]:not(.iris-picker-wrap):not([class*="color"]),
+	[class$="-container"]:not([class*="color"]):not([class*="iris"]),
+	[class$="-panel"]:not([class*="color"]):not([class*="iris"]),
+	[class$="-section"]:not([class*="color"]):not(.accordion-section),
+	[class$="-settings"],
+	[class$="-options"],
+	[class$="-content"]:not(.menu-item-content):not([class*="color"]),
+	[class$="-area"]:not([class*="color"])
+) {
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* C2) TABELE WP — wiersze z klasami stanów (active, inactive, update-tr, etc.)
+   WP core ustawia background: #fff na tr.active w plugins.css */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tr,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat tr,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .plugins tr,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content tr.active,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content tr.inactive,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content tr.update-tr,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content tr.plugin-update-tr {
+	background: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+	background-color: var(--colorify-admin-row-bg, var(--colorify-admin-bg)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content tr:nth-child(even),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .striped > tbody > :nth-child(even) {
+	background: color-mix(in srgb, var(--colorify-admin-bg) 95%, white) !important;
+	background-color: color-mix(in srgb, var(--colorify-admin-bg) 95%, white) !important;
+}
+
+/* D) GLOBALNE nadpisanie wszystkich HEADINGS w content area */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h1,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h2,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h3,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h4,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h5,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content h6 {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* E) GLOBALNE nadpisanie wszystkich paragrafów i tekstu w content area */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content p,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content li,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content th,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content label,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .description,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content strong:not(.plugin-title strong) {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* F) GLOBALNE — linki w content area */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(.button):not(.button-primary):not(.button-secondary):not(.button-link):not(.row-title):not(.nav-tab) {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:hover:not(.button):not(.button-primary):not(.row-title):not(.nav-tab) {
+	color: var(--colorify-admin-link-hover, var(--colorify-admin-text)) !important;
+}
+
+/* G) GLOBALNE — wszystkie formularze (input, select, textarea) w wp-admin */
+body.wp-admin:not(.colorify-admin-light) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="image"]):not([type="range"]):not([type="color"]),
+body.wp-admin:not(.colorify-admin-light) textarea,
+body.wp-admin:not(.colorify-admin-light) select:not([multiple]) {
+	background: var(--colorify-admin-field) !important;
+	background-color: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color-scheme: dark !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) input::placeholder,
+body.wp-admin:not(.colorify-admin-light) textarea::placeholder {
+	color: var(--colorify-admin-text-dim) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-dim) !important;
+	opacity: 1 !important;
+}
+
+/* H) GLOBALNE — focus state (jednolity dla wszystkich elementów) */
+body.wp-admin:not(.colorify-admin-light) input:focus,
+body.wp-admin:not(.colorify-admin-light) textarea:focus,
+body.wp-admin:not(.colorify-admin-light) select:focus {
+	border-color: var(--colorify-admin-accent) !important;
+	box-shadow: 0 0 0 2px var(--colorify-admin-accent-soft) !important;
+	outline: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   4. STANDARD HTML W KONTEKŚCIE WP ADMIN
+   WP i pluginy używają standardowych elementów HTML bez specjalnych klas.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Tables w #wpbody-content (plug-iny robią tabelki bez WP class) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content table:not(.wp-list-table):not(.widefat):not(.woocommerce_options_panel) {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content table:not(.wp-list-table) thead th,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content table:not(.wp-list-table) thead td {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content table:not(.wp-list-table) tbody td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content table:not(.wp-list-table) tbody th {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Nawigacja zakładek (wszelki .nav-tab-wrapper — KAŻDY dev WP to zna) */
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper {
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab:hover,
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab:focus {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab-active {
+	background: var(--colorify-admin-bg) !important;
+	border-bottom-color: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   4b. BEZKLASOWE ELEMENTY — Emotion.js / styled-components generują
+   button, div, span bez żadnej klasy lub z hash-klasami (css-xxxxx).
+   Żaden selektor klasowy ich nie złapie — traktujemy je globalnie:
+   każdy bezklasowy button/div/span w #wpbody-content dostaje ciemny styl.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Bezklasowe buttony (Emotion.js legends, dropdowny itp.) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content button:not([class]),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content button[class=""],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="woocommerce-"] > button,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="woocommerce-"] button:not([class*="components-button"]):not([class*="is-primary"]):not([class*="is-destructive"]) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Hash-klasy Emotion.js — format: css-[a-z0-9]{6,10} — TYLKO dla znanych kontenerów */
+body.wp-admin:not(.colorify-admin-light) [class*="woocommerce-"] [class^="css-"],
+body.wp-admin:not(.colorify-admin-light) [class*="woocommerce-"] [class*=" css-"],
+body.wp-admin:not(.colorify-admin-light) [class*="components-"] [class^="css-"],
+body.wp-admin:not(.colorify-admin-light) [class*="components-"] [class*=" css-"] {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   5. WYJĄTKI — elementy które NIE powinny być nadpisywane
+   Color picker, iris, code blocks, images, itp.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Iris color picker — MAY NOT BE INVERTED */
+body.wp-admin:not(.colorify-admin-light) .iris-picker,
+body.wp-admin:not(.colorify-admin-light) .iris-picker *,
+body.wp-admin:not(.colorify-admin-light) .wp-picker-container .wp-color-result,
+body.wp-admin:not(.colorify-admin-light) [class*="iris"],
+body.wp-admin:not(.colorify-admin-light) [id*="iris"] {
+	background: revert !important;
+	color: revert !important;
+}
+
+/* Code blocks — kod ma swój własny schemat kolorów */
+body.wp-admin:not(.colorify-admin-light) code,
+body.wp-admin:not(.colorify-admin-light) pre {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Obrazy i media — nie dotykamy */
+body.wp-admin:not(.colorify-admin-light) img,
+body.wp-admin:not(.colorify-admin-light) video,
+body.wp-admin:not(.colorify-admin-light) canvas,
+body.wp-admin:not(.colorify-admin-light) svg:not([fill="currentColor"]) {
+	background: transparent !important;
+}
+
+/* Ikonki dashicons — nie zmieniamy koloru (mają własne) */
+body.wp-admin:not(.colorify-admin-light) .dashicons {
+	background: transparent !important;
+}
+
+/* Spinner WP */
+body.wp-admin:not(.colorify-admin-light) .spinner {
+	background: transparent !important;
+}
+
+/* Screen reader text */
+body.wp-admin:not(.colorify-admin-light) .screen-reader-text {
+	background: transparent !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. WIDŻETY KLASYCZNE — nadpisanie białych nagłówków widżetów
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) .widget-top,
+body.wp-admin:not(.colorify-admin-light) .widget-title-action,
+body.wp-admin:not(.colorify-admin-light) .widget-title {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .widget-inside {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   7. NAV MENUS — menu-item handlery
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle .menu-item-title,
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle .item-title,
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle .item-type,
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle .item-controls,
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .menu-item-handle .post-state {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .accordion-section-title {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .tabs-panel label.menu-item-title,
+body.wp-admin:not(.colorify-admin-light).nav-menus-php .categorychecklist label {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   8. WOOCOMMERCE — formularz ustawień i layout header
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) #mainform {
+	background: var(--colorify-admin-bg) !important;
+	background-color: var(--colorify-admin-bg) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout__header {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+}
+
+/* WooCommerce odznaka "Produkcja" / "Sklep już wkrótce" */
+body.wp-admin:not(.colorify-admin-light) #wpadminbar #wp-admin-bar-woocommerce-site-visibility-badge a.ab-item {
+	background-color: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpadminbar #wp-admin-bar-woocommerce-site-visibility-badge.woocommerce-site-status-badge-live a.ab-item {
+	background-color: color-mix(in srgb, var(--colorify-admin-accent) 22%, var(--colorify-admin-surface)) !important;
+	color: var(--colorify-admin-accent) !important;
+	-webkit-text-fill-color: var(--colorify-admin-accent) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   9. GLOBALNE AKCJE POSTU (major-publishing-actions, submit-button)
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) #submitdiv,
+body.wp-admin:not(.colorify-admin-light) #submitdiv .inside,
+body.wp-admin:not(.colorify-admin-light) .major-publishing-actions {
+	background: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   10. @WORDPRESS/COMPONENTS — Gutenberg UI Components
+   Komponenty Gutenberga (.components-surface, .components-card etc.)
+   używają Emotion.js i CSS-in-JS. CSS variable override nie wystarczy
+   bo klasy dynamiczne mają bezpośredni background: var(--color-bg) lub #fff.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) .components-surface,
+body.wp-admin:not(.colorify-admin-light) .components-card,
+body.wp-admin:not(.colorify-admin-light) .components-card__body,
+body.wp-admin:not(.colorify-admin-light) .components-card__header,
+body.wp-admin:not(.colorify-admin-light) .components-card__footer,
+body.wp-admin:not(.colorify-admin-light) .components-panel,
+body.wp-admin:not(.colorify-admin-light) .components-panel__body,
+body.wp-admin:not(.colorify-admin-light) .components-panel__header,
+body.wp-admin:not(.colorify-admin-light) .components-panel__row,
+body.wp-admin:not(.colorify-admin-light) .components-popover,
+body.wp-admin:not(.colorify-admin-light) .components-popover__content,
+body.wp-admin:not(.colorify-admin-light) .components-dropdown-menu__menu,
+body.wp-admin:not(.colorify-admin-light) .components-base-control,
+body.wp-admin:not(.colorify-admin-light) .components-input-control__container,
+body.wp-admin:not(.colorify-admin-light) .components-input-control__backdrop,
+body.wp-admin:not(.colorify-admin-light) .components-text-control__input,
+body.wp-admin:not(.colorify-admin-light) .components-select-control__input,
+body.wp-admin:not(.colorify-admin-light) .components-checkbox-control__input,
+body.wp-admin:not(.colorify-admin-light) .components-toggle-control,
+body.wp-admin:not(.colorify-admin-light) .components-menu-item,
+body.wp-admin:not(.colorify-admin-light) .components-modal__content,
+body.wp-admin:not(.colorify-admin-light) .components-modal__header,
+body.wp-admin:not(.colorify-admin-light) .components-placeholder,
+body.wp-admin:not(.colorify-admin-light) .block-editor-block-list__layout,
+body.wp-admin:not(.colorify-admin-light) .block-editor-writing-flow {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .components-card__header {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .components-surface *,
+body.wp-admin:not(.colorify-admin-light) .components-card * {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .components-surface h1,
+body.wp-admin:not(.colorify-admin-light) .components-surface h2,
+body.wp-admin:not(.colorify-admin-light) .components-surface h3,
+body.wp-admin:not(.colorify-admin-light) .components-card h1,
+body.wp-admin:not(.colorify-admin-light) .components-card h2,
+body.wp-admin:not(.colorify-admin-light) .components-card h3,
+body.wp-admin:not(.colorify-admin-light) .components-card__header * {
+	color: var(--colorify-admin-text) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   11. GLOBALNY WOOCOMMERCE ADMIN — JEDEN SELEKTOR NA WSZYSTKO
+   
+   WooCommerce używa konsekwentnego prefixu "woocommerce-" dla KAŻDEGO
+   elementu swojego React UI. Zamiast liczyć setki klas — jeden blok
+   łapie je wszystkie przez atrybut [class*="woocommerce-"].
+   
+   Wyjątki: image, icon, logo, avatar — elementy wizualne bez tła.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) :is(
+	div, section, article, aside, header, footer, nav, main,
+	ul, ol, li,
+	button, a, label, span, p, h1, h2, h3, h4, h5, h6
+)[class*="woocommerce-"]:not([class*="-image"]):not([class*="-icon"]):not([class*="-logo"]):not([class*="-avatar"]):not([class*="-status-"]):not(.woocommerce-site-status-badge-live) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Nagłówki / sekcje WooCommerce — pełny kolor tekstu */
+body.wp-admin:not(.colorify-admin-light) :is(h1, h2, h3, h4, strong, .woocommerce-layout__header-heading)[class*="woocommerce-"] {
+	color: var(--colorify-admin-text) !important;
+	background: var(--colorify-admin-surface) !important;
+}
+
+/* Delta badge (np. "0%", "↑12%") — trochę ciemniejszy variant */
+body.wp-admin:not(.colorify-admin-light) .woocommerce-summary__item-delta {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Zakładki aktywności */
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout__activity-panel-wrapper,
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout__activity-panel-tabs {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Odznaka "Produkcja" — jedyna z [class*="woocommerce-"] która ma własne kolory */
+body.wp-admin:not(.colorify-admin-light) .woocommerce-site-status-badge-live a.ab-item {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 22%, var(--colorify-admin-surface)) !important;
+	color: var(--colorify-admin-accent) !important;
+}
+
+/* D3 charts + legenda */
+body.wp-admin:not(.colorify-admin-light) .d3-chart__tooltip,
+body.wp-admin:not(.colorify-admin-light) [class*="d3-chart"],
+body.wp-admin:not(.colorify-admin-light) [class*="d3-legend"] {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. GLOBALNY @WORDPRESS/COMPONENTS — JEDEN SELEKTOR NA WSZYSTKO
+   
+   Gutenberg i WC używają "components-" prefix dla wszystkich UI klas.
+   Wyjątki: button.is-primary, button.is-destructive — te mają własne kolory.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) :is(
+	div, section, span, ul, li, nav, header, footer, p
+)[class*="components-"]:not([class*="-icon"]):not([class*="-notice"]) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Przyciski components — NIE is-primary / is-destructive (mają akcent) */
+body.wp-admin:not(.colorify-admin-light) button.components-button:not(.is-primary):not(.is-destructive):not(.is-pressed) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) button.components-button:not(.is-primary):not(.is-destructive):hover,
+body.wp-admin:not(.colorify-admin-light) button.components-button:not(.is-primary):not(.is-destructive):focus {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* is-primary zachowuje akcent */
+body.wp-admin:not(.colorify-admin-light) button.components-button.is-primary,
+body.wp-admin:not(.colorify-admin-light) .components-button.is-primary {
+	background: var(--colorify-admin-accent) !important;
+	color: var(--colorify-admin-on-accent, #050f0c) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 85%, #000) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. GLOBALNE SKELETON / LOADING STATES (WooCommerce, Gutenberg)
+   WC analytics używa placeholder shimmer w jasnych kolorach.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) [class*="skeleton"],
+body.wp-admin:not(.colorify-admin-light) [class*="placeholder"],
+body.wp-admin:not(.colorify-admin-light) [class*="shimmer"],
+body.wp-admin:not(.colorify-admin-light) [class*="loading-placeholder"] {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	filter: none !important;
+}
+
+/* WC skeleton shimmer animation — zmień na ciemną wersję */
+body.wp-admin:not(.colorify-admin-light) .wc-skeleton,
+body.wp-admin:not(.colorify-admin-light) [class*="wc-skeleton"] {
+	background: linear-gradient(
+		90deg,
+		var(--colorify-admin-surface-2) 25%,
+		var(--colorify-admin-surface) 50%,
+		var(--colorify-admin-surface-2) 75%
+	) !important;
+	background-size: 200% 100% !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   13. PŁYWAJĄCE OVERLAYE POZA #wpbody-content
+   WP Pointer (Elementor „The Editor has a new home”, promocje pluginów),
+   Thickbox i inne modalne warstwy doklejane do <body>.
+   Dziedziczą jasny tekst z body.wp-admin, ale core CSS zostawia białe tło.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer .wp-pointer-content {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content h3 {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 18%, #1a4d8c) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 12%, #2271b1) !important;
+	color: #fff !important;
+	-webkit-text-fill-color: #fff !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content h3::before {
+	background: #fff !important;
+	color: #2271b1 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content p,
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content h4,
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content li {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-content a:not(.button):not(.button-primary) {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-buttons {
+	background: var(--colorify-admin-surface) !important;
+	border-top: 1px solid var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-buttons a.close {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Strzałka pointera — dopasowanie do ciemnej powierzchni */
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-top .wp-pointer-arrow,
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-undefined .wp-pointer-arrow {
+	border-bottom-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 18%, #1a4d8c) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-top .wp-pointer-arrow-inner,
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-undefined .wp-pointer-arrow-inner {
+	border-bottom-color: color-mix(in srgb, var(--colorify-admin-accent, #b4e717) 18%, #1a4d8c) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-bottom .wp-pointer-arrow {
+	border-top-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-bottom .wp-pointer-arrow-inner {
+	border-top-color: var(--colorify-admin-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-left .wp-pointer-arrow {
+	border-right-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-left .wp-pointer-arrow-inner {
+	border-right-color: var(--colorify-admin-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-right .wp-pointer-arrow {
+	border-left-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-right .wp-pointer-arrow-inner {
+	border-left-color: var(--colorify-admin-surface) !important;
+}
+
+/* Thickbox (import/export, media pickers w starszych wtyczkach) */
+body.wp-admin:not(.colorify-admin-light) #TB_window,
+body.wp-admin:not(.colorify-admin-light) #TB_ajaxContent {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #TB_title {
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #TB_overlay {
+	background: rgba(0, 0, 0, 0.72) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   14. PLUGINS.PHP — drugorzędny tekst (auto-update, wersja, changelog)
+   Na bardzo ciemnym tle muted (#b0bdb8) bywa zbyt przygaszony.
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-version-author-uri,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-version-author-uri a,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-auto-updates,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-auto-updates a,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-auto-updates .toggle-auto-update,
+body.wp-admin:not(.colorify-admin-light) .plugins p.auto-update-status {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	opacity: 0.94 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-version-author-uri a:hover,
+body.wp-admin:not(.colorify-admin-light) .plugins .column-auto-updates a:hover {
+	color: var(--colorify-admin-accent) !important;
+	-webkit-text-fill-color: var(--colorify-admin-accent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr .update-message a,
+body.wp-admin:not(.colorify-admin-light) .plugins .plugin-update-tr a.update-link,
+body.wp-admin:not(.colorify-admin-light) .plugins .update-message a {
+	color: var(--colorify-admin-accent) !important;
+	-webkit-text-fill-color: var(--colorify-admin-accent) !important;
+	font-weight: 600 !important;
+}
