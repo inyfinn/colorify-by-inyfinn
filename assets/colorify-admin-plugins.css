@@ -1352,3 +1352,105 @@ body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox input.layeri
 	-webkit-text-fill-color: var(--colorify-admin-text) !important;
 	border: 1px solid var(--colorify-admin-border) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v1.3.0 — pełny audyt strony: Redux, TinyMCE chrome, SR colorpicker
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Redux Framework (Medibo Product Settings metabox) */
+html[data-colorify-admin-mode="dark"] .redux-container,
+html[data-colorify-admin-mode="dark"] .redux-main,
+html[data-colorify-admin-mode="dark"] .redux-container .redux-group-tab,
+html[data-colorify-admin-mode="dark"] .redux-container .redux-section-desc,
+html[data-colorify-admin-mode="dark"] #product_option .inside .redux-container,
+body.wp-admin:not(.colorify-admin-light) .redux-container,
+body.wp-admin:not(.colorify-admin-light) .redux-main,
+body.wp-admin:not(.colorify-admin-light) #product_option .inside .redux-container {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .redux-container .form-table th,
+html[data-colorify-admin-mode="dark"] .redux-container .form-table td,
+html[data-colorify-admin-mode="dark"] .redux-field-container label,
+html[data-colorify-admin-mode="dark"] .redux-field-desc,
+html[data-colorify-admin-mode="dark"] .redux-container .description,
+body.wp-admin:not(.colorify-admin-light) .redux-container .form-table th,
+body.wp-admin:not(.colorify-admin-light) .redux-container .form-table td,
+body.wp-admin:not(.colorify-admin-light) .redux-field-container label {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .redux-container input[type="text"],
+html[data-colorify-admin-mode="dark"] .redux-container input[type="number"],
+html[data-colorify-admin-mode="dark"] .redux-container textarea,
+html[data-colorify-admin-mode="dark"] .redux-container select,
+body.wp-admin:not(.colorify-admin-light) .redux-container input[type="text"],
+body.wp-admin:not(.colorify-admin-light) .redux-container textarea {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .redux-container .sp-replacer,
+body.wp-admin:not(.colorify-admin-light) .redux-container .sp-replacer {
+	background: var(--colorify-admin-field) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .redux-container .sp-preview-inner,
+body.wp-admin:not(.colorify-admin-light) .redux-container .sp-preview-inner {
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* TinyMCE — obszar edycji i statusbar (białe pasy pod toolbarem) */
+html[data-colorify-admin-mode="dark"] .mce-edit-area,
+html[data-colorify-admin-mode="dark"] .mce-edit-area iframe,
+html[data-colorify-admin-mode="dark"] .mce-statusbar,
+html[data-colorify-admin-mode="dark"] div.mce-panel.mce-edit-area,
+body.wp-admin:not(.colorify-admin-light) .mce-edit-area,
+body.wp-admin:not(.colorify-admin-light) .mce-statusbar,
+body.wp-admin:not(.colorify-admin-light) div.mce-panel.mce-edit-area {
+	background: var(--colorify-admin-field) !important;
+	background-color: var(--colorify-admin-field) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .mce-statusbar .mce-path,
+html[data-colorify-admin-mode="dark"] .mce-statusbar .mce-path-item,
+body.wp-admin:not(.colorify-admin-light) .mce-statusbar .mce-path-item {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* Slider Revolution — colorpicker wrapper */
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .revbuilder-colorpicker,
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .revbuilder-cpicker-master-wrap,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .revbuilder-colorpicker {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .revbuilder-colorpicker *,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .revbuilder-colorpicker label,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .revbuilder-colorpicker span {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* WooCommerce notice dismiss — widoczny X / Odrzuć */
+html[data-colorify-admin-mode="dark"] .woocommerce-message-close,
+html[data-colorify-admin-mode="dark"] a.woocommerce-message-close,
+body.wp-admin:not(.colorify-admin-light) .woocommerce-message-close {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	cursor: pointer !important;
+}

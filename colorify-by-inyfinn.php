@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.2.9
+ * Version: 1.3.0
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.2.9' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.3.0' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -501,6 +501,41 @@ function colorify_enqueue_admin_plugins_css(): void {
 		COLORIFY_PLUGIN_VERSION . '.' . filemtime( COLORIFY_PLUGIN_DIR . 'assets/colorify-admin-plugins.css' )
 	);
 }
+
+/**
+ * JS — kompatybilność (Elementor wp-pointer, itd.).
+ */
+function colorify_enqueue_admin_compat_js(): void {
+	if ( ! colorify_is_user_theme_enabled() ) {
+		return;
+	}
+
+	$compat_path = COLORIFY_PLUGIN_DIR . 'assets/colorify-admin-compat.js';
+	$compat_ver  = COLORIFY_PLUGIN_VERSION;
+	if ( is_readable( $compat_path ) ) {
+		$compat_ver .= '.' . filemtime( $compat_path );
+	}
+
+	wp_enqueue_script(
+		'colorify-admin-compat',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-compat.js',
+		array( 'jquery' ),
+		$compat_ver,
+		false
+	);
+}
+add_action( 'admin_enqueue_scripts', 'colorify_enqueue_admin_compat_js', 5 );
+
+add_action(
+	'admin_head',
+	static function (): void {
+		if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
+			return;
+		}
+		echo '<script id="colorify-elementor-common-stub">window.elementorCommon=window.elementorCommon||{ajax:{addRequest:function(){return window.jQuery&&jQuery.Deferred?jQuery.Deferred().resolve():{done:function(){}};}}};</script>' . "\n";
+	},
+	1
+);
 
 /**
  * Classic editor (TinyMCE iframe) — ciemne tło i jasny tekst w trybie dark.

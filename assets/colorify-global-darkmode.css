@@ -769,8 +769,21 @@ body.wp-admin:not(.colorify-admin-light) .wp-pointer-buttons {
 }
 
 body.wp-admin:not(.colorify-admin-light) .wp-pointer-buttons a.close {
-	color: var(--colorify-admin-text-muted) !important;
-	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	text-decoration: underline !important;
+	text-underline-offset: 2px !important;
+	cursor: pointer !important;
+	pointer-events: auto !important;
+	opacity: 1 !important;
+	font-weight: 600 !important;
+	padding: 6px 10px !important;
+}
+
+html[data-colorify-admin-mode="dark"] .wp-pointer-buttons a.close:hover,
+body.wp-admin:not(.colorify-admin-light) .wp-pointer-buttons a.close:hover {
+	color: #fff !important;
+	-webkit-text-fill-color: #fff !important;
 }
 
 /* Strzałka pointera — dopasowanie do ciemnej powierzchni */
