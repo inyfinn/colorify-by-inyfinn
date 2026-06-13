@@ -1,0 +1,36 @@
+/**
+ * TinyMCE iframe (classic editor) — dark mode readability.
+ * Loaded via mce_css filter when Colorify dark mode is active.
+ */
+html,
+body.mce-content-body {
+	background-color: #271f1b !important;
+	color: #eef0ef !important;
+}
+
+body.mce-content-body,
+body.mce-content-body p,
+body.mce-content-body li,
+body.mce-content-body td,
+body.mce-content-body th,
+body.mce-content-body h1,
+body.mce-content-body h2,
+body.mce-content-body h3,
+body.mce-content-body h4,
+body.mce-content-body h5,
+body.mce-content-body h6 {
+	color: #eef0ef !important;
+}
+
+body.mce-content-body a {
+	color: #b4e717 !important;
+}
+
+body.mce-content-body blockquote {
+	border-left-color: rgba(255, 255, 255, 0.2) !important;
+	color: #b0bdb8 !important;
+}
+
+body.mce-content-body ::selection {
+	background: rgba(180, 231, 23, 0.35) !important;
+}

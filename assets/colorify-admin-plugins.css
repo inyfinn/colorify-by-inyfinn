@@ -754,12 +754,15 @@ body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .the-tagcloud a {
 	-webkit-text-fill-color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
 }
 
-/* Link „Wybierz z najczęściej używanych znaczników” (.button-link.tagcloud-link) */
-body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .tagcloud-link,
-body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .button-link.tagcloud-link,
-html[data-colorify-admin-mode="dark"] body.wp-admin #tagsdiv-product_tag .tagcloud-link {
-	color: var(--colorify-admin-accent, #b4e717) !important;
-	-webkit-text-fill-color: var(--colorify-admin-accent, #b4e717) !important;
+/* Link „Wybierz z najczęściej używanych znaczników” — to BUTTON.tagcloud-link, nie <a> */
+html[data-colorify-admin-mode="dark"] #wpbody-content #tagsdiv-product_tag .tagcloud-link,
+html[data-colorify-admin-mode="dark"] #wpbody-content #tagsdiv-product_tag button.button-link,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #tagsdiv-product_tag .tagcloud-link,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #tagsdiv-product_tag button.button-link {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	text-decoration: underline !important;
+	text-underline-offset: 2px !important;
 }
 
 /* Klasyczny edytor (Opis / Krótki opis) — mniej „białego oślepienia” */
@@ -999,4 +1002,227 @@ body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-list-table mark.
 body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-list-table mark.onbackorder {
 	background: color-mix(in srgb, #f0a500 18%, var(--colorify-admin-surface)) !important;
 	color: #f0c040 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EDYCJA PRODUKTU WC — pełna czytelność (audyt kontrastu w przeglądarce)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Checkboxy / radio — widoczne na ciemnym tle */
+body.wp-admin:not(.colorify-admin-light) #post-body input[type="checkbox"],
+body.wp-admin:not(.colorify-admin-light) #post-body input[type="radio"],
+html[data-colorify-admin-mode="dark"] body.wp-admin #post-body input[type="checkbox"],
+html[data-colorify-admin-mode="dark"] body.wp-admin #post-body input[type="radio"] {
+	accent-color: var(--colorify-admin-accent, #b4e717) !important;
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-border) 55%, white) !important;
+	background-color: var(--colorify-admin-field) !important;
+}
+
+/* QuickTags — toolbar nie może zostać jasnoszary (#f6f7f7) z jasnym tekstem */
+body.wp-admin:not(.colorify-admin-light) .quicktags-toolbar,
+html[data-colorify-admin-mode="dark"] body.wp-admin .quicktags-toolbar {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .quicktags-toolbar input.ed_button,
+html[data-colorify-admin-mode="dark"] body.wp-admin .quicktags-toolbar input.ed_button {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .quicktags-toolbar input.ed_button:hover,
+html[data-colorify-admin-mode="dark"] body.wp-admin .quicktags-toolbar input.ed_button:hover {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Klasyczny edytor — chrome (TinyMCE toolbar, zakładki Wizualny/Kod) */
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-editor-tools,
+body.wp-admin:not(.colorify-admin-light) .post-type-product div.mce-toolbar-grp,
+body.wp-admin:not(.colorify-admin-light) .post-type-product .mce-statusbar,
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-editor-container,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .wp-editor-tools,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product div.mce-toolbar-grp {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-switch-editor,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .wp-switch-editor {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-switch-editor.switch-tmce.active,
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-switch-editor.switch-html.active,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .wp-switch-editor.active {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product textarea.wp-editor-area,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product textarea.wp-editor-area {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Etykiety pól WC — pełny kolor tekstu, nie przygaszone */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .woocommerce_options_panel label,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .form-field label,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data .woocommerce_options_panel label {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* Pola input — wyraźniejsza ramka */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .woocommerce_options_panel input[type="text"],
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .woocommerce_options_panel input[type="number"],
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .woocommerce_options_panel select,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .woocommerce_options_panel textarea,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data .woocommerce_options_panel input,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data .woocommerce_options_panel select,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data .woocommerce_options_panel textarea {
+	border: 1px solid color-mix(in srgb, var(--colorify-admin-border) 65%, white) !important;
+}
+
+/* Linki akcji — jasny tekst + podkreślenie (akcent #cd6313 jest za ciemny na brązowym tle) */
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data .woocommerce_options_panel a,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data .wc-metaboxes-wrapper a,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data .toolbar a,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data .woocommerce_variations a,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data a.sale_schedule,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data a.cancel_sale_schedule,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data a.expand_all,
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data a.close_all,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #woocommerce-product-data .woocommerce_options_panel a,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #woocommerce-product-data a.sale_schedule {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	text-decoration: underline !important;
+	text-underline-offset: 2px !important;
+	text-decoration-color: color-mix(in srgb, var(--colorify-admin-accent, #cd6313) 55%, #eef0ef) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #wpbody-content #woocommerce-product-data .woocommerce_options_panel a:hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #woocommerce-product-data .woocommerce_options_panel a:hover {
+	color: #fff !important;
+	-webkit-text-fill-color: #fff !important;
+}
+
+/* Opublikuj + sidebar */
+html[data-colorify-admin-mode="dark"] #wpbody-content #submitpost a:not(.button):not(.button-primary),
+html[data-colorify-admin-mode="dark"] #wpbody-content #submitpost .button-link,
+html[data-colorify-admin-mode="dark"] #wpbody-content #delete-action a,
+html[data-colorify-admin-mode="dark"] #wpbody-content #postbox-container a.tagcloud-link,
+html[data-colorify-admin-mode="dark"] #wpbody-content #postbox-container a.button-link,
+html[data-colorify-admin-mode="dark"] #wpbody-content #postbox-container button.button-link,
+html[data-colorify-admin-mode="dark"] #wpbody-content #postbox-container a:not(.button):not(.button-primary):not(.nav-tab),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #submitpost a:not(.button):not(.button-primary),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #submitpost button.button-link {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	text-decoration: underline !important;
+	text-underline-offset: 2px !important;
+	text-decoration-color: color-mix(in srgb, var(--colorify-admin-accent, #cd6313) 55%, #eef0ef) !important;
+}
+
+/* Pola wyszukiwania taxonomii (Marki, Tagi) — nie biały tekst na przezroczystym */
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #postbox-container input[type="search"],
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #postbox-container input.newtag,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #product_branddiv input,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #tagsdiv-product_tag input.newtag,
+body.wp-admin:not(.colorify-admin-light).post-type-product #postbox-container input[type="search"],
+body.wp-admin:not(.colorify-admin-light).post-type-product #postbox-container input.newtag {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+}
+
+/* Slider Revolution + inne plugin metaboxy — tekst zamiast fioletu na brązowym */
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #slider_revolution_metabox,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #slider_revolution_metabox p,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #slider_revolution_metabox span,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #slider_revolution_metabox label,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .postbox[id*="slider"] .inside,
+body.wp-admin:not(.colorify-admin-light).post-type-product #slider_revolution_metabox,
+body.wp-admin:not(.colorify-admin-light).post-type-product #slider_revolution_metabox p,
+body.wp-admin:not(.colorify-admin-light).post-type-product #slider_revolution_metabox span {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #slider_revolution_metabox a:not(.button-primary),
+body.wp-admin:not(.colorify-admin-light).post-type-product #slider_revolution_metabox a:not(.button-primary) {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+	-webkit-text-fill-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+/* Opublikuj — tekst statusu */
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #submitpost .misc-pub-section,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #submitpost #minor-publishing-actions,
+body.wp-admin:not(.colorify-admin-light).post-type-product #submitpost .misc-pub-section {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* Taxonomie — zakładki (kategorie, marki) */
+body.wp-admin:not(.colorify-admin-light) .post-type-product .taxonomydiv .tabs,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_catdiv .category-tabs,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_branddiv .tabs,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .taxonomydiv .tabs {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product .taxonomydiv .tabs a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_catdiv .category-tabs a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_branddiv .tabs a,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .taxonomydiv .tabs a {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product .taxonomydiv .tabs li.tabs a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_catdiv .category-tabs li.tabs a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_branddiv .tabs li.tabs a,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .taxonomydiv .tabs li.tabs a {
+	background: var(--colorify-admin-surface) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product .taxonomydiv .categorychecklist label,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #product_branddiv .categorychecklist label,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .taxonomydiv .categorychecklist label {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* WooCommerce help tip */
+body.wp-admin:not(.colorify-admin-light) .woocommerce-help-tip,
+html[data-colorify-admin-mode="dark"] body.wp-admin .woocommerce-help-tip {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+/* Zamknij komunikat (notice-dismiss) */
+body.wp-admin:not(.colorify-admin-light) .notice-dismiss,
+html[data-colorify-admin-mode="dark"] body.wp-admin .notice-dismiss {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice-dismiss::before,
+html[data-colorify-admin-mode="dark"] body.wp-admin .notice-dismiss::before {
+	color: var(--colorify-admin-text-muted) !important;
 }
