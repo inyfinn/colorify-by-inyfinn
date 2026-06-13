@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.2.6
+ * Version: 1.2.7
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.2.6' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.2.7' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -489,10 +489,15 @@ function colorify_enqueue_global_darkmode_css(): void {
  * CSS paneli wtyczek / motywów (VamTam, Elementor, …) — po global-darkmode.
  */
 function colorify_enqueue_admin_plugins_css(): void {
+	$deps = array( 'colorify-global-darkmode' );
+	if ( wp_style_is( 'woocommerce_admin_styles', 'registered' ) ) {
+		$deps[] = 'woocommerce_admin_styles';
+	}
+
 	wp_enqueue_style(
 		'colorify-admin-plugins',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-plugins.css',
-		array( 'colorify-global-darkmode' ),
+		$deps,
 		COLORIFY_PLUGIN_VERSION
 	);
 }

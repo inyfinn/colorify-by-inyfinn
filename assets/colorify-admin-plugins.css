@@ -532,15 +532,23 @@ body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab-active {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   WOOCOMMERCE — EDYCJA PRODUKTU: zakładki (ul.wc_tabs) + panele formularzy
-   WooCommerce używa podkreślnikowych klas (wc_tabs, woocommerce_options_panel
-   itp.) — globalne reguły [class*="woocommerce-"] ich nie łapią.
+   WOOCOMMERCE — EDYCJA PRODUKTU: zakładki (ul.wc-tabs) + panele formularzy
+   WooCommerce admin.css ustawia #fafafa na ul.wc-tabs i #fff na .panel-wrap;
+   globalny guardrail Colorify wymusza jasny tekst → biały na białym.
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* Postbox "Dane produktu": kontener */
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data {
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data {
 	background: var(--colorify-admin-surface) !important;
 	border-color: var(--colorify-admin-border) !important;
+}
+
+/* WC admin.css: .panel-wrap { background:#fff } */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .panel-wrap,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data .panel-wrap {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
 }
 
 /* Nagłówek postbox: checkboxy "Wirtualny" / "Do pobrania" + H2 */
@@ -564,47 +572,66 @@ body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data > .inside {
 	background: var(--colorify-admin-surface) !important;
 }
 
-/* ── ul.wc_tabs: lewa kolumna zakładek ─────────────────────────────── */
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs {
+/* ── ul.wc-tabs: lewa kolumna zakładek (WC: background #fafafa) ─────── */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.product_data_tabs,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.product_data_tabs {
 	background: var(--colorify-admin-sidebar) !important;
+	background-color: var(--colorify-admin-sidebar) !important;
 	border-right: 1px solid var(--colorify-admin-border) !important;
 }
 
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li {
+/* WC ::after pseudo — przedłuża jasne tło kolumny zakładek w dół */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs::after,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs::after {
+	background: var(--colorify-admin-sidebar) !important;
+	background-color: var(--colorify-admin-sidebar) !important;
+	border-right-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li {
 	background: transparent !important;
 	border-color: var(--colorify-admin-border) !important;
 }
 
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li a,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li a span {
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li a,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li a span,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li a,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li a span {
 	color: var(--colorify-admin-text-muted) !important;
 	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
 	background: transparent !important;
+	background-color: transparent !important;
+	border-bottom-color: var(--colorify-admin-border) !important;
 }
 
 /* Ikony dashicon przed tekstem zakładki */
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li a::before {
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li a::before,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li a::before {
 	color: var(--colorify-admin-text-muted) !important;
 }
 
-/* Aktywna i hover zakładka */
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li.active,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li:hover {
-	background: color-mix(in srgb, var(--colorify-admin-accent) 14%, var(--colorify-admin-sidebar)) !important;
-	border-left-color: var(--colorify-admin-accent) !important;
-}
-
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li.active a,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li:hover a,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li.active a span,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li:hover a span {
+/* WC: li.active a { color:#555; background:#eee } */
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li.active a,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li:hover a,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li.active a span,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li:hover a span,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li.active a,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li.active a span,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li:hover a,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li:hover a span {
 	color: var(--colorify-admin-text) !important;
 	-webkit-text-fill-color: var(--colorify-admin-text) !important;
-	background: transparent !important;
+	background: color-mix(in srgb, var(--colorify-admin-accent) 14%, var(--colorify-admin-sidebar)) !important;
+	background-color: color-mix(in srgb, var(--colorify-admin-accent) 14%, var(--colorify-admin-sidebar)) !important;
 }
 
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li.active a::before,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc_tabs li:hover a::before {
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li.active a::before,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs li:hover a::before,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li.active a::before,
+html[data-colorify-admin-mode="dark"] body.wp-admin #woocommerce-product-data ul.wc-tabs li:hover a::before {
 	color: var(--colorify-admin-accent) !important;
 }
 
@@ -725,6 +752,46 @@ body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .the-tagcloud {
 body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .the-tagcloud a {
 	color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
 	-webkit-text-fill-color: var(--colorify-admin-link, var(--colorify-admin-accent-muted)) !important;
+}
+
+/* Link „Wybierz z najczęściej używanych znaczników” (.button-link.tagcloud-link) */
+body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .tagcloud-link,
+body.wp-admin:not(.colorify-admin-light) #tagsdiv-product_tag .button-link.tagcloud-link,
+html[data-colorify-admin-mode="dark"] body.wp-admin #tagsdiv-product_tag .tagcloud-link {
+	color: var(--colorify-admin-accent, #b4e717) !important;
+	-webkit-text-fill-color: var(--colorify-admin-accent, #b4e717) !important;
+}
+
+/* Klasyczny edytor (Opis / Krótki opis) — mniej „białego oślepienia” */
+body.wp-admin:not(.colorify-admin-light) .post-type-product .wp-editor-container,
+body.wp-admin:not(.colorify-admin-light) .post-type-product div.mce-toolbar-grp,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product .wp-editor-container {
+	background: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product textarea.wp-editor-area,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #content,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product textarea.wp-editor-area {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* Opublikuj — linki akcji (Kopiuj / Przenieś do kosza) */
+body.wp-admin:not(.colorify-admin-light) .post-type-product #submitpost a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #delete-action a,
+body.wp-admin:not(.colorify-admin-light) .post-type-product #minor-publishing-actions a,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #submitpost a {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .post-type-product #submitpost a:hover,
+html[data-colorify-admin-mode="dark"] body.wp-admin.post-type-product #submitpost a:hover {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
 }
 
 /* Obrazek produktu */
