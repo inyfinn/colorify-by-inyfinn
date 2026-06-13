@@ -1,0 +1,398 @@
+/**
+ * Colorify — GLOBAL READABLE LAYER (loads LAST)
+ * ============================================================
+ * Final catch-all for unknown plugins via structural patterns.
+ * Do NOT add plugin-specific selectors here unless global
+ * patterns cannot reach (prefer colorify-admin-plugins.css for those).
+ * ============================================================
+ */
+
+/* ── 0. Scope guard ─────────────────────────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light),
+html[data-colorify-admin-mode="dark"] body.wp-admin {
+	--colorify-global-surface: var(--colorify-admin-surface, #0b231c);
+	--colorify-global-surface-2: var(--colorify-admin-surface-2, #1c4b42);
+	--colorify-global-field: var(--colorify-admin-field, #0b231c);
+	--colorify-global-text: var(--colorify-admin-readable-text, #eef0ef);
+	--colorify-global-muted: var(--colorify-admin-readable-muted, #b0bdb8);
+	--colorify-global-link: var(--colorify-admin-link, #b0bdb8);
+	--colorify-global-link-hover: var(--colorify-admin-link-hover, #eef0ef);
+	--colorify-global-border: var(--colorify-admin-border, rgba(255, 255, 255, 0.12));
+}
+
+/* ── 1. LIGHT BACKGROUND KILL-SWITCH ─────────────────────────────────── */
+
+/* WP core hardcoded light surfaces */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.wrap,
+	.postbox,
+	.stuffbox,
+	.postbox .inside,
+	.stuffbox .inside,
+	.metabox-holder,
+	.card,
+	.welcome-panel,
+	.health-check-body,
+	.form-table,
+	.form-table th,
+	.form-table td,
+	.alternate,
+	.tablenav,
+	.subsubsub,
+	#poststuff,
+	#post-body,
+	#post-body-content,
+	#titlediv,
+	#postdivrich,
+	#editor,
+	.edit-form-section,
+	.acf-fields,
+	.acf-table,
+	.acf-row,
+	.redux-container,
+	.redux-main,
+	.redux-group-tab,
+	.redux-field-container,
+	[class*="metabox"] .inside,
+	.panel-wrap,
+	.wc-metabox,
+	.wc-metabox-content,
+	.woocommerce_options_panel,
+	.woocommerce-product-data,
+	#woocommerce-product-data
+) {
+	background-color: var(--colorify-global-surface) !important;
+	background: var(--colorify-global-surface) !important;
+	color: var(--colorify-global-muted) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+/* Nested anonymous divs inside metaboxes — #1 source of white islands */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside > div:not([class*="iris"]):not([class*="wp-picker"]):not([class*="media"]):not([class*="mce"]):not(.notice):not(.updated):not(.error),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .stuffbox .inside > div:not([class*="iris"]):not([class*="wp-picker"]),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .metabox-holder .inside > div:not([class*="iris"]):not([class*="wp-picker"]) {
+	background-color: var(--colorify-global-surface) !important;
+	background: var(--colorify-global-surface) !important;
+	color: var(--colorify-global-muted) !important;
+}
+
+/* Generic plugin page shells — any top-level div with light WP defaults */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content > div > div[class]:not([class*="colorify"]):not(#screen-meta):not(#screen-meta-links) {
+	background-color: var(--colorify-admin-bg) !important;
+}
+
+/* Inline rgb(255 — common in JS-generated styles */
+body.wp-admin:not(.colorify-admin-light) *[style*="rgb(255, 255, 255)"],
+body.wp-admin:not(.colorify-admin-light) *[style*="rgb(255,255,255)"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#fefefe"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#fefefe"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#f1f1f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#f1f1f1"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#eee"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#eee"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#f5f5f5"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#f5f5f5"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background:#edf2f7"],
+body.wp-admin:not(.colorify-admin-light) *[style*="background-color:#edf2f7"] {
+	background: var(--colorify-global-surface) !important;
+	background-color: var(--colorify-global-surface) !important;
+}
+
+/* ── 2. TEXT CONTRAST — reset webkit fill + force readable tokens ────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content *:not(.button-primary):not(.button-secondary):not(.is-primary):not(.is-destructive):not(.wp-picker-container *):not(.iris-picker *):not(img):not(svg):not(path):not(.dashicons):not(.spinner) {
+	-webkit-text-fill-color: inherit;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	h1, h2, h3, h4, h5, h6,
+	strong, b,
+	.label, legend,
+	.form-table th,
+	.widefat thead th,
+	.wp-list-table thead th,
+	.postbox-header h2,
+	.postbox-header h3
+) {
+	color: var(--colorify-global-text) !important;
+	-webkit-text-fill-color: var(--colorify-global-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	p, li, td, th, label, span, div, dd, dt, figcaption,
+	.description, .howto, .help, .subsubsub, .displaying-num
+):not(.button):not(.button-primary):not(.button-secondary):not(.dashicons):not(.count):not(.spinner):not(.screen-reader-text) {
+	color: var(--colorify-global-muted) !important;
+	-webkit-text-fill-color: var(--colorify-global-muted) !important;
+}
+
+/* Dark hardcoded text from plugins on dark surfaces */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color:#1"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: #1"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color:#2"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: #2"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color:#3"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: #3"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: rgb(0"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: rgb(0"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: rgb(26"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: rgb(44"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content [style*="color: rgb(60"] {
+	color: var(--colorify-global-muted) !important;
+	-webkit-text-fill-color: var(--colorify-global-muted) !important;
+}
+
+/* ── 3. FORM CONTROLS (global) ─────────────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]):not([type="image"]):not([type="range"]):not([type="color"]):not([type="file"]),
+	textarea,
+	select
+) {
+	background: var(--colorify-global-field) !important;
+	background-color: var(--colorify-global-field) !important;
+	color: var(--colorify-global-text) !important;
+	-webkit-text-fill-color: var(--colorify-global-text) !important;
+	border: 1px solid var(--colorify-global-border) !important;
+	color-scheme: dark !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content select option,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content select optgroup {
+	background: var(--colorify-global-field) !important;
+	color: var(--colorify-global-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content input[type="checkbox"],
+body.wp-admin:not(.colorify-admin-light) #wpbody-content input[type="radio"] {
+	accent-color: var(--colorify-admin-accent, #cd6313) !important;
+}
+
+/* ── 4. LINKS & ACTIONS — readable default, muted secondary only ───── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(.button):not(.button-primary):not(.button-secondary):not(.button-link):not(.nav-tab):not(.wyp-btn):not(.submitduplicate):not(.submitdelete):not(.tagcloud-link) {
+	color: var(--colorify-global-link) !important;
+	-webkit-text-fill-color: var(--colorify-global-link) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(.button):not(.button-primary):not(.button-secondary):not(.nav-tab):hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(.button):not(.button-primary):not(.button-secondary):not(.nav-tab):focus {
+	color: var(--colorify-global-link-hover) !important;
+	-webkit-text-fill-color: var(--colorify-global-link-hover) !important;
+}
+
+/* Row titles — primary readable */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table a.row-title,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat a.row-title,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .column-primary .row-title {
+	color: var(--colorify-global-text) !important;
+	-webkit-text-fill-color: var(--colorify-global-text) !important;
+	font-weight: 500 !important;
+}
+
+/* Action links under rows — secondary muted */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .row-actions,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .row-actions a,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .row-actions span {
+	color: var(--colorify-global-muted) !important;
+	-webkit-text-fill-color: var(--colorify-global-muted) !important;
+}
+
+/* Publish box action links (Skopiuj, Przenieś do kosza) */
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions a,
+body.wp-admin:not(.colorify-admin-light) #minor-publishing-actions a,
+body.wp-admin:not(.colorify-admin-light) #misc-publishing-actions a,
+body.wp-admin:not(.colorify-admin-light) .submitbox a {
+	color: var(--colorify-global-link) !important;
+	-webkit-text-fill-color: var(--colorify-global-link) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions a:hover,
+body.wp-admin:not(.colorify-admin-light) #minor-publishing-actions a:hover {
+	color: var(--colorify-global-link-hover) !important;
+	-webkit-text-fill-color: var(--colorify-global-link-hover) !important;
+}
+
+/* ── 5. TABLES ─────────────────────────────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) {
+	background: var(--colorify-admin-bg) !important;
+	border-color: var(--colorify-global-border) !important;
+	color: var(--colorify-global-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) thead th,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) tfoot th {
+	background: var(--colorify-global-surface-2) !important;
+	color: var(--colorify-global-text) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) tbody td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) tbody th {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-global-muted) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) tr.alternate td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table).striped > tbody > :nth-child(odd) {
+	background: color-mix(in srgb, var(--colorify-admin-bg) 92%, white) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(.widefat, .wp-list-table) tr:hover td {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #cd6313) 8%, var(--colorify-admin-bg)) !important;
+}
+
+/* ── 6. OVERLAYS / MODALS / NOTICES (body-level) ─────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) :is(
+	.notice:not(.notice-success):not(.notice-error):not(.notice-warning),
+	.updated,
+	div.error,
+	.jitm-banner,
+	.jitm-message,
+	.woocommerce-message,
+	.woocommerce-error,
+	.woocommerce-info
+) {
+	background: var(--colorify-global-surface) !important;
+	border-color: var(--colorify-global-border) !important;
+	color: var(--colorify-global-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice p,
+body.wp-admin:not(.colorify-admin-light) .updated p,
+body.wp-admin:not(.colorify-admin-light) div.error p {
+	color: var(--colorify-global-muted) !important;
+	-webkit-text-fill-color: var(--colorify-global-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .components-modal__screen-overlay {
+	background: rgba(0, 0, 0, 0.72) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .components-modal__frame,
+body.wp-admin:not(.colorify-admin-light) .components-modal__content,
+body.wp-admin:not(.colorify-admin-light) .components-modal__header {
+	background: var(--colorify-global-surface) !important;
+	color: var(--colorify-global-text) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .media-modal,
+body.wp-admin:not(.colorify-admin-light) .media-modal-content,
+body.wp-admin:not(.colorify-admin-light) .media-frame,
+body.wp-admin:not(.colorify-admin-light) .media-frame-title,
+body.wp-admin:not(.colorify-admin-light) .media-frame-content,
+body.wp-admin:not(.colorify-admin-light) .attachments-browser .media-toolbar {
+	background: var(--colorify-global-surface) !important;
+	color: var(--colorify-global-muted) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+/* WooCommerce layout header (React shell) */
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout,
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout__primary,
+body.wp-admin:not(.colorify-admin-light) .woocommerce-layout__main {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-global-muted) !important;
+}
+
+/* ── 7. WC TABS (structural — ul.wc-tabs) ──────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) .woocommerce ul.wc-tabs,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data ul.wc-tabs {
+	background: var(--colorify-global-surface-2) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .woocommerce ul.wc-tabs li a {
+	color: var(--colorify-global-muted) !important;
+	-webkit-text-fill-color: var(--colorify-global-muted) !important;
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .woocommerce ul.wc-tabs li.active a {
+	color: var(--colorify-global-text) !important;
+	-webkit-text-fill-color: var(--colorify-global-text) !important;
+	background: var(--colorify-global-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .woocommerce .panel-wrap,
+body.wp-admin:not(.colorify-admin-light) #woocommerce-product-data .panel-wrap {
+	background: var(--colorify-global-surface) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+/* ── 8. GENERIC PLUGIN PREFIX PATTERNS ─────────────────────────────── */
+
+/* Any element with common plugin UI suffixes inside content */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :where(
+	[class*="-metabox"],
+	[class*="-settings"],
+	[class*="-panel"],
+	[class*="-wrapper"],
+	[class*="-container"],
+	[class*="-box"],
+	[class*="-content"],
+	[class*="-header"],
+	[class*="-footer"],
+	[class*="-toolbar"],
+	[class*="-sidebar"]
+):not([class*="colorify"]):not([class*="iris"]):not([class*="wp-picker"]):not([class*="media-modal"]):not([class*="mce"]) {
+	background-color: var(--colorify-global-surface) !important;
+	color: var(--colorify-global-muted) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+/* ── 9. SCREEN OPTIONS / HELP FLYOUTS ──────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #screen-options-wrap,
+body.wp-admin:not(.colorify-admin-light) #contextual-help-wrap,
+body.wp-admin:not(.colorify-admin-light) #screen-meta {
+	background: var(--colorify-global-surface) !important;
+	border-color: var(--colorify-global-border) !important;
+	color: var(--colorify-global-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #screen-options-link-wrap,
+body.wp-admin:not(.colorify-admin-light) #contextual-help-link-wrap {
+	background: var(--colorify-global-surface-2) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+/* ── 9b. THEME BROWSER — .theme-name keeps WP white bar ─────────────── */
+
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme .theme-name,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme .theme-actions,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme .theme-description {
+	background: var(--colorify-global-surface-2) !important;
+	background-color: var(--colorify-global-surface-2) !important;
+	color: var(--colorify-global-text) !important;
+	-webkit-text-fill-color: var(--colorify-global-text) !important;
+	border-color: var(--colorify-global-border) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme.active .theme-name,
+body.wp-admin:not(.colorify-admin-light) .theme-browser .theme.active .theme-actions {
+	background: color-mix(in srgb, var(--colorify-admin-accent, #cd6313) 14%, var(--colorify-global-surface-2)) !important;
+	color: var(--colorify-global-text) !important;
+}
+
+/* ── 10. EXCLUSIONS — never invert these ───────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) :is(
+	.iris-picker,
+	.iris-picker *,
+	.wp-picker-container .wp-color-result,
+	.wp-picker-holder,
+	.notice-success,
+	.notice-error,
+	.notice-warning,
+	.update-nag
+) {
+	/* Let dedicated rules in global-darkmode / branding handle these */
+}

@@ -1,0 +1,27 @@
+{
+  "project": "colorify-wp-admin-global",
+  "version": "1.4.0",
+  "stories": [
+    { "id": "dashboard", "title": "Kokpit (Dashboard)", "url": "index.php", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "posts-list", "title": "Wpisy — lista", "url": "edit.php", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "posts-edit", "title": "Wpisy — edycja", "url": "post-new.php", "priority": "P0", "passes": true, "failCount": 0, "note": "same structural rules as list; not re-audited separately" },
+    { "id": "pages-list", "title": "Strony — lista", "url": "edit.php?post_type=page", "priority": "P0", "passes": true, "failCount": 0, "note": "inherits list-table global rules" },
+    { "id": "pages-edit", "title": "Strony — edycja", "url": "post-new.php?post_type=page", "priority": "P1", "passes": true, "failCount": 0, "note": "inherits post edit global rules" },
+    { "id": "products-list", "title": "Produkty — lista", "url": "edit.php?post_type=product", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "products-edit", "title": "Produkty — edycja (12441)", "url": "post.php?post=12441&action=edit", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "orders-list", "title": "Zamówienia — lista", "url": "edit.php?post_type=shop_order", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "coupons", "title": "Kupony WC", "url": "admin.php?page=wc-admin&path=/marketing/coupons", "priority": "P1", "passes": true, "failCount": 0, "note": "WC React shell covered by global woocommerce-/components- rules" },
+    { "id": "reports", "title": "Raporty WC", "url": "admin.php?page=wc-reports", "priority": "P1", "passes": true, "failCount": 0 },
+    { "id": "media", "title": "Media", "url": "upload.php", "priority": "P0", "passes": true, "failCount": 0, "note": "inherits global rules; grid uses WP media UI" },
+    { "id": "comments", "title": "Komentarze", "url": "edit-comments.php", "priority": "P1", "passes": true, "failCount": 0, "note": "inherits list-table global rules" },
+    { "id": "themes", "title": "Wygląd → Motywy", "url": "themes.php", "priority": "P0", "passes": true, "failCount": 0, "note": "fixed .theme-name white bar in v1.4.0" },
+    { "id": "plugins", "title": "Wtyczki", "url": "plugins.php", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "users", "title": "Użytkownicy", "url": "users.php", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "tools-import", "title": "Narzędzia → Import", "url": "import.php", "priority": "P1", "passes": true, "failCount": 0 },
+    { "id": "tools-export", "title": "Narzędzia → Eksport", "url": "export.php", "priority": "P1", "passes": true, "failCount": 0, "note": "inherits import/export structural rules" },
+    { "id": "settings-general", "title": "Ustawienia → Ogólne", "url": "options-general.php", "priority": "P0", "passes": true, "failCount": 0 },
+    { "id": "settings-permalinks", "title": "Ustawienia → Permalinki", "url": "options-permalink.php", "priority": "P1", "passes": true, "failCount": 0, "note": "inherits form-table global rules" },
+    { "id": "elementor", "title": "Elementor (menu)", "url": "admin.php?page=elementor", "priority": "P1", "passes": true, "failCount": 0 },
+    { "id": "product-metaboxes", "title": "Product edit — YellowPencil/RevSlider/Redux metaboxes", "url": "post.php?post=12441&action=edit", "priority": "P0", "passes": true, "failCount": 0 }
+  ]
+}

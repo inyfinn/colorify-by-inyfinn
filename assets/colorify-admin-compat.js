@@ -1,5 +1,5 @@
 /**
- * Colorify admin — kompatybilność z pluginami zewnętrznymi (Elementor wp-pointer itd.)
+ * Colorify admin — global JS compat (pointers, modals, dismiss patterns).
  */
 ( function ( $ ) {
 	'use strict';
@@ -35,14 +35,56 @@
 		},
 	};
 
-	/* Fallback: jeśli callback close rzuci błąd, pointer zostaje widoczny mimo active=false. */
-	$( document ).on( 'click', '.wp-pointer-buttons a.close', function () {
-		var $pointer = $( this ).closest( '.wp-pointer' );
-
+	/**
+	 * Force-hide overlay after dismiss click if plugin callback throws.
+	 *
+	 * @param {jQuery} $el Overlay root.
+	 */
+	function forceHideOverlay( $el ) {
+		if ( ! $el || ! $el.length ) {
+			return;
+		}
 		window.setTimeout( function () {
-			if ( $pointer.length && $pointer.is( ':visible' ) ) {
-				$pointer.hide();
+			if ( $el.is( ':visible' ) ) {
+				$el.hide();
+				$el.attr( 'aria-hidden', 'true' );
 			}
 		}, 50 );
+	}
+
+	/* WP Pointer — generic close link */
+	$( document ).on( 'click', '.wp-pointer-buttons a.close', function () {
+		forceHideOverlay( $( this ).closest( '.wp-pointer' ) );
+	} );
+
+	/* WooCommerce / WP admin notice dismiss (X button) */
+	$( document ).on( 'click', '.notice-dismiss, .jitm-dismiss, .woocommerce-message .notice-dismiss', function () {
+		forceHideOverlay( $( this ).closest( '.notice, .jitm-banner, .woocommerce-message, .updated, div.error' ) );
+	} );
+
+	/* Thickbox close */
+	$( document ).on( 'click', '#TB_closeWindowButton, #TB_ImageOff', function () {
+		forceHideOverlay( $( '#TB_window' ) );
+		$( '#TB_overlay' ).hide();
+	} );
+
+	/* Gutenberg / components modal close */
+	$( document ).on( 'click', '.components-modal__header button, .components-modal__content button[aria-label="Close"]', function () {
+		forceHideOverlay( $( this ).closest( '.components-modal__frame, .components-modal__screen-overlay' ) );
+	} );
+
+	/* Escape key — hide stuck wp-pointer */
+	$( document ).on( 'keydown', function ( e ) {
+		if ( 27 !== e.which ) {
+			return;
+		}
+		$( '.wp-pointer:visible' ).each( function () {
+			forceHideOverlay( $( this ) );
+		} );
+	} );
+
+	/* Redux framework — stuck promo banners without working dismiss */
+	$( document ).on( 'click', '.redux-notice-dismiss, .rAds-close, .redux-qtip-close', function () {
+		forceHideOverlay( $( this ).closest( '.redux-notice, .rAds, .redux-container .notice' ) );
 	} );
 }( window.jQuery ) );

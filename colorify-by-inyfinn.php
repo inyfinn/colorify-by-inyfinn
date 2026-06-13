@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.3.0' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.4.0' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -503,6 +503,24 @@ function colorify_enqueue_admin_plugins_css(): void {
 }
 
 /**
+ * GLOBAL READABLE — ostatnia warstwa CSS (strukturalne wzorce dla nieznanych wtyczek).
+ * Ładowana po plugins.css, aby nadpisać jasne wyspy bez per-plugin selektorów.
+ */
+function colorify_enqueue_admin_global_readable_css(): void {
+	$path = COLORIFY_PLUGIN_DIR . 'assets/colorify-admin-global-readable.css';
+	if ( ! is_readable( $path ) ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'colorify-admin-global-readable',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-global-readable.css',
+		array( 'colorify-admin-plugins' ),
+		COLORIFY_PLUGIN_VERSION . '.' . filemtime( $path )
+	);
+}
+
+/**
  * JS — kompatybilność (Elementor wp-pointer, itd.).
  */
 function colorify_enqueue_admin_compat_js(): void {
@@ -594,7 +612,7 @@ function colorify_enqueue_customizer_styles(): void {
 	wp_enqueue_style(
 		'colorify-customizer',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-customizer.css',
-		array( 'colorify-admin-plugins' ),
+		array( 'colorify-admin-global-readable' ),
 		COLORIFY_PLUGIN_VERSION
 	);
 }
@@ -624,6 +642,7 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	colorify_enqueue_admin_overrides_css();
 	colorify_enqueue_global_darkmode_css();
 	colorify_enqueue_admin_plugins_css();
+	colorify_enqueue_admin_global_readable_css();
 
 	if ( colorify_is_customizer_controls_screen() ) {
 		colorify_enqueue_customizer_styles();
