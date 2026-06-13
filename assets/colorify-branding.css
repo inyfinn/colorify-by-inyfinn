@@ -931,14 +931,21 @@ html[data-colorify-admin-mode="dark"] .wp-admin .subsubsub a.current {
 }
 
 /* Linki w treści — dark: czytelny muted, nie akcent (= tło w wielu schematach) */
-html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title) {
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):not(.wyp-btn):not(.submitduplicate):not(.submitdelete):not(.sale_schedule):not(.tagcloud-link) {
 	color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
 	font-weight: 400;
 }
 
-html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):hover,
-html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):focus {
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):not(.wyp-btn):not(.submitduplicate):not(.submitdelete):hover,
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):not(.wyp-btn):focus {
 	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+}
+
+/* YellowPencil — ciemny tekst na żółtym tle */
+html[data-colorify-admin-mode="dark"] #wpbody-content a.wyp-btn {
+	color: #271f1b !important;
+	-webkit-text-fill-color: #271f1b !important;
+	font-weight: 600 !important;
 }
 
 #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title) {

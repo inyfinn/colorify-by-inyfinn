@@ -1226,3 +1226,129 @@ body.wp-admin:not(.colorify-admin-light) .notice-dismiss::before,
 html[data-colorify-admin-mode="dark"] body.wp-admin .notice-dismiss::before {
 	color: var(--colorify-admin-text-muted) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v1.2.9 — audyt CDP: pozostałe „białe plamy” na edycji produktu
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Opublikuj — WC/core ustawia #f6f7f7 na #major-publishing-actions (ID, nie klasa!) */
+html[data-colorify-admin-mode="dark"] body.wp-admin #major-publishing-actions,
+html[data-colorify-admin-mode="dark"] body.wp-admin #minor-publishing-actions,
+html[data-colorify-admin-mode="dark"] body.wp-admin #misc-publishing-actions,
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions,
+body.wp-admin:not(.colorify-admin-light) #minor-publishing-actions,
+body.wp-admin:not(.colorify-admin-light) #misc-publishing-actions {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #wpbody-content #major-publishing-actions a.submitduplicate,
+html[data-colorify-admin-mode="dark"] #wpbody-content #major-publishing-actions a.submitdelete,
+html[data-colorify-admin-mode="dark"] #wpbody-content #delete-action a,
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions a.submitduplicate,
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions a.submitdelete {
+	color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-readable-text, #eef0ef) !important;
+	text-decoration: underline !important;
+	text-underline-offset: 2px !important;
+}
+
+/* Marki — aktywna zakładka ma białe tło z jasnym tekstem (WP default) */
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs,
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs li,
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs li.tabs,
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs-panel,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs li,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs li.tabs,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs-panel {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs a,
+html[data-colorify-admin-mode="dark"] #product_branddiv .tabs li.tabs a,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs a,
+body.wp-admin:not(.colorify-admin-light) #product_branddiv .tabs li.tabs a {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* YellowPencil — żółty przycisk z przygaszonym tekstem */
+html[data-colorify-admin-mode="dark"] #wpbody-content a.wyp-btn,
+html[data-colorify-admin-mode="dark"] #wpbody-content .wyp-btn,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a.wyp-btn,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wyp-btn {
+	color: #271f1b !important;
+	-webkit-text-fill-color: #271f1b !important;
+	font-weight: 600 !important;
+}
+
+/* Slider Revolution — toggle OFF/ON + pola */
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoffwrap,
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .inside,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .tponoffwrap,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .inside {
+	background: var(--colorify-admin-surface-2) !important;
+	background-color: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoffwrap *,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .tponoffwrap * {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoff_off,
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoff_on,
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoffwrap .tponoff_off,
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox .tponoffwrap .tponoff_on,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .tponoff_off,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox .tponoff_on {
+	background: var(--colorify-admin-field) !important;
+	background-color: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+/* TinyMCE — przyciski toolbara (białe .mce-btn na ciemnym chrome) */
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn,
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-widget.mce-btn,
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-splitbtn,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-btn,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-widget.mce-btn {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn button,
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn .mce-txt,
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn .mce-ico,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-btn button,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-btn .mce-txt {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn:hover,
+html[data-colorify-admin-mode="dark"] .mce-toolbar .mce-btn.mce-active,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-btn:hover,
+body.wp-admin:not(.colorify-admin-light) .mce-toolbar .mce-btn.mce-active {
+	background: var(--colorify-admin-field) !important;
+	background-color: var(--colorify-admin-field) !important;
+}
+
+/* Slider Revolution — pola koloru na jasnym tle */
+html[data-colorify-admin-mode="dark"] #slider_revolution_metabox input.layerinput,
+body.wp-admin:not(.colorify-admin-light) #slider_revolution_metabox input.layerinput {
+	background: var(--colorify-admin-field) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+}

@@ -528,8 +528,20 @@ body.wp-admin:not(.colorify-admin-light) #wpadminbar #wp-admin-bar-woocommerce-s
 
 body.wp-admin:not(.colorify-admin-light) #submitdiv,
 body.wp-admin:not(.colorify-admin-light) #submitdiv .inside,
+body.wp-admin:not(.colorify-admin-light) #major-publishing-actions,
+body.wp-admin:not(.colorify-admin-light) #minor-publishing-actions,
+body.wp-admin:not(.colorify-admin-light) #misc-publishing-actions,
 body.wp-admin:not(.colorify-admin-light) .major-publishing-actions {
 	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border-color: var(--colorify-admin-border) !important;
+}
+
+html[data-colorify-admin-mode="dark"] body.wp-admin #major-publishing-actions,
+html[data-colorify-admin-mode="dark"] body.wp-admin #minor-publishing-actions,
+html[data-colorify-admin-mode="dark"] body.wp-admin #misc-publishing-actions {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
 	border-color: var(--colorify-admin-border) !important;
 }
 
