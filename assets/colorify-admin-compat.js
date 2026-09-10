@@ -87,4 +87,39 @@
 	$( document ).on( 'click', '.redux-notice-dismiss, .rAds-close, .redux-qtip-close', function () {
 		forceHideOverlay( $( this ).closest( '.redux-notice, .rAds, .redux-container .notice' ) );
 	} );
+
+	/**
+	 * WooCommerce HPOS order edit — force layout reflow (blank screen until scroll).
+	 * No scroll listeners; one-shot rAF + resize after DOM ready.
+	 */
+	function colorifyFixWcOrderLayout() {
+		var body = document.body;
+		if (
+			! body.classList.contains( 'woocommerce_page_wc-orders' ) &&
+			! body.classList.contains( 'post-type-shop_order' )
+		) {
+			return;
+		}
+
+		var poststuff = document.getElementById( 'poststuff' );
+		if ( ! poststuff ) {
+			return;
+		}
+
+		window.requestAnimationFrame( function () {
+			// Read layout to force browser recalc.
+			void poststuff.offsetHeight;
+			void poststuff.scrollHeight;
+			window.dispatchEvent( new Event( 'resize' ) );
+		} );
+	}
+
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', colorifyFixWcOrderLayout );
+	} else {
+		colorifyFixWcOrderLayout();
+	}
+
+	window.setTimeout( colorifyFixWcOrderLayout, 120 );
+	window.setTimeout( colorifyFixWcOrderLayout, 600 );
 }( window.jQuery ) );

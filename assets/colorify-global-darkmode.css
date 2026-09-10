@@ -148,17 +148,17 @@ body.wp-admin:not(.colorify-admin-light) *[style*="color: #666"] {
    3. GLOBALNE WZORCE STRUKTURALNE
    Wszyscy deweloperzy WP budują admin page tak samo:
    - główny wrapper: .wrap
-   - sekcje: .inside, .postbox, .stuffbox, .metabox-holder
+   - sekcje: .inside, .postbox, .stuffbox (NIE .metabox-holder — to wrapper layoutu)
    - plugin-specific: [id*="-wrap"], [class*="-settings"] etc.
    Tutaj nadpisujemy te WZORCE, a nie konkretne pluginy.
    ══════════════════════════════════════════════════════════════════════ */
 
 /*
- * SCHEMAT KOLOROWANIA:
- *   bg (najciemniejsze)           → strona, body
- *   surface (ciemna karta)        → .wrap, .postbox, główne kontenery
- *   surface-2 (nieco jaśniejsza)  → nagłówki sekcji, thead, sidebar-items
- *   field (pola input)            → input, select, textarea
+ * SCHEMAT KOLOROWANIA (jak natywny wp-admin):
+ *   canvas (--colorify-admin-bg)     → tło strony, najciemniejsze
+ *   surface (--colorify-admin-surface) → postbox, karty, tabele — wyraźnie jaśniejsze
+ *   surface-2                         → nagłówki metaboxów, thead
+ *   field                             → input, select, textarea (inset)
  */
 
 /* A) Główny content wrapper + .wrap (KAŻDY plugin to ma) */
@@ -174,8 +174,6 @@ body.wp-admin:not(.colorify-admin-light) .wp-admin-wrap {
 body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
 	.postbox,
 	.stuffbox,
-	.metabox-holder,
-	.inside,
 	.card,
 	.notice,
 	.updated,
@@ -187,7 +185,18 @@ body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
 	background: var(--colorify-admin-surface) !important;
 	background-color: var(--colorify-admin-surface) !important;
 	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.postbox .inside,
+	.stuffbox .inside
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	box-shadow: none !important;
+	border: none !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
@@ -197,46 +206,12 @@ body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
 	.stuffbox h2,
 	.stuffbox h3
 ) {
-	background: var(--colorify-admin-surface-2) !important;
+	background: var(--colorify-admin-surface) !important;
 	color: var(--colorify-admin-text) !important;
 	border-color: var(--colorify-admin-border) !important;
 }
 
-/* C) Globalne wzorce nazewnicze — devloperzy WP ZAWSZE używają sufixów:
-   -wrap, -container, -panel, -section, -box, -content, -area, -body
-   Łapane przez :where() (zerowa specyficzność — łatwo nadpisać) */
-
-body.wp-admin:not(.colorify-admin-light) #wpbody-content :where(
-	[id$="-wrap"]:not(#wpwrap):not(#wpcontent):not(#adminmenuwrap):not(.iris-picker-wrap),
-	[id$="-container"]:not([id*="color"]),
-	[id$="-panel"],
-	[id$="-section"],
-	[id$="-settings"],
-	[id$="-options"],
-	[id$="-content"]:not(#wpbody-content):not(#post-body-content),
-	[id$="-area"],
-	[id$="-header"]:not(#wpadminbar):not(#adminmenu),
-	[id$="-footer"]
-) {
-	background-color: var(--colorify-admin-surface) !important;
-	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
-}
-
-body.wp-admin:not(.colorify-admin-light) #wpbody-content :where(
-	[class$="-wrap"]:not(.iris-picker-wrap):not([class*="color"]),
-	[class$="-container"]:not([class*="color"]):not([class*="iris"]),
-	[class$="-panel"]:not([class*="color"]):not([class*="iris"]),
-	[class$="-section"]:not([class*="color"]):not(.accordion-section),
-	[class$="-settings"],
-	[class$="-options"],
-	[class$="-content"]:not(.menu-item-content):not([class*="color"]),
-	[class$="-area"]:not([class*="color"])
-) {
-	background-color: var(--colorify-admin-surface) !important;
-	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
-}
+/* C) Globalne wzorce nazewnicze — WYŁĄCZONE (plamy tła). Patrz colorify-admin-wp-structure.css */
 
 /* C2) TABELE WP — wiersze z klasami stanów (active, inactive, update-tr, etc.)
    WP core ustawia background: #fff na tr.active w plugins.css */
@@ -386,15 +361,15 @@ body.wp-admin:not(.colorify-admin-light) #wpbody-content [class*="woocommerce-"]
 	border-color: var(--colorify-admin-border) !important;
 }
 
-/* Hash-klasy Emotion.js — format: css-[a-z0-9]{6,10} — TYLKO dla znanych kontenerów */
-body.wp-admin:not(.colorify-admin-light) [class*="woocommerce-"] [class^="css-"],
-body.wp-admin:not(.colorify-admin-light) [class*="woocommerce-"] [class*=" css-"],
-body.wp-admin:not(.colorify-admin-light) [class*="components-"] [class^="css-"],
-body.wp-admin:not(.colorify-admin-light) [class*="components-"] [class*=" css-"] {
-	background: var(--colorify-admin-surface) !important;
-	background-color: var(--colorify-admin-surface) !important;
-	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
+/* Hash-klasy Emotion.js — tylko kolor tekstu (NIE tło na każdym wrapperze = znika treść WC) */
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page [class*="woocommerce-"] [class^="css-"],
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page [class*="woocommerce-"] [class*=" css-"],
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page [class*="components-"] [class^="css-"],
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page [class*="components-"] [class*=" css-"],
+body.wp-admin:not(.colorify-admin-light).toplevel_page_wc-admin [class*="woocommerce-"] [class^="css-"],
+body.wp-admin:not(.colorify-admin-light).toplevel_page_wc-admin [class*="components-"] [class^="css-"] {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -588,10 +563,8 @@ body.wp-admin:not(.colorify-admin-light) .components-card__header {
 	background-color: var(--colorify-admin-surface-2) !important;
 }
 
-body.wp-admin:not(.colorify-admin-light) .components-surface *,
-body.wp-admin:not(.colorify-admin-light) .components-card * {
-	color: var(--colorify-admin-text-muted) !important;
-}
+/* NIE .components-surface * / .components-card * — WC React ma setki zagnieżdżonych spanów;
+   globalny muted na * = niewidoczny tekst. Kontenery: sekcja 10 + admin-plugins + wp-structure. */
 
 body.wp-admin:not(.colorify-admin-light) .components-surface h1,
 body.wp-admin:not(.colorify-admin-light) .components-surface h2,
@@ -604,31 +577,9 @@ body.wp-admin:not(.colorify-admin-light) .components-card__header * {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   11. GLOBALNY WOOCOMMERCE ADMIN — JEDEN SELEKTOR NA WSZYSTKO
-   
-   WooCommerce używa konsekwentnego prefixu "woocommerce-" dla KAŻDEGO
-   elementu swojego React UI. Zamiast liczyć setki klas — jeden blok
-   łapie je wszystkie przez atrybut [class*="woocommerce-"].
-   
-   Wyjątki: image, icon, logo, avatar — elementy wizualne bez tła.
+   11. WOOCOMMERCE ADMIN — tylko znane kontenery (NIE [class*="woocommerce-"] na każdy span)
+   Szczegóły: colorify-admin-plugins.css + colorify-admin-wp-structure.css
    ══════════════════════════════════════════════════════════════════════ */
-
-body.wp-admin:not(.colorify-admin-light) :is(
-	div, section, article, aside, header, footer, nav, main,
-	ul, ol, li,
-	button, a, label, span, p, h1, h2, h3, h4, h5, h6
-)[class*="woocommerce-"]:not([class*="-image"]):not([class*="-icon"]):not([class*="-logo"]):not([class*="-avatar"]):not([class*="-status-"]):not(.woocommerce-site-status-badge-live) {
-	background: var(--colorify-admin-surface) !important;
-	background-color: var(--colorify-admin-surface) !important;
-	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
-}
-
-/* Nagłówki / sekcje WooCommerce — pełny kolor tekstu */
-body.wp-admin:not(.colorify-admin-light) :is(h1, h2, h3, h4, strong, .woocommerce-layout__header-heading)[class*="woocommerce-"] {
-	color: var(--colorify-admin-text) !important;
-	background: var(--colorify-admin-surface) !important;
-}
 
 /* Delta badge (np. "0%", "↑12%") — trochę ciemniejszy variant */
 body.wp-admin:not(.colorify-admin-light) .woocommerce-summary__item-delta {
@@ -661,20 +612,8 @@ body.wp-admin:not(.colorify-admin-light) [class*="d3-legend"] {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   12. GLOBALNY @WORDPRESS/COMPONENTS — JEDEN SELEKTOR NA WSZYSTKO
-   
-   Gutenberg i WC używają "components-" prefix dla wszystkich UI klas.
-   Wyjątki: button.is-primary, button.is-destructive — te mają własne kolory.
+   12. @WORDPRESS/COMPONENTS — tylko przyciski (NIE każdy div/span z components-*)
    ══════════════════════════════════════════════════════════════════════ */
-
-body.wp-admin:not(.colorify-admin-light) :is(
-	div, section, span, ul, li, nav, header, footer, p
-)[class*="components-"]:not([class*="-icon"]):not([class*="-notice"]) {
-	background: var(--colorify-admin-surface) !important;
-	background-color: var(--colorify-admin-surface) !important;
-	color: var(--colorify-admin-text-muted) !important;
-	border-color: var(--colorify-admin-border) !important;
-}
 
 /* Przyciski components — NIE is-primary / is-destructive (mają akcent) */
 body.wp-admin:not(.colorify-admin-light) button.components-button:not(.is-primary):not(.is-destructive):not(.is-pressed) {

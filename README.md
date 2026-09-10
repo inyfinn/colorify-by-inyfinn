@@ -2,7 +2,7 @@
 
 Personalizacja wyglądu panelu WordPress (`wp-admin` + strona logowania) dla projektu **Colorify**.
 
-Autor: [INYFINN](https://inyfinn.art) · Wersja wtyczki: **1.0.2**
+Autor: [INYFINN](https://inyfinn.art) · Wersja wtyczki: **1.4.9**
 
 ---
 

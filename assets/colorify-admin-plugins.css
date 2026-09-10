@@ -941,7 +941,7 @@ body.wp-admin:not(.colorify-admin-light) #woocommerce-order-notes li.note {
 }
 
 body.wp-admin:not(.colorify-admin-light) #woocommerce-order-notes li.note p,
-body.wp-admin:not(.colorify-admin-light) #woocommerce-order-notes li.note .note-content p {
+body.wp-admin:not(.colorify-admin-light) #woocommerce-order-notes li.note .note_content p {
 	color: var(--colorify-admin-text-muted) !important;
 	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
 }

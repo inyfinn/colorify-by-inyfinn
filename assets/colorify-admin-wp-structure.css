@@ -1,0 +1,681 @@
+/**
+ * Colorify — WP-native structure (loads LAST)
+ * Jedna powierzchnia na kontener, bez łatania tła pod każdy napis/div.
+ */
+
+/* ── Canvas: tylko tło strony, reszta przez dziedziczenie ─────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpwrap,
+body.wp-admin:not(.colorify-admin-light) #wpcontent,
+body.wp-admin:not(.colorify-admin-light) #wpbody,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content > .wrap,
+body.wp-admin:not(.colorify-admin-light) .wrap {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Wewnątrz kart — przezroczyste (bez plam pod tekstem) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside > *,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .stuffbox .inside,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .stuffbox .inside > *,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-content,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-column,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice p,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice div,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice span {
+	background: transparent !important;
+	background-color: transparent !important;
+	box-shadow: none !important;
+}
+
+/* ── Postbox / stuffbox — jak WP: jedna karta, cienka ramka, bez cienia ─ */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .stuffbox {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) !important;
+	box-shadow: none !important;
+	overflow: visible !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .postbox {
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) !important;
+}
+
+/* Nagłówek metaboxa — ta sama powierzchnia co karta (nie ciemniejszy pasek) */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .postbox-header,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox > .hndle,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .stuffbox > .hndle {
+	background: var(--colorify-admin-surface) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) var(--colorify-admin-radius-card, 4px) 0 0 !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .postbox .postbox-header,
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .postbox > .hndle {
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) var(--colorify-admin-radius-dashboard, 8px) 0 0 !important;
+}
+
+/* Sterowanie metaboxa — bez ciemniejszych klocków */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handlediv,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-actions,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-order-higher,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-order-lower,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .postbox-header h2,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .postbox-header h3 {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handlediv .toggle-indicator::before,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-order-higher .toggle-indicator::before,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-order-lower .toggle-indicator::before {
+	color: var(--colorify-admin-icon, var(--colorify-admin-text-muted)) !important;
+}
+
+/* ── Notice — tylko lewy pasek akcentu (jak core WP) ─────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div.updated,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div.error,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .update-nag {
+	background: var(--colorify-admin-surface) !important;
+	border: none !important;
+	border-left: 4px solid #72aee6 !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) !important;
+	box-shadow: none !important;
+	padding: 1px 12px !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-warning,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .update-nag {
+	border-left-color: #dba617 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-error,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div.error {
+	border-left-color: #d63638 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-success {
+	border-left-color: #00a32a !important;
+}
+
+/* ── Welcome panel — jedna powierzchnia, bez czarnego pasa ───────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header-image,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header * {
+	background: var(--colorify-admin-surface) !important;
+	background-image: none !important;
+	border: none !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel {
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header {
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	padding: 1rem 1.25rem !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-close {
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+/* ── Przyciski secondary — jaśniejsze od tła, nie ciemniejsze ──────── */
+
+body.wp-admin:not(.colorify-admin-light).wp-core-ui .button:not(.button-primary):not(.button-link),
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .button:not(.button-primary):not(.button-link),
+body.wp-admin:not(.colorify-admin-light).wp-core-ui .button-secondary,
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .button-secondary {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: 3px !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).wp-core-ui .button:not(.button-primary):not(.button-link):hover,
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .button:not(.button-primary):not(.button-link):hover,
+body.wp-admin:not(.colorify-admin-light).wp-core-ui .button-secondary:hover,
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .button-secondary:hover {
+	background: var(--colorify-admin-field-hover, color-mix(in srgb, var(--colorify-admin-surface) 90%, #fff)) !important;
+	border-color: var(--colorify-admin-border) !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .wp-core-ui .button-primary {
+	box-shadow: none !important;
+	text-shadow: none !important;
+}
+
+/* ── Tabele — karta z ramką, bez podwójnych obramowań w komórkach ───── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table thead th,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat thead th {
+	background: var(--colorify-admin-surface) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody th,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat tbody td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .widefat tbody th {
+	background: transparent !important;
+	box-shadow: inset 0 -1px 0 var(--colorify-admin-border-subtle, var(--colorify-admin-border)) !important;
+}
+
+/* ── Layout wrappers — NIE karty (float + tło = cienki pasek 10–12px) ── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.metabox-holder,
+	#dashboard-widgets-wrap,
+	#dashboard-widgets,
+	.postbox-container,
+	#poststuff,
+	#post-body,
+	#post-body-content
+) {
+	background: transparent !important;
+	background-color: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	color: inherit !important;
+}
+
+/*
+ * Kokpit: #dashboard-widgets.metabox-holder ma same floaty (.postbox-container).
+ * WP core daje padding-top: 10px → kontener ma wys. ~10px. Gdy Colorify malował
+ * .metabox-holder jako kartę, powstawał pełnej szerokości „pasek”. Po transparent
+ * zostaje martwa przerwa — zerujemy padding.
+ */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content #dashboard-widgets.metabox-holder {
+	padding-top: 0 !important;
+	min-height: 0 !important;
+}
+
+/* ── Notices — wyższa specyficzność niż branding.css ─────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	.notice,
+	div.updated,
+	div.error,
+	.update-nag
+):not(.inline) {
+	background: var(--colorify-admin-surface) !important;
+	border: none !important;
+	border-left: 4px solid #72aee6 !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) !important;
+	box-shadow: none !important;
+	padding: 1px 12px !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-warning:not(.inline),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .update-nag {
+	border-left-color: #dba617 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-error:not(.inline),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div.error {
+	border-left-color: #d63638 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-success:not(.inline) {
+	border-left-color: #00a32a !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice.notice-info:not(.inline) {
+	border-left-color: #72aee6 !important;
+}
+
+/* ── Linki w treści — stonowany błękit, accent tylko na CTA / menu ─── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.button-link,
+	.nav-tab,
+	.row-title,
+	.tag-link
+) {
+	color: var(--colorify-admin-link-content, #72aee6) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link-content, #72aee6) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.button-link,
+	.nav-tab,
+	.row-title,
+	.tag-link
+):hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.button-link,
+	.nav-tab,
+	.row-title,
+	.tag-link
+):focus {
+	color: color-mix(in srgb, var(--colorify-admin-link-content, #72aee6) 85%, #fff) !important;
+	-webkit-text-fill-color: color-mix(in srgb, var(--colorify-admin-link-content, #72aee6) 85%, #fff) !important;
+}
+
+/* ── Kokpit — puste kolumny jak WP core, czytelne na ciemnym tle ───── */
+
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .meta-box-sortables {
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .postbox-container .empty-container {
+	outline: none !important;
+	border: 2px dashed var(--colorify-admin-border) !important;
+	background: transparent !important;
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) !important;
+	height: 250px !important;
+	min-height: 250px !important;
+	margin: 4px !important;
+	position: relative !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #dashboard-widgets .postbox-container .empty-container::after {
+	color: var(--colorify-admin-text-dim, var(--colorify-admin-text-muted)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).is-dragging-metaboxes #dashboard-widgets .meta-box-sortables {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 6%, var(--colorify-admin-bg)) !important;
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).is-dragging-metaboxes #dashboard-widgets .postbox-container .empty-container {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 4%, transparent) !important;
+}
+
+@media only screen and (min-width: 800px) and (max-width: 1499px) {
+	body.wp-admin:not(.colorify-admin-light) #dashboard-widgets #postbox-container-3 .empty-container,
+	body.wp-admin:not(.colorify-admin-light) #dashboard-widgets #postbox-container-4 .empty-container {
+		display: none !important;
+		height: 0 !important;
+		min-height: 0 !important;
+		margin: 0 !important;
+		border: none !important;
+	}
+}
+
+@media only screen and (min-width: 1500px) and (max-width: 1800px) {
+	body.wp-admin:not(.colorify-admin-light) #dashboard-widgets #postbox-container-4 .empty-container {
+		display: none !important;
+		height: 0 !important;
+		min-height: 0 !important;
+		margin: 0 !important;
+		border: none !important;
+	}
+}
+
+/* ── Welcome panel — bez czarnego SVG WP core ──────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header-image {
+	display: none !important;
+	height: 0 !important;
+	margin: 0 !important;
+	overflow: hidden !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header-wrap {
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header {
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .welcome-panel-header h2 {
+	background: transparent !important;
+	font-size: 1.5rem !important;
+	line-height: 1.35 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+/* ── Metabox header — jeden pasek, sterowanie bez ciemniejszych klocków ─ */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .postbox-header {
+	display: flex !important;
+	align-items: stretch !important;
+	min-height: 44px !important;
+	padding: 0 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .postbox-header .hndle {
+	flex: 1 1 auto !important;
+	margin: 0 !important;
+	padding: 12px 16px !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-actions {
+	display: flex !important;
+	flex: 0 0 auto !important;
+	align-items: stretch !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-actions button,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handlediv {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text-muted) !important;
+	min-height: 100% !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handle-actions button:hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .handlediv:hover {
+	background: color-mix(in srgb, var(--colorify-admin-surface) 88%, #fff) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* ── Widgety / promocje — bez jasnych plam wewnątrz kart ───────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside :is(
+	.trx_addons_dashboard_widget_section_item,
+	[class*="wpmet"],
+	[class*="promo"],
+	[class*="banner"]
+),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside :is(
+	.trx_addons_dashboard_widget_section_item,
+	[class*="wpmet"],
+	[class*="promo"],
+	[class*="banner"]
+) *:not(.button):not(.button-primary):not(.button-secondary):not(.badge):not([class*="badge"]):not(img):not(svg):not(path) {
+	background: transparent !important;
+	background-color: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice[class*="wpmet"] img,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice[class*="wpmet"] [style*="background"] {
+	background: transparent !important;
+}
+
+/* ── Przyciski w treści — secondary jaśniejsze od karty ────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .button:not(.button-primary):not(.button-link),
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .button-secondary {
+	background: color-mix(in srgb, var(--colorify-admin-surface) 86%, #fff) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: none !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .button:not(.button-primary):not(.button-link):hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .button-secondary:hover {
+	background: color-mix(in srgb, var(--colorify-admin-surface) 78%, #fff) !important;
+}
+
+/* ── Kokpit — bez zielonych/szarych plam w listach w widgetach ──────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside :is(
+	.community-events-results,
+	.community-events li,
+	.activity-block,
+	.community-events-footer
+) {
+	background: transparent !important;
+	background-color: transparent !important;
+	border-left: none !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .postbox .inside .community-events-footer {
+	border-top: 1px solid var(--colorify-admin-border) !important;
+}
+
+/* ── Tagi / kategorie w listach wpisów — chipy zamiast ściany linków ── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.column-tags,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.tags,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td[class*="column-taxonomy-"] {
+	max-width: 22em;
+	line-height: 1.55;
+	vertical-align: top;
+	font-size: 12px;
+	color: var(--colorify-admin-text-muted) !important;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.column-tags a,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.tags a,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td[class*="column-taxonomy-"] a,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.column-tags .tag-link,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.tags .tag-link {
+	display: inline-block;
+	max-width: 100%;
+	margin: 0 4px 4px 0;
+	padding: 2px 8px;
+	border-radius: 4px;
+	border: 1px solid var(--colorify-admin-border);
+	background: var(--colorify-admin-surface-2) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.35;
+	text-decoration: none;
+	word-break: break-word;
+	white-space: normal;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.column-tags a:hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td.tags a:hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table td[class*="column-taxonomy-"] a:hover {
+	background: color-mix(in srgb, var(--colorify-admin-accent) 18%, var(--colorify-admin-surface-2)) !important;
+	border-color: color-mix(in srgb, var(--colorify-admin-accent) 40%, var(--colorify-admin-border)) !important;
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+/* ── WooCommerce React — reset „nuclear paint”, tylko karty ─────────── */
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content,
+body.wp-admin:not(.colorify-admin-light).toplevel_page_wc-admin #wpbody-content {
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.woocommerce-layout,
+	.woocommerce-layout__primary,
+	.woocommerce-layout__main,
+	.woocommerce-homescreen
+) {
+	background: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+/* Liście / tekst wewnątrz WC — bez osobnego tła na liściach (NIE div — to kasuje karty) */
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	span, p, a, li, label, strong, em, small
+)[class*="woocommerce-"]:not([class*="-image"]):not([class*="-icon"]):not([class*="-logo"]):not([class*="-avatar"]),
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	span, p, a, li, label, strong, em, small
+)[class*="components-"]:not(.components-button):not(.components-card):not(.components-surface):not(.components-card__body):not(.components-card__header):not(.components-card__footer):not(.components-panel):not([class*="-icon"]):not([class*="-notice"]) {
+	background: transparent !important;
+	background-color: transparent !important;
+	border-color: transparent !important;
+	box-shadow: none !important;
+	color: inherit !important;
+	-webkit-text-fill-color: inherit !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.components-surface,
+	.components-card,
+	.components-card__body,
+	.components-card__header,
+	.components-card__footer,
+	.woocommerce-card,
+	.woocommerce-summary,
+	.woocommerce-summary__item,
+	.woocommerce-task-card,
+	.woocommerce-inbox-note,
+	.woocommerce-list__item,
+	.woocommerce-onboarding-task-list,
+	.woocommerce-task-list,
+	.woocommerce-profile-wizard__body,
+	.woocommerce-profile-wizard__footer,
+	.woocommerce-store-alerts,
+	.woocommerce-marketing-card
+) {
+	background: var(--colorify-admin-surface) !important;
+	background-color: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	border-radius: var(--colorify-admin-radius-dashboard, 8px) !important;
+	color: var(--colorify-admin-text) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.components-card__body,
+	.components-card__body p,
+	.components-card__body span,
+	.components-card__body li,
+	.components-card__body label,
+	.woocommerce-card__body,
+	.woocommerce-card__body p,
+	.woocommerce-task-card__contents,
+	.woocommerce-onboarding-task-list__item-content,
+	.woocommerce-task-list__item-content,
+	.components-text,
+	.components-external-link__label
+) {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.components-card__body .description,
+	.woocommerce-card__description,
+	.woocommerce-task-list__item-description,
+	.woocommerce-onboarding-task-list__item-description
+) {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.woocommerce-card__header,
+	.woocommerce-card__title,
+	.woocommerce-task-list__heading,
+	.woocommerce-onboarding-task-list__header,
+	.woocommerce-inbox-note__title,
+	.woocommerce-task-list__task-title,
+	.components-card__header,
+	.components-card h2,
+	.components-card h3,
+	.woocommerce-summary__item-value,
+	.woocommerce-task-list__item-title,
+	.woocommerce-onboarding-task-list__item-title,
+	.components-truncate,
+	.components-text
+) {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content a:not(.components-button):not(.button):not(.button-primary) {
+	color: var(--colorify-admin-link-content, #72aee6) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link-content, #72aee6) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.woocommerce-progress-bar,
+	.components-progress-bar,
+	.woocommerce-onboarding-progress-bar
+) {
+	background: var(--colorify-admin-surface-2) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content :is(
+	.woocommerce-progress-bar__fill,
+	.components-progress-bar__fill
+) {
+	background: var(--colorify-admin-accent) !important;
+}
+
+/* ── List tables — wyraźniejsze wiersze ─────────────────────────────── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody tr {
+	background: transparent !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody tr:nth-child(odd) td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody tr:nth-child(odd) th {
+	background: color-mix(in srgb, var(--colorify-admin-surface) 35%, transparent) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody tr:nth-child(even) td,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .wp-list-table tbody tr:nth-child(even) th {
+	background: transparent !important;
+}
+
+/* ── Plugin onboarding (MetForm, wpmet, …) — bez jasnego canvas + szarego tekstu ── */
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[class*="metform"],
+	[id*="metform"],
+	[class*="wpmet-"],
+	.metform-dashboard-app
+) {
+	background: var(--colorify-admin-bg) !important;
+	background-color: var(--colorify-admin-bg) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[class*="metform"],
+	[id*="metform"],
+	[class*="wpmet-"]
+) :is(h1, h2, h3, h4, p, label, span, li, small, strong) {
+	color: var(--colorify-admin-text) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
+	[class*="metform"],
+	[id*="metform"],
+	[class*="wpmet-"]
+) :is(.description, .subtitle, [class*="subtitle"], [class*="description"]) {
+	color: var(--colorify-admin-text-muted) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text-muted) !important;
+}

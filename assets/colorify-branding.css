@@ -611,10 +611,10 @@ body.wp-admin.wp-core-ui .button:not(.button-primary):not(.button-link),
 body.wp-admin.wp-core-ui .button-secondary,
 body.wp-admin .wp-core-ui .button:not(.button-primary):not(.button-link),
 body.wp-admin .wp-core-ui .button-secondary {
-	background: var(--colorify-admin-surface-2) !important;
+	background: var(--colorify-admin-surface) !important;
 	border: 1px solid var(--colorify-admin-border) !important;
 	color: var(--colorify-admin-text) !important;
-	border-radius: 8px !important;
+	border-radius: 3px !important;
 	box-shadow: none !important;
 }
 
@@ -736,14 +736,14 @@ body.wp-admin:not(.colorify-admin-light) .subsubsub a:hover {
 .wp-admin .stuffbox {
 	background: var(--colorify-admin-surface) !important;
 	border: 1px solid var(--colorify-admin-border) !important;
-	border-radius: 12px !important;
+	border-radius: var(--colorify-admin-radius-card, 4px) !important;
 	box-shadow: none !important;
 }
 
 .wp-admin .postbox-header,
 .wp-admin .postbox .hndle,
 .wp-admin .stuffbox .hndle {
-	background: var(--colorify-admin-surface-2) !important;
+	background: var(--colorify-admin-surface) !important;
 	border-bottom: 1px solid var(--colorify-admin-border) !important;
 	color: var(--colorify-admin-text) !important;
 }
@@ -931,9 +931,27 @@ html[data-colorify-admin-mode="dark"] .wp-admin .subsubsub a.current {
 }
 
 /* Linki w treści — dark: czytelny muted, nie akcent (= tło w wielu schematach) */
-html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):not(.wyp-btn):not(.submitduplicate):not(.submitdelete):not(.sale_schedule):not(.tagcloud-link) {
+html[data-colorify-admin-mode="dark"] #wpbody-content a:not(
+	.button-primary,
+	.button-secondary,
+	.button,
+	.row-title,
+	.wyp-btn,
+	.submitduplicate,
+	.submitdelete,
+	.sale_schedule,
+	.tagcloud-link,
+	.tag-link
+) {
 	color: var(--colorify-admin-readable-muted, #b0bdb8) !important;
 	font-weight: 400;
+}
+
+html[data-colorify-admin-mode="dark"] #wpbody-content .wp-list-table td.column-tags a,
+html[data-colorify-admin-mode="dark"] #wpbody-content .wp-list-table td.tags a,
+html[data-colorify-admin-mode="dark"] #wpbody-content .wp-list-table td[class*="column-taxonomy-"] a {
+	color: var(--colorify-admin-text, #eef0ef) !important;
+	-webkit-text-fill-color: var(--colorify-admin-text, #eef0ef) !important;
 }
 
 html[data-colorify-admin-mode="dark"] #wpbody-content a:not(.button-primary):not(.button-secondary):not(.button):not(.row-title):not(.wyp-btn):not(.submitduplicate):not(.submitdelete):hover,
@@ -1504,7 +1522,6 @@ body.wp-admin:not(.colorify-admin-light) .nav-tab-wrapper .nav-tab:focus {
 
 body.wp-admin:not(.colorify-admin-light) #title,
 body.wp-admin:not(.colorify-admin-light) #title-prompt-text,
-body.wp-admin:not(.colorify-admin-light) .postbox .handlediv,
 body.wp-admin:not(.colorify-admin-light) .meta-box-sortables .postbox,
 body.wp-admin:not(.colorify-admin-light) #post-status-info,
 body.wp-admin:not(.colorify-admin-light) .edit-post-header,
@@ -1909,23 +1926,18 @@ body.wp-admin:not(.colorify-admin-light) .ui-selectmenu-icon {
 	filter: invert(0.85);
 }
 
-/* Kontenery WP / wtyczki — typowe białe boxy */
+/* Kontenery WP / wtyczki — typowe białe boxy (bez postbox-container / metabox-holder — to tło canvas) */
 body.wp-admin:not(.colorify-admin-light) #wpbody-content :is(
 	.postbox,
 	.stuffbox,
 	.stuffbox .inside,
 	.card,
-	.metabox-holder,
 	#postcustomstuff,
 	#postcustom .inside,
 	.widgets-holder-wrap,
 	.accordion-section,
 	.accordion-section-content,
 	.inner-sidebar,
-	#poststuff,
-	#post-body-content,
-	#postbox-container-1,
-	#postbox-container-2,
 	.theme-browser .theme,
 	.plugin-card,
 	.welcome-panel,
@@ -2401,14 +2413,25 @@ body.wp-admin:not(.colorify-admin-light) #wpbody-content .bg-white :is(h1, h2, h
 	color: var(--colorify-admin-text) !important;
 }
 
-/* Powiadomienia wtyczek z kolorowym tłem */
-body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice:not(.notice-success):not(.notice-error):not(.notice-warning):not(.notice-info),
+/* Powiadomienia wtyczek — bez pełnej ramki i plam pod tekstem */
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice:not(.notice-success):not(.notice-error):not(.notice-warning):not(.notice-info):not(.inline),
 body.wp-admin:not(.colorify-admin-light) #wpbody-content .updated:not(.notice),
 body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"],
 body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] {
-	background: var(--colorify-admin-surface-2) !important;
-	border: 1px solid var(--colorify-admin-border) !important;
+	background: var(--colorify-admin-surface) !important;
+	border: none !important;
+	border-left: 4px solid #72aee6 !important;
 	color: var(--colorify-admin-text-muted) !important;
+	box-shadow: none !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"] > *,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="promo"] > *,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content .notice[class*="wpmet"] > * {
+	background: transparent !important;
+	background-color: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) #wpbody-content div[class*="banner"] h1,

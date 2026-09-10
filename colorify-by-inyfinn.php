@@ -3,7 +3,7 @@
  * Plugin Name: Colorify by INYFINN
  * Plugin URI: https://inyfinn.art
  * Description: Personalizacja kolorów panelu WordPress (wp-admin): schematy, własna paleta, dostrojenie, tryb ciemny/jasny. Ustawienia per użytkownik lub globalne.
- * Version: 1.4.0
+ * Version: 1.4.9
  * Author: INYFINN
  * Author URI: https://inyfinn.art
  * Text Domain: colorify-by-inyfinn
@@ -39,7 +39,7 @@ define( 'COLORIFY_BY_INYFINN_LOADED', true );
 define( 'COLORIFY_PLUGIN_FILE', __FILE__ );
 define( 'COLORIFY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'COLORIFY_PLUGIN_VERSION', '1.4.0' );
+define( 'COLORIFY_PLUGIN_VERSION', '1.4.9' );
 
 /**
  * Opcjonalnie: repozytorium GitHub do automatycznych aktualizacji (owner/repo).
@@ -521,6 +521,88 @@ function colorify_enqueue_admin_global_readable_css(): void {
 }
 
 /**
+ * WooCommerce order edit — HPOS layout + panel hierarchy (loads last).
+ */
+function colorify_enqueue_admin_wc_layout_css(): void {
+	$path = COLORIFY_PLUGIN_DIR . 'assets/colorify-admin-wc-layout.css';
+	if ( ! is_readable( $path ) ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'colorify-admin-wc-layout',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-wc-layout.css',
+		array( 'colorify-admin-global-readable' ),
+		COLORIFY_PLUGIN_VERSION . '.' . filemtime( $path )
+	);
+}
+
+/**
+ * WP-native structure — ostatnia warstwa: jedna karta, bez plam tła pod tekstem.
+ */
+function colorify_enqueue_admin_wp_structure_css(): void {
+	$path = COLORIFY_PLUGIN_DIR . 'assets/colorify-admin-wp-structure.css';
+	if ( ! is_readable( $path ) ) {
+		return;
+	}
+
+	$deps = array( 'colorify-admin-global-readable' );
+	if ( wp_style_is( 'colorify-admin-wc-layout', 'registered' ) ) {
+		$deps[] = 'colorify-admin-wc-layout';
+	}
+
+	wp_enqueue_style(
+		'colorify-admin-wp-structure',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-wp-structure.css',
+		$deps,
+		COLORIFY_PLUGIN_VERSION . '.' . filemtime( $path )
+	);
+}
+
+/**
+ * Ostatnia warstwa CSS — po Elementor colors.min.css i innym admin CSS.
+ * FM-LINK-SPECIFICITY: tagi + treść WC muszą wygrać kaskadę koloru linku.
+ */
+function colorify_print_admin_cascade_last_css(): void {
+	if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
+		return;
+	}
+
+	static $printed = false;
+	if ( $printed ) {
+		return;
+	}
+	$printed = true;
+
+	$css = <<<'CSS'
+html[data-colorify-admin-mode="dark"] body.wp-admin:not(.colorify-admin-light) #wpbody-content#wpbody-content .wp-list-table td.column-tags a,
+html[data-colorify-admin-mode="dark"] body.wp-admin:not(.colorify-admin-light) #wpbody-content#wpbody-content .wp-list-table td.tags a,
+html[data-colorify-admin-mode="dark"] body.wp-admin:not(.colorify-admin-light) #wpbody-content#wpbody-content .wp-list-table td[class*="column-taxonomy-"] a {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+	text-decoration: none !important;
+}
+html[data-colorify-admin-mode="dark"] body.wp-admin:not(.colorify-admin-light).woocommerce-admin-page #wpbody-content#wpbody-content :is(
+	.components-card,
+	.components-card__body,
+	.components-card__body p,
+	.components-card__body span,
+	.components-text,
+	.woocommerce-card,
+	.woocommerce-card__body,
+	.woocommerce-task-card,
+	.woocommerce-onboarding-task-list__item-content
+) {
+	color: #eef0ef !important;
+	-webkit-text-fill-color: #eef0ef !important;
+}
+CSS;
+
+	echo '<style id="colorify-admin-cascade-last">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+add_action( 'admin_footer', 'colorify_print_admin_cascade_last_css', PHP_INT_MAX );
+
+/**
  * JS — kompatybilność (Elementor wp-pointer, itd.).
  */
 function colorify_enqueue_admin_compat_js(): void {
@@ -643,6 +725,8 @@ function colorify_enqueue_admin_assets( int $context_user_id = 0 ): void {
 	colorify_enqueue_global_darkmode_css();
 	colorify_enqueue_admin_plugins_css();
 	colorify_enqueue_admin_global_readable_css();
+	colorify_enqueue_admin_wc_layout_css();
+	colorify_enqueue_admin_wp_structure_css();
 
 	if ( colorify_is_customizer_controls_screen() ) {
 		colorify_enqueue_customizer_styles();

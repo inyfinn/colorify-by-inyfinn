@@ -1235,27 +1235,40 @@ function colorify_admin_normalize_bg_pair( string $bg, string $bg2 ): array {
 }
 
 /**
- * Powierzchnie UI — ciemniejszy bg na tabelach/wierszach; jaśniejszy bg2 tylko sidebar + subtelne podbicia.
+ * Powierzchnie UI — drabinka jak w natywnym wp-admin (canvas → karta → nagłówek → pole).
  *
- * @return array{surface:string,surface2:string,field:string,field_hover:string,notice_bg:string}
+ * Light: szare tło (#f0f0f1), białe postboxy, wyraźna ramka.
+ * Dark: najciemniejszy canvas, jaśniejsze karty (mix w stronę bieli), nagłówki jeszcze jaśniejsze.
+ *
+ * @return array{canvas:string,surface:string,surface2:string,field:string,field_hover:string,notice_bg:string}
  */
 function colorify_admin_layout_surface_tokens( string $bg, string $bg2, string $text, string $accent, bool $is_light ): array {
 	if ( $is_light ) {
+		$canvas = sprintf( 'color-mix(in srgb, %s 78%%, %s 22%%)', $bg2, $text );
+		$card   = $bg;
+		$header = sprintf( 'color-mix(in srgb, %s 97%%, %s 3%%)', $card, $text );
+
 		return array(
-			'surface'      => $bg,
-			'surface2'     => sprintf( 'color-mix(in srgb, %s 94%%, %s 6%%)', $bg2, $text ),
-			'field'        => $bg2,
-			'field_hover'  => sprintf( 'color-mix(in srgb, %s 90%%, %s 10%%)', $bg2, $accent ),
-			'notice_bg'    => $bg,
+			'canvas'       => $canvas,
+			'surface'      => $card,
+			'surface2'     => $header,
+			'field'        => $card,
+			'field_hover'  => sprintf( 'color-mix(in srgb, %s 94%%, %s 6%%)', $card, $accent ),
+			'notice_bg'    => $card,
 		);
 	}
 
+	$canvas = $bg;
+	$card   = colorify_admin_interpolate_hex( $bg, '#ffffff', 0.11 );
+	$header = $card;
+
 	return array(
-		'surface'      => $bg,
-		'surface2'     => sprintf( 'color-mix(in srgb, %s 93%%, %s 7%%)', $bg, $text ),
-		'field'        => sprintf( 'color-mix(in srgb, %s 90%%, %s 10%%)', $bg, $bg2 ),
-		'field_hover'  => sprintf( 'color-mix(in srgb, %s 86%%, %s 14%%)', $bg, $bg2 ),
-		'notice_bg'    => $bg,
+		'canvas'       => $canvas,
+		'surface'      => $card,
+		'surface2'     => $header,
+		'field'        => colorify_admin_interpolate_hex( $card, $bg, 0.14 ),
+		'field_hover'  => colorify_admin_interpolate_hex( $card, $bg2, 0.22 ),
+		'notice_bg'    => $card,
 	);
 }
 
@@ -1264,36 +1277,39 @@ function colorify_admin_layout_surface_tokens( string $bg, string $bg2, string $
  *
  * @return array<string,string>
  */
-function colorify_admin_ui_semantic_tokens( string $bg, string $bg2, string $text, bool $is_light ): array {
+function colorify_admin_ui_semantic_tokens( string $bg, string $bg2, string $text, bool $is_light, string $surface = '' ): array {
 	$mark_pct = $is_light ? '78' : '80';
+	$row_base = '' !== $surface ? $surface : $bg;
 
 	return array(
 		'--colorify-admin-mark'            => sprintf( 'color-mix(in srgb, %s %s%%, #000)', $bg, $mark_pct ),
-		'--colorify-admin-row-bg'          => $bg,
-		'--colorify-admin-row-active-bg'   => $bg,
+		'--colorify-admin-row-bg'          => $row_base,
+		'--colorify-admin-row-active-bg'   => $row_base,
 		'--colorify-admin-row-hover-bg'    => sprintf(
 			'color-mix(in srgb, %s %s%%, %s)',
-			$bg,
-			$is_light ? '96' : '94',
+			$row_base,
+			$is_light ? '94' : '90',
 			$text
 		),
 		'--colorify-admin-row-separator'   => sprintf(
-			'color-mix(in srgb, %s %s%%, #000)',
-			$bg,
-			$is_light ? '82' : '72'
+			'color-mix(in srgb, %s %s%%, %s)',
+			$row_base,
+			$is_light ? '78' : '68',
+			$is_light ? '#000' : '#fff'
 		),
-		'--colorify-admin-notice-bg'       => $bg,
+		'--colorify-admin-notice-bg'       => $row_base,
 		'--colorify-admin-ui-hover-bg'     => sprintf(
 			'color-mix(in srgb, %s %s%%, %s)',
-			$bg,
-			$is_light ? '92' : '90',
+			$row_base,
+			$is_light ? '90' : '86',
 			$text
 		),
 		'--colorify-admin-ui-selected-bg'  => sprintf(
-			'color-mix(in srgb, %s 88%%, %s 12%%)',
-			$bg,
+			'color-mix(in srgb, %s 84%%, %s 16%%)',
+			$row_base,
 			$bg2
 		),
+		'--colorify-admin-card-shadow'     => 'none',
 	);
 }
 
@@ -1311,17 +1327,17 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 		$text   = '#18181b';
 		$muted  = '#52525b';
 		$dim    = '#71717a';
-		$border = 'rgba(24, 24, 27, 0.09)';
+		$border = 'rgba(24, 24, 27, 0.12)';
 	} else {
 		$bg     = $def['bg_dark'] ?? '#050f0c';
 		$bg2    = $def['bg2_dark'] ?? '#0b231c';
 		$text   = colorify_admin_brighten_text_hex( '#f4f4f5', 35.0 );
 		$muted  = colorify_admin_brighten_text_hex( '#c8d4cf', 38.0 );
 		$dim    = colorify_admin_brighten_text_hex( '#8fa39b', 40.0 );
-		$border = 'rgba(255, 255, 255, 0.12)';
+		$border = 'rgba(255, 255, 255, 0.2)';
 	}
 
-	list( $bg, $bg2 ) = colorify_admin_normalize_bg_pair( $bg, $bg2 );
+	list( $bg, $bg2 ) = $is_light ? array( $bg, $bg2 ) : colorify_admin_normalize_bg_pair( $bg, $bg2 );
 
 	$accents  = colorify_admin_resolve_accents_for_mode( $mode, $def, $bg, $bg2 );
 	$accent   = $accents[0];
@@ -1335,14 +1351,14 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 
 	return array_merge(
 		array(
-			'--colorify-admin-bg'            => $bg,
+			'--colorify-admin-bg'            => $layout['canvas'] ?? $bg,
 			'--colorify-admin-sidebar'       => $bg2,
 			'--colorify-admin-surface'       => $layout['surface'],
 			'--colorify-admin-surface-2'     => $layout['surface2'],
 			'--colorify-admin-field'         => $layout['field'],
 			'--colorify-admin-field-hover'   => $layout['field_hover'],
 			'--colorify-admin-border'        => $border,
-			'--colorify-admin-border-subtle' => $is_light ? 'rgba(24, 24, 27, 0.06)' : 'rgba(255, 255, 255, 0.08)',
+			'--colorify-admin-border-subtle' => $is_light ? 'rgba(24, 24, 27, 0.08)' : 'rgba(255, 255, 255, 0.12)',
 			'--colorify-admin-icon'          => $is_light ? '#52525b' : colorify_admin_brighten_text_hex( '#8fa39b', 38.0 ),
 			'--colorify-admin-text'          => $text,
 			'--colorify-admin-text-muted'    => $muted,
@@ -1365,7 +1381,7 @@ function colorify_admin_tokens_from_scheme( string $mode, array $def ): array {
 			'--colorify-admin-highlight-bg'   => $accent,
 			'--colorify-admin-highlight-text' => colorify_admin_contrast_on_accent( $accent ),
 		),
-		colorify_admin_ui_semantic_tokens( $bg, $bg2, $text, $is_light )
+		colorify_admin_ui_semantic_tokens( $bg, $bg2, $text, $is_light, $layout['surface'] )
 	);
 }
 
@@ -1946,22 +1962,29 @@ function colorify_admin_finalize_scheme_css_tokens( string $mode, array $def ): 
 		$tokens = array_merge(
 			$tokens,
 			array(
-				'--colorify-admin-text'         => '#eef0ef',
-				'--colorify-admin-text-muted'   => '#b0bdb8',
-				'--colorify-admin-text-dim'     => '#8a9691',
-				'--colorify-admin-icon'         => '#b0bdb8',
-				'--colorify-admin-link'         => '#b0bdb8',
-				'--colorify-admin-link-hover'   => '#eef0ef',
-				'--colorify-admin-accent-muted' => '#b0bdb8',
-				'--colorify-admin-readable-text' => '#eef0ef',
+				'--colorify-admin-text'           => '#eef0ef',
+				'--colorify-admin-text-muted'     => '#b0bdb8',
+				'--colorify-admin-text-dim'       => '#8a9691',
+				'--colorify-admin-icon'           => '#b0bdb8',
+				'--colorify-admin-readable-text'  => '#eef0ef',
 				'--colorify-admin-readable-muted' => '#b0bdb8',
-				'--colorify-admin-readable-dim' => '#8a9691',
-				'--colorify-admin-readable-icon' => '#b0bdb8',
+				'--colorify-admin-readable-dim'   => '#8a9691',
+				'--colorify-admin-readable-icon'  => '#b0bdb8',
 			)
 		);
 	}
 
 	$tokens = array_merge( $tokens, colorify_admin_third_party_palette_tokens( $tokens, $mode ) );
+
+	if ( 'dark' === $mode ) {
+		$tokens['--colorify-admin-link-content'] = 'color-mix(in srgb, var(--colorify-admin-link, #72aee6) 72%, #eef0ef)';
+		$tokens['--colorify-admin-radius-card'] = '4px';
+		$tokens['--colorify-admin-radius-dashboard'] = '8px';
+	} else {
+		$tokens['--colorify-admin-link-content'] = 'var(--colorify-admin-link)';
+		$tokens['--colorify-admin-radius-card'] = '4px';
+		$tokens['--colorify-admin-radius-dashboard'] = '8px';
+	}
 
 	/*
 	 * --wp-admin-theme-color MUSI być akcentem, nie tłem panelu.
@@ -2024,8 +2047,6 @@ function colorify_admin_scheme_root_css_from_tokens( array $tokens ): string {
 		'--e-one-palette-divider'        => 'rgba(255,255,255,0.28)',
 		'--colorify-admin-text'          => '#eef0ef',
 		'--colorify-admin-text-muted'    => '#b0bdb8',
-		'--colorify-admin-link'          => '#b0bdb8',
-		'--colorify-admin-accent-muted'  => '#b0bdb8',
 	);
 	$force_rules = array();
 	foreach ( $force as $var => $value ) {

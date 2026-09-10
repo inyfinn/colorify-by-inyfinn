@@ -17,9 +17,9 @@ body.wp-customizer:not(.colorify-admin-light) {
 	--colorify-admin-text-muted: #b0bdb8 !important;
 	--colorify-admin-text-dim: #8a9691 !important;
 	--colorify-admin-icon: #b0bdb8 !important;
-	--colorify-admin-link: #b0bdb8 !important;
-	--colorify-admin-link-hover: #eef0ef !important;
-	--colorify-admin-accent-muted: #b0bdb8 !important;
+	--colorify-admin-link: var(--colorify-admin-accent, #72aee6) !important;
+	--colorify-admin-link-hover: color-mix(in srgb, var(--colorify-admin-accent, #72aee6) 82%, #fff) !important;
+	--colorify-admin-accent-muted: var(--colorify-admin-accent, #72aee6) !important;
 	--e-one-palette-text-primary: #eef0ef !important;
 	--e-one-palette-text-secondary: #b0bdb8 !important;
 	--e-one-palette-text-tertiary: #8a9691 !important;
@@ -191,8 +191,9 @@ body.wp-admin:not(.colorify-admin-light) #wpadminbar a.ab-item {
 
 body.wp-admin:not(.colorify-admin-light) .wp-list-table,
 body.wp-admin:not(.colorify-admin-light) .widefat {
-	background: var(--colorify-admin-bg) !important;
-	border-color: var(--colorify-admin-border) !important;
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: var(--colorify-admin-card-shadow, 0 1px 2px rgba(0, 0, 0, 0.35)) !important;
 	color: var(--colorify-admin-text) !important;
 }
 
@@ -325,8 +326,24 @@ body.wp-admin:not(.colorify-admin-light) div.updated,
 body.wp-admin:not(.colorify-admin-light) div.error,
 body.wp-admin:not(.colorify-admin-light) .update-nag {
 	background: var(--colorify-admin-surface) !important;
-	border-color: var(--colorify-admin-border) !important;
+	border: none !important;
+	border-left: 4px solid #72aee6 !important;
+	box-shadow: none !important;
 	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice.notice-warning,
+body.wp-admin:not(.colorify-admin-light) div.update-nag {
+	border-left-color: #dba617 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice.notice-error,
+body.wp-admin:not(.colorify-admin-light) div.error {
+	border-left-color: #d63638 !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .notice.notice-success {
+	border-left-color: #00a32a !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .notice p,
@@ -337,7 +354,69 @@ body.wp-admin:not(.colorify-admin-light) .update-nag p {
 body.wp-admin:not(.colorify-admin-light) .postbox,
 body.wp-admin:not(.colorify-admin-light) .stuffbox {
 	background: var(--colorify-admin-surface) !important;
-	border-color: var(--colorify-admin-border) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: var(--colorify-admin-card-shadow, 0 1px 2px rgba(0, 0, 0, 0.35)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .postbox .postbox-header,
+body.wp-admin:not(.colorify-admin-light) .postbox > .hndle,
+body.wp-admin:not(.colorify-admin-light) .stuffbox > h2,
+body.wp-admin:not(.colorify-admin-light) .stuffbox > h3 {
+	background: var(--colorify-admin-surface) !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .postbox .inside,
+body.wp-admin:not(.colorify-admin-light) .stuffbox .inside {
+	background: var(--colorify-admin-surface) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .welcome-panel,
+body.wp-admin:not(.colorify-admin-light) .welcome-panel-content {
+	background: var(--colorify-admin-surface) !important;
+	border: 1px solid var(--colorify-admin-border) !important;
+	box-shadow: var(--colorify-admin-card-shadow, 0 1px 2px rgba(0, 0, 0, 0.35)) !important;
+	color: var(--colorify-admin-text-muted) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) .welcome-panel-header {
+	background: var(--colorify-admin-surface) !important;
+	background-image: none !important;
+	border-bottom: 1px solid var(--colorify-admin-border) !important;
+	color: var(--colorify-admin-text) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.nav-tab,
+	.row-title,
+	.tag-link
+) {
+	color: var(--colorify-admin-link, var(--colorify-admin-accent, #72aee6)) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link, var(--colorify-admin-accent, #72aee6)) !important;
+}
+
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.nav-tab,
+	.row-title,
+	.tag-link
+):hover,
+body.wp-admin:not(.colorify-admin-light) #wpbody-content a:not(
+	.button,
+	.button-primary,
+	.button-secondary,
+	.nav-tab,
+	.row-title,
+	.tag-link
+):focus {
+	color: var(--colorify-admin-link-hover, color-mix(in srgb, var(--colorify-admin-accent, #72aee6) 82%, #fff)) !important;
+	-webkit-text-fill-color: var(--colorify-admin-link-hover, color-mix(in srgb, var(--colorify-admin-accent, #72aee6) 82%, #fff)) !important;
 }
 
 body.wp-admin:not(.colorify-admin-light) .CodeMirror,
