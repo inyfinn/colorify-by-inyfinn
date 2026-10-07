@@ -7,11 +7,9 @@
  * the text colour towards the readable end until it passes. Nothing else is touched:
  * no backgrounds, no layout.
  *
- * Scope:
- *   dark mode   whole admin page (the dark engine recolours unknown plugin styles; a few
- *               saturated colours can land under AA)
- *   light mode  admin menu and admin bar only (content keeps WordPress colours; plugins
- *               sometimes hard-code menu colours meant for a dark menu)
+ * Scope: dark mode only. The dark engine recolours unknown plugin styles and a few
+ * saturated colours can land under AA. In light mode the content keeps WordPress colours
+ * and the menu stays dark like in core, so there is nothing to repair.
  *
  * How a fix is applied: the element gets data-colorify-guard="N" and one generated rule
  *   [data-colorify-guard="N"]:not(:hover):not(:focus):not(:active) { color: ... !important }
@@ -246,10 +244,8 @@
 	}
 
 	function scopes() {
-		if ( dark() ) {
-			return [ d.body ];
-		}
-		return [ d.getElementById( 'adminmenumain' ), d.getElementById( 'wpadminbar' ) ].filter( Boolean );
+		// Light mode keeps WordPress content colours and a dark menu like core: nothing to guard.
+		return dark() ? [ d.body ] : [];
 	}
 
 	function inScope( el ) {

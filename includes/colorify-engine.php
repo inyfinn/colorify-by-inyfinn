@@ -110,7 +110,19 @@ function colorify_engine_declarations( array $vars, bool $important = false ): s
  */
 function colorify_engine_tokens_css( array $tokens ): string {
 	$vars = isset( $tokens['css'] ) && is_array( $tokens['css'] ) ? $tokens['css'] : array();
-	return 'body{' . colorify_engine_declarations( $vars ) . '}';
+
+	if ( 'dark' !== ( $tokens['mode'] ?? '' ) || ! isset( $vars['--colorify-body-background'] ) ) {
+		return 'body{' . colorify_engine_declarations( $vars ) . '}';
+	}
+
+	// Ciemne tło ekranu dopiero wtedy, gdy silnik trybu ciemnego naprawdę ruszył (klasa colorify-dr
+	// na <html> ustawiana przez colorify-engine.js). Gdy skrypt nie zadziała, zostaje jasna treść
+	// WordPressa w ciemnej ramie: czytelnie, zamiast ciemnego tekstu na ciemnym tle.
+	$canvas                             = $vars['--colorify-body-background'];
+	$vars['--colorify-body-background'] = '#f0f0f0';
+
+	return 'body{' . colorify_engine_declarations( $vars ) . '}'
+		. 'html.colorify-dr body{' . colorify_engine_declarations( array( '--colorify-body-background' => $canvas ) ) . '}';
 }
 
 /**

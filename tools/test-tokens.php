@@ -166,16 +166,31 @@ $check_set = static function ( string $set, array $def, string $mode, array $oth
 	$norm = static function ( $v, string $fb ): string {
 		return colorify_cm_normalize( is_string( $v ) ? $v : '', $fb );
 	};
-	if ( $is_dark ) {
-		$a = $norm( $def['bg_dark'] ?? '', '#050f0c' );
-		$b = $norm( $def['bg2_dark'] ?? '', '#0b231c' );
-		$expect_menu = colorify_cm_luminance( $a ) > colorify_cm_luminance( $b ) ? $a : $b;
-	} else {
-		$expect_menu = $norm( $def['bg2_light'] ?? '', '#f7f6f3' );
-	}
+	// Menu w obu trybach: jaśniejszy z pary bg_dark / bg2_dark.
+	$a           = $norm( $def['bg_dark'] ?? '', '#050f0c' );
+	$b           = $norm( $def['bg2_dark'] ?? '', '#0b231c' );
+	$expect_menu = colorify_cm_luminance( $a ) > colorify_cm_luminance( $b ) ? $a : $b;
 	if ( $menu_bg !== $expect_menu ) {
 		$fail( $set, $mode, 'rowne', "menu-background $menu_bg != paleta $expect_menu" );
 	}
+
+	// Rama identyczna w obu trybach (menu, pasek admina, kolory bazowe, ikony SVG, meta, podgląd bez canvas).
+	$frame_keys = array( '--colorify-base-color', '--colorify-text-color', '--colorify-icon-color' );
+	foreach ( array_keys( $css ) as $name ) {
+		if ( 0 === strpos( $name, '--colorify-menu-' ) || 0 === strpos( $name, '--colorify-adminbar-' ) ) {
+			$frame_keys[] = $name;
+		}
+	}
+	foreach ( $frame_keys as $name ) {
+		if ( ( $css[ $name ] ?? null ) !== ( $other['css'][ $name ] ?? null ) ) {
+			$fail( $set, $mode, 'rama rowna w dark i light', "$name rozne w obu trybach" );
+		}
+	}
+	if ( $t['icons'] !== $other['icons'] || $t['meta_theme_color'] !== $other['meta_theme_color']
+		|| $t['preview'][0] !== $other['preview'][0] || $t['preview'][2] !== $other['preview'][2] || $t['preview'][3] !== $other['preview'][3] ) {
+		$fail( $set, $mode, 'rama rowna w dark i light', 'icons / meta_theme_color / preview rozne w obu trybach' );
+	}
+	++$GLOBALS['colorify_test_n_pairs_extra'];
 
 	// 4.3 Akcent treści. canvas jasny liczymy z trybu jasnego tych samych danych.
 	$canvas_light = 'light' === $mode ? $canvas : $other['css']['--colorify-ui-bg'];
@@ -243,8 +258,8 @@ $check_set = static function ( string $set, array $def, string $mode, array $oth
 		$d_text  = $v['--darkreader-text--wp-admin-theme-color'] ?? '';
 		$d_thov  = $v['--darkreader-text--wp-admin-theme-color-darker-10'] ?? '';
 		$pair( $set, $mode, 'text / d_fill', $text, $d_fill, 4.5 );
-		$pair( $set, $mode, 'text / d_fill_hover', $text, $d_hover, 4.5 );
-		$pair( $set, $mode, 'text / d_fill_hover', $text, $v['--darkreader-bg--wp-admin-theme-color-darker-20'] ?? '', 4.5 );
+		$pair( $set, $mode, 'text / d_fill_hover (>=4.6)', $text, $d_hover, 4.6 );
+		$pair( $set, $mode, 'text / d_fill_hover (>=4.6)', $text, $v['--darkreader-bg--wp-admin-theme-color-darker-20'] ?? '', 4.6 );
 		foreach ( array( 'd_text' => $d_text, 'd_text_hover' => $d_thov ) as $label => $c ) {
 			$pair( $set, $mode, $label . ' / surface_high', $c, $surface_high, 4.5 );
 			$pair( $set, $mode, $label . ' / canvas', $c, $canvas, 4.5 );

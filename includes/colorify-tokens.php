@@ -43,6 +43,17 @@ function colorify_tokens_seek_on( string $hex, string $bg, int $dir ): string {
 }
 
 /**
+ * Chroma kandydata, który przejmuje odcień od $source: dla szarości (C źródła poniżej 0.004) odcień jest
+ * nieokreślony, więc chroma = 0 (bez przypadkowego różowego odcienia).
+ *
+ * @param float  $chroma Chroma wzoru.
+ * @param string $source Kolor, od którego pochodzi odcień.
+ */
+function colorify_tokens_chroma( float $chroma, string $source ): float {
+	return colorify_cm_to_oklch( $source )[1] < 0.004 ? 0.0 : $chroma;
+}
+
+/**
  * Przesuwa jasność tła o $delta, ale gdy tekst na przesuniętym tle spadłby poniżej 4.5, przesuwa o -$delta.
  *
  * @param string $bg    Tło #rrggbb.
@@ -96,24 +107,26 @@ function colorify_build_tokens( array $def, string $mode ): array {
 	$accent = $in['accent'];
 	$h_acc  = colorify_cm_to_oklch( $accent )[2];
 
-	// Tryb ciemny: ciemniejszy z pary to tło ekranu, jaśniejszy to menu.
+	// Z pary bg_dark/bg2_dark ciemniejszy to tło ekranu w trybie ciemnym, jaśniejszy to menu w OBU trybach.
 	if ( colorify_cm_luminance( $in['bg_dark'] ) > colorify_cm_luminance( $in['bg2_dark'] ) ) {
 		$dark_canvas_src = $in['bg2_dark'];
-		$dark_menu_bg    = $in['bg_dark'];
+		$menu_bg         = $in['bg_dark'];
 	} else {
 		$dark_canvas_src = $in['bg_dark'];
-		$dark_menu_bg    = $in['bg2_dark'];
+		$menu_bg         = $in['bg2_dark'];
 	}
 
 	// 4.1 Powierzchnie. canvas_light jest potrzebny w obu trybach (akcent treści).
-	$canvas_light = colorify_cm_from_oklch( 0.955, min( colorify_cm_to_oklch( $in['bg2_light'] )[1], 0.012 ), $h_acc );
+	$c_light      = colorify_tokens_chroma( colorify_tokens_chroma( min( colorify_cm_to_oklch( $in['bg2_light'] )[1], 0.012 ), $in['bg2_light'] ), $accent );
+	$canvas_light = colorify_cm_from_oklch( 0.955, $c_light, $h_acc );
 
 	if ( $is_dark ) {
-		$canvas       = colorify_cm_with_l( $dark_canvas_src, min( colorify_cm_to_oklch( $dark_canvas_src )[0], 0.22 ) );
+		$src_lch      = colorify_cm_to_oklch( $dark_canvas_src );
+		$canvas       = colorify_cm_from_oklch( min( $src_lch[0], 0.22 ), colorify_tokens_chroma( $src_lch[1], $dark_canvas_src ), $src_lch[2] );
 		$surface      = colorify_cm_shift_l( $canvas, 0.035 );
 		$surface2     = colorify_cm_shift_l( $surface, 0.03 );
 		$surface_high = colorify_cm_shift_l( $surface, 0.07 );
-		$text         = colorify_cm_from_oklch( 0.93, 0.01, $h_acc );
+		$text         = colorify_cm_from_oklch( 0.93, colorify_tokens_chroma( 0.01, $accent ), $h_acc );
 		$text_muted   = colorify_cm_seek(
 			colorify_cm_mix( $text, $surface, 0.38 ),
 			static function ( $c ) use ( $surface2 ) {
@@ -122,7 +135,6 @@ function colorify_build_tokens( array $def, string $mode ): array {
 			1
 		);
 		$border       = colorify_cm_mix( $surface, $text, 0.18 );
-		$menu_bg      = $dark_menu_bg;
 	} else {
 		$canvas       = $canvas_light;
 		$surface      = $white;
@@ -131,16 +143,15 @@ function colorify_build_tokens( array $def, string $mode ): array {
 		$text         = '#1e1e1e';
 		$text_muted   = '#50575e';
 		$border       = '#dcdcde';
-		$menu_bg      = $in['bg2_light'];
 	}
 
-	// 4.2 Rama: menu boczne i górny pasek.
+	// 4.2 Rama: menu boczne i górny pasek (te same wartości w obu trybach).
 	$h_menu    = colorify_cm_to_oklch( $menu_bg )[2];
 	$menu_dark = colorify_cm_luminance( $menu_bg ) < 0.2;
 	$menu_text = colorify_cm_on(
 		$menu_bg,
-		colorify_cm_from_oklch( 0.18, 0.02, $h_menu ),
-		colorify_cm_from_oklch( 0.96, 0.008, $h_menu )
+		colorify_cm_from_oklch( 0.18, colorify_tokens_chroma( 0.02, $menu_bg ), $h_menu ),
+		colorify_cm_from_oklch( 0.96, colorify_tokens_chroma( 0.008, $menu_bg ), $h_menu )
 	);
 	$toward    = colorify_cm_luminance( $menu_text ) >= colorify_cm_luminance( $menu_bg ) ? 1 : -1;
 	$menu_icon = colorify_tokens_seek_on( colorify_cm_mix( $menu_text, $menu_bg, 0.30 ), $menu_bg, $toward );
@@ -155,17 +166,16 @@ function colorify_build_tokens( array $def, string $mode ): array {
 			$menu_dark ? 1 : -1
 		);
 	}
-	$on_fill = colorify_cm_on( $fill, colorify_cm_from_oklch( 0.18, 0.03, $h_acc ), $white );
+	$on_fill = colorify_cm_on( $fill, colorify_cm_from_oklch( 0.18, colorify_tokens_chroma( 0.03, $accent ), $h_acc ), $white );
 
-	// ODCHYLENIE OD SPECYFIKACJI 4.2 (dziura, patrz zwrot workera): przesunięcie tła, które zbliża je do
-	// koloru tekstu menu i obniża kontrast poniżej 4.5, odbijamy na drugą stronę. Przy menu o luminancji
-	// około 0.12 do 0.30 spec dawał trzy tła po obu stronach progu czerń/biel, więc żaden wspólny tekst nie istniał.
+	// Przesunięcie tła, które obniża kontrast tekstu menu poniżej 4.5, jest odbijane na drugą stronę. Przy menu
+	// o luminancji około 0.12 do 0.30 tła leżałyby po obu stronach progu czerń/biel i żaden wspólny tekst by nie istniał.
 	$submenu_bg     = colorify_tokens_shift_away( $menu_bg, $menu_dark ? -0.035 : 0.03, $menu_text );
 	$submenu_bg_alt = colorify_tokens_shift_away( $menu_bg, $menu_dark ? 0.05 : -0.04, $menu_text );
 	$three_bgs      = array( $submenu_bg, $submenu_bg_alt, $menu_bg );
 
 	$submenu_text       = colorify_tokens_seek_on_all( colorify_cm_mix( $menu_text, $menu_bg, 0.25 ), $three_bgs, $toward );
-	// Kierunek wg strony tekstu menu ($toward), nie wg progu luminancji 0.2 (spec: "+1 gdy menu ciemne").
+	// Kierunek wg strony tekstu menu ($toward), nie wg progu luminancji 0.2.
 	$submenu_focus_text = colorify_tokens_seek_on_all( $accent, $three_bgs, $toward );
 
 	$adminbar_bg = colorify_tokens_shift_away( $menu_bg, $menu_dark ? 0.06 : -0.05, $menu_text );
@@ -231,7 +241,7 @@ function colorify_build_tokens( array $def, string $mode ): array {
 			},
 			-1
 		);
-		$d_fill       = colorify_cm_shift_l( $d_fill, -0.02 );
+		$d_fill       = colorify_cm_shift_l( $d_fill, -0.03 );
 		$d_fill_hover = colorify_cm_shift_l( $d_fill, 0.02 );
 		$d_text       = colorify_cm_seek(
 			$accent,

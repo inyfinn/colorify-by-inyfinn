@@ -46,6 +46,8 @@
 		// Same-origin stylesheets are read directly; fetch is only used for the rest.
 		DR.setFetchMethod( w.fetch.bind( w ) );
 		DR.enable( args.theme, args.fixes );
+		// The dark canvas colour is tied to this class, so a failed engine leaves a readable light page.
+		d.documentElement.classList.add( 'colorify-dr' );
 	}
 
 	function setTokens( payload ) {
@@ -91,6 +93,7 @@
 			if ( w.DarkReader && w.DarkReader.isEnabled() ) {
 				w.DarkReader.disable();
 			}
+			d.documentElement.classList.remove( 'colorify-dr' );
 			done = Promise.resolve();
 		}
 
@@ -117,6 +120,10 @@
 	// First paint. In dark mode the engine script is already on the page (enqueued before this file).
 	var first = state.payloads[ state.mode ];
 	if ( state.mode === 'dark' && w.DarkReader && first && first.dark ) {
-		enable( w.DarkReader, first.dark );
+		try {
+			enable( w.DarkReader, first.dark );
+		} catch ( e ) {
+			d.documentElement.classList.remove( 'colorify-dr' );
+		}
 	}
 } )( window, document );
