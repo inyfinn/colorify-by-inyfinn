@@ -328,11 +328,8 @@ function colorify_get_effective_appearance_mode( int $user_id = 0 ): string {
 		return colorify_admin_get_appearance_mode( $user_id );
 	}
 
-	if ( colorify_uses_global_settings() ) {
-		return colorify_get_global_appearance_mode();
-	}
-
-	return colorify_admin_get_appearance_mode( $user_id );
+	// Bez własnego wyboru: wygląd witryny z Ustawienia → Colorify, w obu zakresach.
+	return colorify_get_global_appearance_mode();
 }
 
 /**
@@ -365,11 +362,7 @@ function colorify_get_effective_custom_colors( int $user_id = 0 ): array {
 		return colorify_admin_get_custom_colors( $user_id );
 	}
 
-	if ( colorify_uses_global_settings() ) {
-		return colorify_get_global_custom_colors();
-	}
-
-	return colorify_admin_get_custom_colors( $user_id );
+	return colorify_get_global_custom_colors();
 }
 
 /**
@@ -383,11 +376,7 @@ function colorify_get_effective_custom_tuning( int $user_id = 0 ): array {
 		return colorify_admin_get_custom_tuning( $user_id );
 	}
 
-	if ( colorify_uses_global_settings() ) {
-		return colorify_get_global_custom_tuning();
-	}
-
-	return colorify_admin_get_custom_tuning( $user_id );
+	return colorify_get_global_custom_tuning();
 }
 
 /**
@@ -405,11 +394,7 @@ function colorify_get_effective_admin_color( int $user_id = 0 ): string {
 		return 'colorify-lime';
 	}
 
-	if ( colorify_uses_global_settings() ) {
-		return colorify_get_global_admin_color();
-	}
-
-	return 'colorify-lime';
+	return colorify_get_global_admin_color();
 }
 
 /**

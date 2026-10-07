@@ -112,7 +112,7 @@ function colorify_engine_tokens_css( array $tokens ): string {
 	$vars = isset( $tokens['css'] ) && is_array( $tokens['css'] ) ? $tokens['css'] : array();
 
 	if ( 'dark' !== ( $tokens['mode'] ?? '' ) || ! isset( $vars['--colorify-body-background'] ) ) {
-		return 'body{' . colorify_engine_declarations( $vars ) . '}';
+		return 'html,body{' . colorify_engine_declarations( $vars ) . '}';
 	}
 
 	// Ciemne tło ekranu dopiero wtedy, gdy silnik trybu ciemnego naprawdę maluje stronę: sam ustawia
@@ -122,8 +122,8 @@ function colorify_engine_tokens_css( array $tokens ): string {
 	$canvas                             = $vars['--colorify-body-background'];
 	$vars['--colorify-body-background'] = '#f0f0f0';
 
-	return 'body{' . colorify_engine_declarations( $vars ) . '}'
-		. 'html[data-darkreader-scheme] body{' . colorify_engine_declarations( array( '--colorify-body-background' => $canvas ) ) . '}';
+	return 'html,body{' . colorify_engine_declarations( $vars ) . '}'
+		. 'html[data-darkreader-scheme],html[data-darkreader-scheme] body{' . colorify_engine_declarations( array( '--colorify-body-background' => $canvas ) ) . '}';
 }
 
 /**

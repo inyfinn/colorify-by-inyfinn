@@ -99,6 +99,10 @@ const PATCHES = [
 
 // Rules that core does not have and a non-default menu colour needs.
 const EXTRA_CHROME = `
+/* Colorify: core sets html and body to height 100%, so below the first screen the html background shows. */
+html {
+  background: var(--colorify-body-background);
+}
 /* Colorify: the mobile menu toggle icon sits on the highlight colour when the menu is open. */
 .wp-responsive-open div#wp-responsive-toggle a:before {
   color: var(--colorify-menu-highlight-icon);
