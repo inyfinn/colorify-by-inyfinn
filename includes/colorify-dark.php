@@ -125,5 +125,27 @@ function colorify_dark_enqueue(): void {
 		'before'
 	);
 }
+/**
+ * Strażnik kontrastu: po ustaniu zmian kolorów poprawia pojedyncze teksty poniżej WCAG AA.
+ */
+function colorify_guard_enqueue(): void {
+	if ( ! colorify_engine_is_active() ) {
+		return;
+	}
+
+	/**
+	 * Wyłącznik strażnika kontrastu.
+	 *
+	 * @param bool $enabled Czy ładować strażnika.
+	 */
+	if ( ! apply_filters( 'colorify_contrast_guard', true ) ) {
+		return;
+	}
+
+	wp_enqueue_script( 'colorify-guard', COLORIFY_PLUGIN_URL . 'assets/colorify-guard.js', array(), COLORIFY_PLUGIN_VERSION, true );
+}
+add_action( 'admin_enqueue_scripts', 'colorify_guard_enqueue', 100 );
+add_action( 'customize_controls_enqueue_scripts', 'colorify_guard_enqueue', 100 );
+
 add_action( 'admin_enqueue_scripts', 'colorify_dark_enqueue', 1 );
 add_action( 'customize_controls_enqueue_scripts', 'colorify_dark_enqueue', 1 );
