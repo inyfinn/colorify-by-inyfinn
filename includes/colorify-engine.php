@@ -191,14 +191,18 @@ function colorify_engine_preview_tokens( string $scheme, ?array $custom, array $
 
 	foreach ( array( 'dark', 'light' ) as $mode ) {
 		if ( COLORIFY_ADMIN_CUSTOM_SCHEME_KEY === $scheme && null !== $custom ) {
-			$colors = colorify_admin_apply_custom_tuning_colors( colorify_admin_sanitize_custom_colors( $custom ), $mode, $tuning );
-			$def    = array(
-				'accent'      => $colors['accent'],
-				'accent_soft' => $colors['accent2'],
-				'bg_dark'     => $colors['bg'],
-				'bg2_dark'    => $colors['bg2'],
-				'bg_light'    => $colors['bg'],
-				'bg2_light'   => $colors['bg2'],
+			// Tak samo jak colorify_admin_get_resolved_scheme() dla własnej palety: tła ciemne z dostrojenia
+			// trybu ciemnego, jasne z jasnego, akcent z ciemnego. Podgląd musi dać to samo co zapis.
+			$clean = colorify_admin_sanitize_custom_colors( $custom );
+			$dark  = colorify_admin_apply_custom_tuning_colors( $clean, 'dark', $tuning );
+			$light = colorify_admin_apply_custom_tuning_colors( $clean, 'light', $tuning );
+			$def   = array(
+				'accent'      => $dark['accent'],
+				'accent_soft' => $dark['accent2'],
+				'bg_dark'     => $dark['bg'],
+				'bg2_dark'    => $dark['bg2'],
+				'bg_light'    => $light['bg'],
+				'bg2_light'   => $light['bg2'],
 			);
 		} else {
 			$def = colorify_admin_get_resolved_scheme( $scheme, get_current_user_id() );
