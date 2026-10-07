@@ -1,0 +1,14 @@
+{
+	"name": "colorify-tools",
+	"private": true,
+	"description": "Development tools for Colorify by INYFINN. Not shipped in the plugin zip.",
+	"type": "module",
+	"scripts": {
+		"build:css": "node build-scheme-css.mjs",
+		"verify:css": "node build-scheme-css.mjs --verify"
+	},
+	"devDependencies": {
+		"postcss": "^8.4.49",
+		"sass": "^1.83.0"
+	}
+}
