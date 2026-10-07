@@ -594,3 +594,174 @@ function colorify_admin_print_tuning_modal_mount(): void {
 	colorify_admin_tuning_modal_markup( $user );
 }
 add_action( 'admin_footer', 'colorify_admin_print_tuning_modal_mount', 20 );
+
+/**
+ * Czy bieżący ekran to edytor wyglądu (profil / ustawienia wtyczki).
+ */
+function colorify_is_appearance_editor_screen(): bool {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	return $screen && in_array(
+		$screen->id,
+		array( 'profile', 'user-edit', 'settings_page_colorify-by-inyfinn' ),
+		true
+	);
+}
+
+/**
+ * Ekran WordPress Customizer (customize.php).
+
+/**
+ * JS edytora wyglądu — wyłącznie profil / ustawienia Colorify.
+ *
+ * @param int $context_user_id User ID.
+ */
+function colorify_enqueue_appearance_editor_script( int $context_user_id ): void {
+	$appearance_deps = array( 'jquery' );
+	if ( wp_script_is( 'user-profile', 'registered' ) ) {
+		$appearance_deps[] = 'user-profile';
+	}
+
+	wp_enqueue_script(
+		'colorify-admin-appearance',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-admin-appearance.js',
+		$appearance_deps,
+		COLORIFY_PLUGIN_VERSION,
+		true
+	);
+
+	$scheme = colorify_get_effective_admin_color( $context_user_id );
+
+	wp_localize_script(
+		'colorify-admin-appearance',
+		'colorifyAdminAppearance',
+		colorify_admin_appearance_script_config( $context_user_id, $scheme )
+	);
+}
+
+/**
+ * @param int    $context_user_id User ID.
+ * @param string $scheme          Klucz schematu.
+ * @return array<string,mixed>
+ */
+function colorify_admin_appearance_script_config( int $context_user_id, string $scheme ): array {
+	$can_save_mode = true;
+	$screen        = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	if ( $screen && 'user-edit' === $screen->base && isset( $_GET['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$edit_user = (int) $_GET['user_id']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $edit_user !== get_current_user_id() ) {
+			$can_save_mode = false;
+		}
+	}
+
+	return array(
+		'scheme'          => $scheme,
+		'themeEnabled'    => colorify_is_user_theme_enabled( $context_user_id ) ? '1' : '0',
+		'mode'            => colorify_get_effective_appearance_mode( $context_user_id ),
+		'schemes'         => colorify_admin_schemes_for_js(),
+		'previews'        => colorify_admin_previews_for_js(),
+		'schemeOrder'     => colorify_admin_scheme_order_for_js(),
+		'customColors'    => colorify_get_effective_custom_colors( $context_user_id ),
+		'customTuning'    => colorify_get_effective_custom_tuning( $context_user_id ),
+		'tuningMin'       => COLORIFY_ADMIN_TUNING_MIN,
+		'tuningMax'       => COLORIFY_ADMIN_TUNING_MAX,
+		'tuningWarn'      => COLORIFY_ADMIN_TUNING_WARN,
+		'tuningSensAnchorSoft'   => COLORIFY_ADMIN_TUNING_SENS_ANCHOR_SOFT,
+		'tuningSensAnchorStrong' => COLORIFY_ADMIN_TUNING_SENS_ANCHOR_STRONG,
+		'tuningSensRefLow'       => COLORIFY_ADMIN_TUNING_SENS_REF_LOW,
+		'tuningSensRefHigh'      => COLORIFY_ADMIN_TUNING_SENS_REF_HIGH,
+		'customSchemeKey' => COLORIFY_ADMIN_CUSTOM_SCHEME_KEY,
+		'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+		'nonce'           => wp_create_nonce( 'colorify-admin-appearance' ),
+		'canSaveMode'     => $can_save_mode,
+		'settingsScope'   => colorify_get_settings_scope(),
+		'scopeBundles'    => array(
+			'global' => colorify_get_scope_appearance_bundle( 'global', $context_user_id ),
+			'user'   => colorify_get_scope_appearance_bundle( 'user', $context_user_id ),
+		),
+		'canManageGlobal'       => current_user_can( 'manage_options' ) ? '1' : '0',
+		'hasUserPersonalScheme' => colorify_user_has_personal_appearance( $context_user_id ) ? '1' : '0',
+		'isSettingsPage'  => $screen && 'settings_page_colorify-by-inyfinn' === $screen->id,
+		'modeBarLabel'    => colorify_i18n( 'Panel mode', 'Tryb panelu' ),
+		'i18n'            => array(
+			'dark'          => colorify_i18n( 'Dark', 'Ciemny' ),
+			'light'         => colorify_i18n( 'Light', 'Jasny' ),
+			'changeStyle'   => colorify_i18n( 'Change style', 'Zmień styl' ),
+			'panelMode'     => colorify_i18n( 'Panel mode', 'Tryb panelu' ),
+			'toggleMode'    => colorify_i18n( 'Toggle dark or light mode', 'Przełącz tryb jasny/ciemny' ),
+			'themeOff'      => colorify_i18n( 'Off', 'Wył.' ),
+			'themeOn'       => colorify_i18n( 'On', 'Wł.' ),
+			'toggleTheme'   => colorify_i18n( 'Toggle Colorify styling', 'Włącz/wyłącz styl Colorify' ),
+			'scopeGlobalHint' => colorify_i18n(
+				'Preview: global site colors (login and default panel). Changes here update login.',
+				'Podgląd: globalne kolory witryny (logowanie i domyślny panel). Zmiany tutaj aktualizują login.'
+			),
+			'scopeUserHint' => colorify_i18n(
+				'Preview: your personal color scheme saved in profile.',
+				'Podgląd: Twój osobisty schemat zapisany w profilu.'
+			),
+			'scopeUserDefaultHint' => colorify_i18n(
+				'Preview: per-user mode. Pick a scheme below to save your personal style.',
+				'Podgląd: tryb per użytkownik. Wybierz schemat poniżej, aby zapisać własny styl.'
+			),
+			'saving'     => colorify_i18n( 'Saving…', 'Zapisywanie…' ),
+			'saved'      => colorify_i18n( 'Saved.', 'Zapisano.' ),
+			'saveFailed' => colorify_i18n( 'Could not save.', 'Nie udało się zapisać.' ),
+			'settingsScopeLabels' => array(
+				'user'   => colorify_i18n(
+					'Per user — each user sets colors in profile',
+					'Per użytkownik — każdy ustawia kolory w profilu'
+				),
+				'global' => colorify_i18n(
+					'Global default — fallback without personal style',
+					'Globalne domyślne — fallback bez własnego stylu'
+				),
+			),
+		),
+		'schemesPanelUrl' => colorify_admin_schemes_panel_url(),
+		'assets'          => array(
+			'branding'  => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css' ),
+			'overrides' => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-admin-overrides.css' ),
+			'settings'  => add_query_arg( 'ver', COLORIFY_PLUGIN_VERSION, COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css' ),
+		),
+	);
+}
+
+/**
+ * Główny CSS motywu — jeden plik na typowych stronach admina.
+
+/**
+ * CSS edytora (profil / ustawienia) — tylko siatka schematów.
+ */
+function colorify_enqueue_appearance_editor_styles(): void {
+	wp_enqueue_style(
+		'colorify-settings',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
+		array( 'colorify-admin-overrides' ),
+		COLORIFY_PLUGIN_VERSION
+	);
+}
+
+/**
+ * Profil / ustawienia Colorify przy wyłączonym motywie — tylko UI wtyczki, bez nadpisywania całego wp-admin.
+ */
+function colorify_enqueue_personalization_assets_when_theme_off(): void {
+	if ( colorify_is_user_theme_enabled() ) {
+		return;
+	}
+
+	if ( ! colorify_is_appearance_editor_screen() ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'colorify-settings',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-settings.css',
+		array(),
+		COLORIFY_PLUGIN_VERSION
+	);
+}
+
+/**
+ * CSS WordPress Customizer (dark + light).

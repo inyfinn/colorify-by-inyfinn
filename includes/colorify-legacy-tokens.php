@@ -272,7 +272,6 @@ function colorify_register_admin_color_schemes(): void {
 		);
 	}
 }
-add_action( 'admin_init', 'colorify_register_admin_color_schemes', 99 );
 
 /**
  * @param mixed $value Option value.
@@ -305,7 +304,6 @@ function colorify_default_admin_color( $value ): string {
 
 	return 'colorify-lime';
 }
-add_filter( 'get_user_option_admin_color', 'colorify_default_admin_color' );
 
 /**
  * Tokeny CSS — wyłącznie globalne ustawienia (login).
@@ -455,7 +453,6 @@ function colorify_admin_scheme_inline_css(): void {
 	}
 	echo '<style id="colorify-scheme-vars">' . colorify_admin_scheme_root_css() . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
-add_action( 'admin_head', 'colorify_admin_scheme_inline_css', 5 );
 
 /**
  * Login: globalny schemat (head + przed colorify-branding.css).
@@ -482,7 +479,6 @@ function colorify_admin_scheme_late_inline_style(): void {
 	}
 	wp_add_inline_style( 'colorify-admin-overrides', colorify_admin_scheme_root_css() );
 }
-add_action( 'admin_enqueue_scripts', 'colorify_admin_scheme_late_inline_style', 100000 );
 
 /**
  * @param string $classes Space-separated admin body classes.
@@ -497,7 +493,6 @@ function colorify_admin_body_class( string $classes ): string {
 	}
 	return trim( preg_replace( '/\bcolorify-admin-light\b/', '', $classes ) );
 }
-add_filter( 'admin_body_class', 'colorify_admin_body_class' );
 
 /**
  * Atrybut trybu na <html> (bez JS — statycznie z PHP).
@@ -514,7 +509,6 @@ function colorify_admin_html_mode_attribute( string $output ): string {
 
 	return trim( $output . ' data-colorify-admin-mode="' . esc_attr( $mode ) . '"' );
 }
-add_filter( 'language_attributes', 'colorify_admin_html_mode_attribute', 20 );
 
 /**
  * Login — tryb zawsze z ustawień globalnych.
