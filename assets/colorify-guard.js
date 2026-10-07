@@ -17,9 +17,9 @@
  * Icon fonts drawn in ::before (menu icons, dashicons) are measured too, against 3:1.
  *
  * How a fix is applied: the element gets data-colorify-guard="N" and one generated rule
- *   [data-colorify-guard="N"]:not(:hover):not(:focus):not(:active) { color: ... !important }
- * so the fix only holds in the resting state it was measured in; hover and focus colours
- * of the page stay as designed. On every pass fixed elements are measured again without
+ *   [data-colorify-guard="N"]:not(:hover):not(:active) { color: ... !important }
+ * (also dropped while the link or button around it is hovered or pressed), so the fix only
+ * holds in the resting state it was measured in and the page's own hover colours stay as designed. On every pass fixed elements are measured again without
  * the fix, so a fix disappears as soon as it is no longer needed.
  *
  * Opt out for a subtree: data-colorify-guard-skip. Switch off entirely: PHP filter
@@ -168,7 +168,9 @@
 	var sheet = null;
 
 	function rule( index, colour ) {
-		var sel = '[' + ATTR + '="' + index + '"]:not(:hover):not(:focus):not(:active)';
+		// Resting state only: not while the element, or the link or button it sits in, is hovered or pressed.
+		var busy = ':is(a,button,[role="button"],summary,label):is(:hover,:active)';
+		var sel = '[' + ATTR + '="' + index + '"]:not(:hover):not(:active):not(' + busy + ' *)';
 		return sel + ',' + sel + '::before{color:' + colour + '!important;-webkit-text-fill-color:' + colour + '!important}';
 	}
 
@@ -195,13 +197,13 @@
 	/* ---------- one element ---------- */
 
 	function check( el, cache ) {
+		// Hover and pressed states are transient: leave the element (and any fix it has) alone.
+		if ( el.matches( ':hover, :active' ) || el.closest( 'a:hover, button:hover, [role="button"]:hover, summary:hover, label:hover' ) ) {
+			return;
+		}
 		// Measure the page's own colours, not an earlier fix.
 		if ( el.hasAttribute( ATTR ) ) {
 			el.removeAttribute( ATTR );
-		}
-		// Hover and pressed states are transient; a fix measured in them would be wrong at rest.
-		if ( el.matches( ':hover, :active' ) ) {
-			return;
 		}
 		if ( el.checkVisibility && ! el.checkVisibility( { checkOpacity: true, checkVisibilityCSS: true } ) ) {
 			return;
@@ -375,7 +377,8 @@
 	// The dark engine works asynchronously and has no "done" event. Its start-up style
 	// (.darkreader--fallback) is emptied once the first full pass is over.
 	function engineSettled() {
-		if ( ! dark() ) {
+		// No engine on the page (light mode, or it was blocked): nothing to wait for.
+		if ( ! dark() || ! d.documentElement.hasAttribute( 'data-darkreader-scheme' ) ) {
 			return true;
 		}
 		var fallback = d.querySelector( '.darkreader--fallback' );

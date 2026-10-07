@@ -45,9 +45,9 @@
 	function enable( DR, args ) {
 		// Same-origin stylesheets are read directly; fetch is only used for the rest.
 		DR.setFetchMethod( w.fetch.bind( w ) );
+		// The dark canvas colour hangs on html[data-darkreader-scheme], which the engine sets itself
+		// while it is really painting, so a blocked or refused engine leaves a readable light page.
 		DR.enable( args.theme, args.fixes );
-		// The dark canvas colour is tied to this class, so a failed engine leaves a readable light page.
-		d.documentElement.classList.add( 'colorify-dr' );
 	}
 
 	function setTokens( payload ) {
@@ -93,7 +93,6 @@
 			if ( w.DarkReader && w.DarkReader.isEnabled() ) {
 				w.DarkReader.disable();
 			}
-			d.documentElement.classList.remove( 'colorify-dr' );
 			done = Promise.resolve();
 		}
 
@@ -122,8 +121,6 @@
 	if ( state.mode === 'dark' && w.DarkReader && first && first.dark ) {
 		try {
 			enable( w.DarkReader, first.dark );
-		} catch ( e ) {
-			d.documentElement.classList.remove( 'colorify-dr' );
-		}
+		} catch ( e ) {}
 	}
 } )( window, document );
