@@ -7,9 +7,14 @@
  * the text colour towards the readable end until it passes. Nothing else is touched:
  * no backgrounds, no layout.
  *
- * Scope: dark mode only. The dark engine recolours unknown plugin styles and a few
- * saturated colours can land under AA. In light mode the content keeps WordPress colours
- * and the menu stays dark like in core, so there is nothing to repair.
+ * Scope:
+ *   dark mode   whole admin page (the dark engine recolours unknown plugin styles and a
+ *               few saturated colours can land under AA)
+ *   light mode  admin menu and admin bar only. Content keeps WordPress colours, but plugins
+ *               paint their own menu items (a fixed background for the current item) and
+ *               count on core's white menu text, which a scheme may have replaced.
+ *
+ * Icon fonts drawn in ::before (menu icons, dashicons) are measured too, against 3:1.
  *
  * How a fix is applied: the element gets data-colorify-guard="N" and one generated rule
  *   [data-colorify-guard="N"]:not(:hover):not(:focus):not(:active) { color: ... !important }
@@ -29,6 +34,8 @@
 	var ATTR = 'data-colorify-guard';
 	var SKIP = '[data-colorify-guard-skip], script, style, noscript, template, svg, canvas, video, iframe, option';
 	var DISABLED = ':disabled, [aria-disabled="true"], .disabled, .button-disabled';
+	var ICONS = '.wp-menu-image, .dashicons, .dashicons-before, .ab-icon';
+	var UI_MIN = 3;
 	var FIELDS = 'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), textarea, select';
 
 	/* ---------- colour ---------- */
@@ -162,7 +169,7 @@
 
 	function rule( index, colour ) {
 		var sel = '[' + ATTR + '="' + index + '"]:not(:hover):not(:focus):not(:active)';
-		return sel + '{color:' + colour + '!important;-webkit-text-fill-color:' + colour + '!important}';
+		return sel + ',' + sel + '::before{color:' + colour + '!important;-webkit-text-fill-color:' + colour + '!important}';
 	}
 
 	function slot( colour ) {
@@ -202,6 +209,15 @@
 		var cs = w.getComputedStyle( el );
 		var fill = cs.webkitTextFillColor;
 		var fg = parse( fill && fill !== cs.color ? fill : cs.color );
+		// An icon element without text of its own: the glyph lives in ::before.
+		var icon = el.matches( ICONS ) && ! el.textContent.trim();
+		if ( icon ) {
+			var before = w.getComputedStyle( el, '::before' );
+			if ( ! before.content || before.content === 'none' || before.content === 'normal' ) {
+				return;
+			}
+			fg = parse( before.color );
+		}
 		if ( fg.a === 0 ) {
 			return;
 		}
@@ -213,7 +229,7 @@
 		var alpha = fg.a * around.op;
 		var size = parseFloat( cs.fontSize );
 		var bold = parseInt( cs.fontWeight, 10 ) >= 700;
-		var min = size >= 24 || ( size >= 18.66 && bold ) ? AA_LARGE : AA;
+		var min = icon ? UI_MIN : ( size >= 24 || ( size >= 18.66 && bold ) ? AA_LARGE : AA );
 		if ( contrast( over( { r: fg.r, g: fg.g, b: fg.b, a: alpha }, bg ), bg ) >= min ) {
 			return;
 		}
@@ -244,8 +260,10 @@
 	}
 
 	function scopes() {
-		// Light mode keeps WordPress content colours and a dark menu like core: nothing to guard.
-		return dark() ? [ d.body ] : [];
+		if ( dark() ) {
+			return [ d.body ];
+		}
+		return [ d.getElementById( 'adminmenumain' ), d.getElementById( 'wpadminbar' ) ].filter( Boolean );
 	}
 
 	function inScope( el ) {
@@ -272,9 +290,9 @@
 		}
 		if ( root.querySelectorAll ) {
 			// Earlier fixes need a second look even when their text is gone; form fields show text that is not a text node.
-			Array.prototype.forEach.call( root.querySelectorAll( '[' + ATTR + '], ' + FIELDS ), add );
+			Array.prototype.forEach.call( root.querySelectorAll( '[' + ATTR + '], ' + FIELDS + ', ' + ICONS ), add );
 		}
-		if ( root.matches && root.matches( '[' + ATTR + '], ' + FIELDS ) ) {
+		if ( root.matches && root.matches( '[' + ATTR + '], ' + FIELDS + ', ' + ICONS ) ) {
 			add( root );
 		}
 		return list;
