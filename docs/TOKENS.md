@@ -162,6 +162,12 @@ albo `var(--darkreader-border--…)` zależnie od roli. Te zmienne ustawiamy sam
 | `--colorify-ui-accent-fill` / `--colorify-ui-on-accent` | `theme` / `#ffffff` | `d_fill` / `text` |
 | `--colorify-ui-brand` / `--colorify-ui-on-brand` (jaskrawy akcent marki) | `fill` / `on_fill` | `fill` / `on_fill` |
 | `--colorify-ui-focus` | `theme` | `d_text` |
+| `--colorify-ui-warning` | `seek( #996800, cr >= AA_SAFE na surface ORAZ surface2, -1 )` | `seek( #e0b040, cr >= AA_SAFE na surface ORAZ surface2, +1 )` |
+| `--colorify-ui-danger` | `seek( #d63638, ..., -1 )` | `seek( #ff8a80, ..., +1 )` |
+| `--colorify-ui-success` | `seek( #006e1b, ..., -1 )` | `seek( #7fd88a, ..., +1 )` |
+
+Trzy ostatnie tokeny (stany) to kolor tekstu i ikon na `surface` i `surface2`, kontrast co najmniej AA_SAFE na obu.
+Punkty startowe to kolory rdzenia WordPressa, nie zależą od palety usera.
 
 ### 4.6 Pozostałe
 

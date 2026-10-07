@@ -67,6 +67,7 @@ $required_css = array(
 	'--colorify-ui-bg', '--colorify-ui-surface', '--colorify-ui-surface-2', '--colorify-ui-border',
 	'--colorify-ui-text', '--colorify-ui-text-muted', '--colorify-ui-accent', '--colorify-ui-accent-fill',
 	'--colorify-ui-on-accent', '--colorify-ui-brand', '--colorify-ui-on-brand', '--colorify-ui-focus',
+	'--colorify-ui-warning', '--colorify-ui-danger', '--colorify-ui-success',
 );
 $required_dark_vars = array();
 foreach ( array( 'bg', 'text', 'border' ) as $role ) {
@@ -275,6 +276,11 @@ $check_set = static function ( string $set, array $def, string $mode, array $oth
 	foreach ( array( $surface, $surface2, $canvas ) as $bg ) {
 		$pair( $set, $mode, 'ui-accent / surface, surface2, canvas', $accent, $bg, 4.5 );
 		$pair( $set, $mode, 'ui-focus / surface, surface2, canvas', $g( '--colorify-ui-focus' ), $bg, 4.5 );
+	}
+	foreach ( array( 'warning', 'danger', 'success' ) as $state ) {
+		foreach ( array( $surface, $surface2 ) as $bg ) {
+			$pair( $set, $mode, 'ui-' . $state . ' / surface, surface2', $g( '--colorify-ui-' . $state ), $bg, COLORIFY_CM_AA_SAFE );
+		}
 	}
 	$pair( $set, $mode, 'ui-on-accent / ui-accent-fill', $g( '--colorify-ui-on-accent' ), $g( '--colorify-ui-accent-fill' ), 4.5 );
 	$pair( $set, $mode, 'ui-on-brand / ui-brand', $g( '--colorify-ui-on-brand' ), $g( '--colorify-ui-brand' ), 4.5 );

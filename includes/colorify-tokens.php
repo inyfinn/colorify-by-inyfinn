@@ -298,6 +298,22 @@ function colorify_build_tokens( array $def, string $mode ): array {
 	$css['--colorify-ui-on-brand']    = $on_fill;
 	$css['--colorify-ui-focus']       = $ui_accent;
 
+	// Stany semantyczne (tekst i ikony na surface oraz surface2): start z kolorów rdzenia WP, potem seek do AA_SAFE.
+	$state_start = $is_dark
+		? array(
+			'warning' => '#e0b040',
+			'danger'  => '#ff8a80',
+			'success' => '#7fd88a',
+		)
+		: array(
+			'warning' => '#996800',
+			'danger'  => '#d63638',
+			'success' => '#006e1b',
+		);
+	foreach ( $state_start as $state => $start ) {
+		$css[ '--colorify-ui-' . $state ] = colorify_tokens_seek_on_all( $start, array( $surface, $surface2 ), $is_dark ? 1 : -1 );
+	}
+
 	return array(
 		'mode'             => $mode,
 		'css'              => $css,
