@@ -1,6 +1,6 @@
 <?php
 /**
- * Sparkle button — wspólny markup (login + toolbar).
+ * Sparkle button: markup i zasoby przycisku strony logowania (pasek w panelu go nie używa).
  *
  * @package ColorifyByInyfinn
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * SVG sparkle — Uiverse.io by AlimurtuzaCodes (login).
+ * SVG sparkle: Uiverse.io by AlimurtuzaCodes (login).
  */
 function colorify_login_btn_sparkle_svg(): string {
 	return '<svg class="colorify-login-btn__sparkle" height="24" width="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
@@ -17,7 +17,7 @@ function colorify_login_btn_sparkle_svg(): string {
 }
 
 /**
- * Markup login button — jeden element, bez warstw (Uiverse / AlimurtuzaCodes).
+ * Markup login button: jeden element, bez warstw (Uiverse / AlimurtuzaCodes).
  */
 function colorify_login_btn_inner_html(): string {
 	return colorify_login_btn_sparkle_svg()
@@ -25,42 +25,7 @@ function colorify_login_btn_inner_html(): string {
 }
 
 /**
- * Wewnętrzna dekoracja — tylko toolbar „Zmień styl”.
- */
-function colorify_sparkle_button_layers(): string {
-	return '<span class="colorify-sparkle-button__spark" aria-hidden="true"></span>'
-		. '<span class="colorify-sparkle-button__backdrop" aria-hidden="true"></span>'
-		. colorify_sparkle_stars_svg();
-}
-
-/**
- * SVG gwiazdek — toolbar (JkHuger, kompakt).
- */
-function colorify_sparkle_stars_svg(): string {
-	return '<svg class="colorify-sparkle-button__stars" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">'
-		. '<path d="M14 4l1.2 3.6L19 9l-3.8 1.4L14 14l-1.2-3.6L9 9l3.8-1.4L14 4z"/>'
-		. '<path d="M6 6l.8 2.4L9 9l-2.2.8L6 12l-.8-2.2L3 9l2.2-.8L6 6z"/>'
-		. '<path d="M18 14l.9 2.7L22 18l-2.7.9L18 22l-.9-2.7L14 18l2.7-.9L18 14z"/>'
-		. '</svg>';
-}
-
-/**
- * Link „Zmień styl” ze sparkle (kompaktowy glow, overflow w wrapie).
- *
- * @param string $url   URL profilu / schematów.
- * @param string $label Etykieta.
- */
-function colorify_sparkle_change_style_link_html( string $url, string $label ): string {
-	return '<span class="colorify-sparkle-button-wrap colorify-sparkle-button-wrap--compact">'
-		. '<a href="' . esc_url( $url ) . '" class="colorify-sparkle-button colorify-sparkle-button--compact colorify-change-style-btn">'
-		. colorify_admin_change_style_icon_html()
-		. '<span class="colorify-sparkle-button__text colorify-change-style-btn__text">' . esc_html( $label ) . '</span>'
-		. '</a>'
-		. '</span>';
-}
-
-/**
- * Skrypt — podmienia #wp-submit na sparkle button (zachowuje name/id dla WP).
+ * Skrypt: podmienia #wp-submit na sparkle button (zachowuje name/id dla WP).
  */
 function colorify_login_sparkle_submit_script(): void {
 	?>
@@ -106,7 +71,7 @@ function colorify_login_sparkle_submit_script(): void {
 add_action( 'login_footer', 'colorify_login_sparkle_submit_script', 5 );
 
 /**
- * Enqueue sparkle CSS (+ login JS niepotrzebny poza inline powyżej).
+ * Arkusz przycisku (strona logowania).
  */
 function colorify_enqueue_sparkle_button_assets(): void {
 	wp_enqueue_style(
@@ -121,11 +86,3 @@ function colorify_enqueue_login_sparkle_assets(): void {
 	colorify_enqueue_sparkle_button_assets();
 }
 add_action( 'login_enqueue_scripts', 'colorify_enqueue_login_sparkle_assets', 25 );
-
-function colorify_enqueue_admin_sparkle_assets(): void {
-	if ( ! is_admin() ) {
-		return;
-	}
-	colorify_enqueue_sparkle_button_assets();
-}
-add_action( 'admin_enqueue_scripts', 'colorify_enqueue_admin_sparkle_assets', 99 );

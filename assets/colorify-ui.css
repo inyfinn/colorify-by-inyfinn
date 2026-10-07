@@ -1,0 +1,1395 @@
+/*! Colorify by INYFINN - interfejs wtyczki: górny pasek, wybór schematu (profil), Ustawienia → Colorify.
+ * Wzór: design/mockups/*.html, specyfikacja: design/SPEC.md. Kolory wyłącznie z tokenów (docs/TOKENS.md 4.2 i 4.5);
+ * podglądy schematów to dane (--pd-*, --pl-*) na elementach z atrybutem data-colorify-swatch.
+ * Nazwa pliku zawiera "colorify-ui": silnik trybu ciemnego tego arkusza nie przelicza. */
+
+/* ---------- Tokeny zapasowe: wartości rdzenia WordPress 7.1 (schemat Modern) ----------
+ * Gdy styl jest wyłączony, silnik nie drukuje zmiennych --colorify-*. Selektor o zerowej specyficzności
+ * przegrywa z regułą silnika (body{...}), więc przy włączonym stylu nic tu nie obowiązuje. */
+:where(body) {
+	--colorify-ui-bg: #f0f0f0;
+	--colorify-ui-surface: #ffffff;
+	--colorify-ui-surface-2: #f6f7f7;
+	--colorify-ui-border: #c3c4c7;
+	--colorify-ui-text: #1e1e1e;
+	--colorify-ui-text-muted: #50575e;
+	--colorify-ui-accent: #3858e9;
+	--colorify-ui-accent-fill: #3858e9;
+	--colorify-ui-on-accent: #ffffff;
+	--colorify-ui-focus: #3858e9;
+	--colorify-ui-warning: #996800;
+	--colorify-ui-danger: #d63638;
+	--colorify-ui-success: #006e1b;
+	--colorify-menu-background: #1e1e1e;
+	--colorify-menu-text: #f0f0f1;
+	--colorify-menu-icon: #9ca2a7;
+	--colorify-menu-highlight-background: #3858e9;
+	--colorify-menu-highlight-text: #ffffff;
+	--colorify-menu-submenu-background: #2c2c2c;
+	--colorify-menu-submenu-text: #f0f0f1;
+}
+
+/* ---------- Wspólne ---------- */
+.colorify-i {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+.colorify-i--fill {
+	fill: currentColor;
+	stroke: none;
+}
+
+.colorify-ui {
+	color: var(--colorify-ui-text);
+	background: var(--colorify-ui-bg);
+	color-scheme: light;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.colorify-dark .colorify-ui {
+	color-scheme: dark;
+}
+
+.colorify-ui *,
+.colorify-ui *::before,
+.colorify-ui *::after {
+	box-sizing: border-box;
+}
+
+.colorify-ui [hidden] {
+	display: none;
+}
+
+.colorify-ui a {
+	color: var(--colorify-ui-accent);
+}
+
+.colorify-ui :focus-visible {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 2px;
+}
+
+/* ---------- Górny pasek ---------- */
+#wpadminbar .quicklinks .colorify-ab-label {
+	color: inherit;
+}
+
+/* Rdzeń zeruje grubość pisma w całym pasku (#wpadminbar *), nagłówek menu ma pogrubiony schemat. */
+#wpadminbar .quicklinks .colorify-ab-scheme {
+	font-weight: 600;
+}
+
+/* Pozycje paska: te same wymiary, odstępy i zachowania co pozycje WordPressa. */
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 32px;
+	padding: 0 8px;
+	line-height: 1;
+	color: var(--colorify-menu-text);
+	background: none;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	color: var(--colorify-menu-icon);
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-icon .colorify-i {
+	width: 20px;
+	height: 20px;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-chev {
+	width: 12px;
+	height: 12px;
+	opacity: 0.8;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify:hover > .ab-item,
+#wpadminbar .quicklinks #wp-admin-bar-colorify.hover > .ab-item {
+	color: var(--colorify-menu-submenu-text);
+	background: var(--colorify-menu-submenu-background);
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify:hover > .ab-item .colorify-ab-icon,
+#wpadminbar .quicklinks #wp-admin-bar-colorify.hover > .ab-item .colorify-ab-icon {
+	color: var(--colorify-menu-submenu-text);
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item:focus-visible {
+	outline: 2px solid var(--colorify-menu-highlight-background);
+	outline-offset: -2px;
+}
+
+/* Segment trybu (tylko przy włączonym stylu i szerokości od 783 px). */
+#wpadminbar .quicklinks #wp-admin-bar-colorify-mode > .ab-item {
+	display: flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 6px;
+	background: none;
+	cursor: default;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg {
+	display: inline-flex;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 24px;
+	padding: 0 10px;
+	border: 1px solid var(--colorify-menu-icon);
+	background: transparent;
+	color: var(--colorify-menu-text);
+	font-size: 12px;
+	line-height: 1;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt:first-child {
+	border-radius: 2px 0 0 2px;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt:last-child {
+	border-radius: 0 2px 2px 0;
+	margin-left: -1px;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt .colorify-i {
+	width: 14px;
+	height: 14px;
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt[aria-checked="true"] {
+	position: relative;
+	z-index: 1;
+	background: var(--colorify-menu-highlight-background);
+	border-color: var(--colorify-menu-highlight-background);
+	color: var(--colorify-menu-highlight-text);
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt[aria-checked="false"]:hover {
+	background: var(--colorify-menu-submenu-background);
+	color: var(--colorify-menu-submenu-text);
+}
+
+#wpadminbar .quicklinks .colorify-ab-seg__opt:focus-visible {
+	position: relative;
+	z-index: 2;
+	outline: 2px solid var(--colorify-menu-highlight-background);
+	outline-offset: 2px;
+}
+
+/* Ładowanie: spinner zamiast ikony, tekst bez zmian. */
+#wpadminbar .quicklinks [data-colorify-mode][aria-busy="true"] .colorify-i,
+#wpadminbar .quicklinks [data-colorify-toggle][aria-busy="true"] .colorify-i {
+	display: none;
+}
+
+#wpadminbar .quicklinks [data-colorify-mode][aria-busy="true"]::before,
+#wpadminbar .quicklinks [data-colorify-toggle][aria-busy="true"]::before {
+	content: "";
+	width: 14px;
+	height: 14px;
+	flex: none;
+	border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+	border-top-color: currentColor;
+	border-radius: 50%;
+	animation: colorify-spin 0.8s linear infinite;
+}
+
+/* Podmenu. */
+#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-sub-wrapper {
+	min-width: 220px;
+	padding: 6px 0;
+	right: 0;
+	left: auto;
+	background: var(--colorify-menu-submenu-background);
+	color: var(--colorify-menu-submenu-text);
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu {
+	padding: 0;
+	background: transparent;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu > li {
+	float: none;
+	height: auto;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-item,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	height: 36px;
+	padding: 0 16px;
+	line-height: 1;
+	color: var(--colorify-menu-submenu-text);
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-empty-item:has(> .colorify-ab-act),
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-submode-row > .ab-item {
+	display: block;
+	height: auto;
+	padding: 0;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act .colorify-i {
+	width: 16px;
+	height: 16px;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-item:hover,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act:hover,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-item:focus-visible,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act:focus-visible {
+	background: var(--colorify-menu-highlight-background);
+	color: var(--colorify-menu-highlight-text);
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-item:focus-visible,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act:focus-visible {
+	outline: 2px solid var(--colorify-menu-highlight-text);
+	outline-offset: -3px;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-primary,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-primary .colorify-ab-label {
+	font-weight: 600;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-info > .ab-item,
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-info:hover > .ab-item {
+	display: block;
+	height: auto;
+	max-width: 260px;
+	padding: 6px 16px 10px;
+	background: none;
+	color: var(--colorify-menu-submenu-text);
+	line-height: 1.35;
+	white-space: normal;
+	cursor: default;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-info + li {
+	border-top: 1px solid color-mix(in srgb, var(--colorify-menu-submenu-text) 14%, transparent);
+	padding-top: 4px;
+}
+
+#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-submode-row {
+	display: none;
+	border-top: 1px solid color-mix(in srgb, var(--colorify-menu-submenu-text) 14%, transparent);
+	margin-top: 4px;
+	padding-top: 4px;
+}
+
+/* Para trybu w menu: przy wyłączonym stylu (segmentu nie ma) i poniżej 783 px. */
+#wpadminbar .quicklinks #wp-admin-bar-colorify.is-off .ab-submenu .colorify-ab-submode-row {
+	display: block;
+}
+
+#wpadminbar .quicklinks .colorify-ab-tick {
+	display: none;
+	margin-left: auto;
+}
+
+#wpadminbar .quicklinks [role="radio"][aria-checked="true"] .colorify-ab-tick {
+	display: inline-flex;
+}
+
+#wpadminbar .quicklinks .colorify-ab-submode {
+	display: block;
+}
+
+@media screen and (max-width: 782px) {
+	/* Rdzeń chowa poniżej 783 px wszystkie pozycje paska poza własną listą identyfikatorów; Colorify dopisuje się do niej. */
+	#wpadminbar li#wp-admin-bar-colorify {
+		display: block;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify-mode {
+		display: none;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item {
+		height: 46px;
+		padding: 0 11px;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-icon,
+	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-icon .colorify-i {
+		width: 24px;
+		height: 24px;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item > .colorify-ab-label {
+		display: none;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-submode-row {
+		display: block;
+	}
+
+	#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .ab-item,
+	#wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-act {
+		height: 44px;
+		font-size: 14px;
+	}
+}
+
+/* ---------- Komponenty ekranów (profil i ustawienia) ---------- */
+.colorify-picker {
+	max-width: 1180px;
+}
+
+.colorify-card {
+	margin: 0 0 16px;
+	padding: 16px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 8px;
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+}
+
+.colorify-card > h2 {
+	margin: 0 0 4px;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--colorify-ui-text);
+}
+
+.colorify-ui .colorify-desc {
+	max-width: 72ch;
+	margin: 0 0 12px;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-offstrip {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border: 1px dashed var(--colorify-ui-text-muted);
+	border-radius: 8px;
+	background: var(--colorify-ui-surface-2);
+	color: var(--colorify-ui-text);
+}
+
+.colorify-offstrip p {
+	flex: 1 1 260px;
+	margin: 0;
+}
+
+.colorify-offstrip .colorify-i {
+	width: 20px;
+	height: 20px;
+}
+
+/* Przyciski wtyczki: pary z tokenów (te same klasy co w rdzeniu, wyższa specyficzność). */
+.colorify-ui .button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 32px;
+	padding: 0 12px;
+	border: 1px solid var(--colorify-ui-accent);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-accent);
+	font-size: 13px;
+	line-height: 1;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.colorify-ui .button:hover,
+.colorify-ui .button:focus {
+	background: var(--colorify-ui-surface-2);
+	border-color: var(--colorify-ui-accent);
+	color: var(--colorify-ui-accent);
+}
+
+.colorify-ui .button-primary,
+.colorify-ui .button-primary:focus {
+	background: var(--colorify-ui-accent-fill);
+	border-color: var(--colorify-ui-accent-fill);
+	color: var(--colorify-ui-on-accent);
+}
+
+.colorify-ui .button-primary:hover {
+	background: var(--colorify-ui-accent-fill);
+	border-color: var(--colorify-ui-accent-fill);
+	color: var(--colorify-ui-on-accent);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--colorify-ui-on-accent) 40%, transparent);
+}
+
+.colorify-ui .button-large {
+	min-height: 40px;
+	padding: 0 16px;
+}
+
+.colorify-ui .button[aria-busy="true"] {
+	opacity: 0.75;
+	pointer-events: none;
+}
+
+.colorify-ui .button:focus-visible {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 2px;
+}
+
+/* Zakres w profilu. */
+.colorify-scopeline {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px 20px;
+	min-width: 0;
+	margin: 0 0 12px;
+	padding: 0;
+	border: 0;
+}
+
+/* #colorify: rdzeń ustawia legend w profilu przez #your-profile legend (22 px). */
+#colorify .colorify-scopeline legend {
+	float: left;
+	width: 100%;
+	margin: 0 0 2px;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.colorify-scopeline label,
+.colorify-scopeline a {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 32px;
+}
+
+.colorify-ui input[type="radio"],
+.colorify-ui input[type="checkbox"] {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	accent-color: var(--colorify-ui-accent-fill);
+}
+
+/* Segment (tryb). */
+.colorify-seg {
+	display: inline-flex;
+	padding: 0;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface);
+}
+
+.colorify-ui .colorify-seg__opt {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 30px;
+	padding: 0 12px;
+	border: 0;
+	border-radius: 1px;
+	background: transparent;
+	color: var(--colorify-ui-text);
+	font: inherit;
+	cursor: pointer;
+}
+
+.colorify-seg__opt:hover {
+	background: var(--colorify-ui-surface-2);
+}
+
+.colorify-ui .colorify-seg__opt[aria-checked="true"] {
+	background: var(--colorify-ui-accent-fill);
+	color: var(--colorify-ui-on-accent);
+}
+
+.colorify-seg__opt:focus-visible {
+	z-index: 1;
+}
+
+/* Wybrany schemat. */
+.colorify-current {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	padding: 12px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 8px;
+	background: var(--colorify-ui-surface-2);
+	color: var(--colorify-ui-text);
+}
+
+.colorify-current > .colorify-preview {
+	flex: none;
+	width: 132px;
+}
+
+.colorify-current__text {
+	flex: 1 1 200px;
+	min-width: 0;
+}
+
+.colorify-ui .colorify-current__label {
+	margin: 0;
+	font-size: 12px;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-ui .colorify-current__name {
+	margin: 2px 0 4px;
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.colorify-ui .colorify-current__meta {
+	margin: 0;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-current > .colorify-seg {
+	margin-left: auto;
+}
+
+/* Zakładki grup. */
+.colorify-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 16px 0 12px;
+	padding: 0;
+	border-bottom: 1px solid var(--colorify-ui-border);
+}
+
+.colorify-ui .colorify-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 36px;
+	margin-bottom: -1px;
+	padding: 0 12px;
+	border: 1px solid transparent;
+	border-bottom: 0;
+	border-radius: 2px 2px 0 0;
+	background: transparent;
+	color: var(--colorify-ui-text);
+	font: inherit;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.colorify-tab:hover {
+	background: var(--colorify-ui-surface-2);
+}
+
+.colorify-ui .colorify-tab[aria-selected="true"] {
+	border-color: var(--colorify-ui-border);
+	border-bottom: 1px solid var(--colorify-ui-surface);
+	background: var(--colorify-ui-surface);
+	font-weight: 600;
+}
+
+.colorify-ui .colorify-tab:focus-visible {
+	outline-offset: -3px;
+}
+
+.colorify-tab__dots {
+	display: inline-flex;
+	gap: 2px;
+}
+
+.colorify-tab__dots i {
+	display: block;
+	width: 8px;
+	height: 8px;
+	border: 1px solid color-mix(in srgb, var(--colorify-ui-text) 20%, transparent);
+	border-radius: 50%;
+}
+
+.colorify-tab__count {
+	color: var(--colorify-ui-text-muted);
+	font-weight: 400;
+}
+
+/* Siatka schematów. */
+.colorify-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 12px;
+	margin: 0;
+}
+
+.colorify-scheme {
+	position: relative;
+	display: block;
+	padding: 6px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 8px;
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+	cursor: pointer;
+}
+
+.colorify-scheme:hover {
+	border-color: var(--colorify-ui-text-muted);
+}
+
+.colorify-ui .colorify-scheme input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.colorify-scheme:has(input:checked) {
+	border-color: var(--colorify-ui-accent);
+	box-shadow: inset 0 0 0 1px var(--colorify-ui-accent);
+}
+
+.colorify-scheme:has(input:focus-visible),
+.colorify-scheme.is-focus {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 2px;
+}
+
+.colorify-scheme__name {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px;
+	min-height: 30px;
+	padding: 8px 4px 4px;
+	line-height: 1.3;
+}
+
+.colorify-scheme__check {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: var(--colorify-ui-accent-fill);
+	color: var(--colorify-ui-on-accent);
+}
+
+.colorify-scheme__check .colorify-i {
+	width: 12px;
+	height: 12px;
+	stroke-width: 3;
+}
+
+.colorify-scheme:has(input:checked) .colorify-scheme__check {
+	display: inline-flex;
+}
+
+.colorify-scheme:has(input:checked) .colorify-scheme__name {
+	font-weight: 600;
+}
+
+/* Mini-ramka panelu: dane to tablica preview silnika. Kolory idą z --pd-* i --pl-* (data-colorify-swatch). */
+.colorify-ui[data-view="dark"] .colorify-preview,
+.colorify-preview--dark {
+	--p-menu: var(--pd-menu);
+	--p-canvas: var(--pd-canvas);
+	--p-fill: var(--pd-fill);
+	--p-theme: var(--pd-theme);
+	--p-ink: var(--pd-ink);
+}
+
+.colorify-ui[data-view="light"] .colorify-preview {
+	--p-menu: var(--pl-menu);
+	--p-canvas: var(--pl-canvas);
+	--p-fill: var(--pl-fill);
+	--p-theme: var(--pl-theme);
+	--p-ink: var(--pl-ink);
+}
+
+.colorify-ui .colorify-preview--dark {
+	--p-menu: var(--pd-menu);
+	--p-canvas: var(--pd-canvas);
+	--p-fill: var(--pd-fill);
+	--p-theme: var(--pd-theme);
+	--p-ink: var(--pd-ink);
+}
+
+.colorify-preview {
+	position: relative;
+	display: grid;
+	grid-template-columns: 30% 1fr;
+	grid-template-rows: 16% 1fr;
+	width: 100%;
+	aspect-ratio: 3 / 2;
+	overflow: hidden;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 4px;
+	background: var(--p-canvas);
+}
+
+.colorify-preview > span {
+	display: block;
+	min-width: 0;
+	min-height: 0;
+}
+
+.colorify-preview__bar {
+	grid-column: 1 / -1;
+	background: var(--p-menu);
+}
+
+.colorify-preview__menu {
+	display: flex;
+	flex-direction: column;
+	gap: 14%;
+	padding: 12% 12% 0;
+	background: var(--p-menu);
+}
+
+.colorify-preview__menu > span {
+	display: block;
+	height: 9%;
+	border-radius: 1px;
+	background: color-mix(in srgb, #ffffff 35%, var(--p-menu));
+}
+
+.colorify-preview__menu > span.is-on {
+	background: var(--p-fill);
+}
+
+.colorify-preview__content {
+	display: flex;
+	flex-direction: column;
+	gap: 11%;
+	padding: 12% 10%;
+}
+
+.colorify-preview__content > span {
+	display: block;
+	width: 80%;
+	height: 8%;
+	border-radius: 1px;
+	background: color-mix(in srgb, var(--p-ink) 45%, transparent);
+}
+
+.colorify-preview__content > span.is-theme {
+	width: 55%;
+	background: var(--p-theme);
+}
+
+.colorify-preview__content > span.is-btn {
+	width: 38%;
+	height: 16%;
+	margin-top: auto;
+	background: var(--p-fill);
+}
+
+/* Własna paleta. */
+.colorify-palette-panel .colorify-scheme--custom {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 12px;
+	padding: 8px 12px;
+}
+
+.colorify-scheme--custom .colorify-scheme__name {
+	min-height: 0;
+	padding: 0;
+}
+
+.colorify-radio {
+	display: inline-block;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--colorify-ui-text-muted);
+	border-radius: 50%;
+	background: var(--colorify-ui-surface);
+}
+
+.colorify-scheme--custom:has(input:checked) .colorify-radio {
+	border-color: var(--colorify-ui-accent-fill);
+	background: radial-gradient(circle, var(--colorify-ui-accent-fill) 0 4px, var(--colorify-ui-surface) 5px);
+}
+
+.colorify-palette {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+}
+
+.colorify-palette__fields {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px 16px;
+}
+
+.colorify-field label {
+	display: block;
+	margin: 0 0 4px;
+	font-weight: 500;
+}
+
+.colorify-field__row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.colorify-ui .colorify-input {
+	height: 32px;
+	min-width: 0;
+	margin: 0;
+	padding: 0 8px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+	font: inherit;
+	box-shadow: none;
+}
+
+.colorify-ui .colorify-input:focus {
+	border-color: var(--colorify-ui-focus);
+	box-shadow: none;
+}
+
+.colorify-ui .colorify-input[aria-invalid="true"] {
+	border-color: var(--colorify-ui-danger);
+}
+
+.colorify-ui .colorify-swatch {
+	flex: none;
+	width: 44px;
+	height: 32px;
+	padding: 2px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface);
+	cursor: pointer;
+}
+
+.colorify-ui .colorify-hex {
+	width: 100%;
+	max-width: 120px;
+	font-family: Consolas, Menlo, monospace;
+	text-transform: uppercase;
+}
+
+.colorify-field__err {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: var(--colorify-ui-danger);
+}
+
+.colorify-palette__preview {
+	margin: 0;
+}
+
+.colorify-palette__preview figcaption {
+	margin-top: 6px;
+	font-size: 12px;
+	color: var(--colorify-ui-text-muted);
+}
+
+/* Dostrojenie. */
+.colorify-ui .colorify-tuning {
+	margin-top: 16px;
+	padding: 8px 16px;
+}
+
+.colorify-tuning summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	font-size: 15px;
+	font-weight: 600;
+	list-style: none;
+	cursor: pointer;
+}
+
+.colorify-tuning summary::-webkit-details-marker {
+	display: none;
+}
+
+.colorify-tuning summary .chev {
+	transition: transform 0.15s;
+}
+
+.colorify-tuning[open] summary .chev {
+	transform: rotate(180deg);
+}
+
+.colorify-tuning__state {
+	font-weight: 400;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-tuning__state.is-changed {
+	color: var(--colorify-ui-text);
+}
+
+.colorify-tuning__body {
+	padding: 4px 0 12px;
+}
+
+.colorify-tuning__head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0 0 8px;
+}
+
+.colorify-ui .colorify-tuning__head .colorify-desc {
+	flex: 1 1 280px;
+	margin: 0;
+}
+
+.colorify-sliders {
+	display: grid;
+	align-items: start;
+	grid-template-columns: 1fr;
+	gap: 0 32px;
+}
+
+.colorify-slider {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	column-gap: 12px;
+	padding: 6px 0;
+}
+
+.colorify-slider label {
+	font-weight: 500;
+}
+
+.colorify-slider output {
+	min-width: 4ch;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	text-align: right;
+}
+
+.colorify-ui .colorify-slider input[type="range"] {
+	grid-column: 1 / -1;
+	width: 100%;
+	height: 44px;
+	margin: 0;
+	background: transparent;
+	accent-color: var(--colorify-ui-accent-fill);
+}
+
+.colorify-ui .colorify-slider__warn {
+	display: none;
+	grid-column: 1 / -1;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: 12px;
+	color: var(--colorify-ui-warning);
+}
+
+.colorify-slider.is-strong .colorify-slider__warn {
+	display: flex;
+}
+
+.colorify-slider.is-strong output {
+	color: var(--colorify-ui-warning);
+}
+
+.colorify-ui .colorify-tuning__foot {
+	margin: 8px 0 0;
+}
+
+/* Akcje i status zapisu. */
+.colorify-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 16px 0 0;
+}
+
+.colorify-status {
+	display: none;
+	align-items: center;
+	gap: 6px;
+	color: var(--colorify-ui-text);
+}
+
+.colorify-status[data-state="saving"],
+.colorify-status[data-state="saved"],
+.colorify-status[data-state="error"] {
+	display: inline-flex;
+}
+
+.colorify-status[data-state="saved"] {
+	color: var(--colorify-ui-success);
+}
+
+.colorify-status[data-state="error"] {
+	color: var(--colorify-ui-danger);
+}
+
+.colorify-spin {
+	width: 14px;
+	height: 14px;
+	border: 2px solid var(--colorify-ui-border);
+	border-top-color: var(--colorify-ui-accent);
+	border-radius: 50%;
+	animation: colorify-spin 0.8s linear infinite;
+}
+
+@keyframes colorify-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* ---------- Ustawienia → Colorify ---------- */
+.colorify-wrap.colorify-ui {
+	padding-bottom: 1px;
+}
+
+.colorify-wrap .colorify-picker {
+	max-width: none;
+}
+
+.colorify-ui .colorify-h1 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--colorify-ui-text);
+}
+
+.colorify-h1__logo.colorify-i {
+	width: 28px;
+	height: 28px;
+	color: var(--colorify-ui-accent);
+}
+
+.colorify-scope {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.colorify-scope__opt {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	min-width: 0;
+	align-items: start;
+	gap: 4px 12px;
+	padding: 12px 14px;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 8px;
+	background: var(--colorify-ui-surface);
+	cursor: pointer;
+}
+
+.colorify-scope__opt:hover {
+	border-color: var(--colorify-ui-text-muted);
+}
+
+.colorify-scope__opt:has(input:checked) {
+	border-color: var(--colorify-ui-accent);
+	box-shadow: inset 0 0 0 1px var(--colorify-ui-accent);
+}
+
+.colorify-scope__opt:has(input:focus-visible) {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 2px;
+}
+
+.colorify-ui .colorify-scope__opt input {
+	grid-row: 1 / 4;
+	margin: 2px 0 0;
+}
+
+.colorify-scope__title {
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.colorify-ui .colorify-scope__hint {
+	margin: 0;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-scope__pic {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.colorify-scope__pic .colorify-preview {
+	width: 64px;
+	border-radius: 2px;
+}
+
+.colorify-scope__pic .colorify-login {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	aspect-ratio: 3 / 2;
+	border: 1px solid var(--colorify-ui-border);
+	border-radius: 2px;
+	background: var(--pd-menu);
+}
+
+.colorify-scope__pic .colorify-login i {
+	display: block;
+	width: 45%;
+	height: 55%;
+	border-radius: 1px;
+	background: var(--pd-fill);
+}
+
+.colorify-scope__pic .colorify-pic-sep {
+	width: 1px;
+	height: 20px;
+	margin: 0 2px;
+	background: var(--colorify-ui-border);
+}
+
+.colorify-ui .colorify-update {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	margin-top: 24px;
+	padding: 14px 0;
+	border-top: 1px solid var(--colorify-ui-border);
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-update__ver {
+	font-weight: 600;
+	color: var(--colorify-ui-text);
+}
+
+.colorify-update__actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	margin-left: auto;
+}
+
+.colorify-update a:not(.button) {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 32px;
+}
+
+.colorify-update a:not(.button) .colorify-i {
+	width: 14px;
+	height: 14px;
+}
+
+.colorify-update details {
+	flex-basis: 100%;
+	font-size: 12px;
+}
+
+.colorify-update summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	cursor: pointer;
+}
+
+.colorify-update summary .colorify-i {
+	width: 12px;
+	height: 12px;
+}
+
+.colorify-update__repo {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 4px;
+}
+
+.colorify-update__repo .colorify-input {
+	width: 260px;
+	max-width: 100%;
+}
+
+.colorify-update.has-update .colorify-update__ok,
+.colorify-update:not(.has-update) .colorify-update__new {
+	display: none;
+}
+
+.colorify-update__new {
+	color: var(--colorify-ui-text);
+}
+
+.colorify-ui .colorify-footer {
+	margin: 8px 0 60px;
+	font-size: 12px;
+	color: var(--colorify-ui-text-muted);
+}
+
+/* ---------- Szerokości ---------- */
+@media (min-width: 600px) {
+	.colorify-scope {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 768px) {
+	.colorify-palette {
+		grid-template-columns: minmax(0, 1fr) 240px;
+		align-items: start;
+	}
+}
+
+@media (min-width: 1024px) {
+	.colorify-sliders {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+@media (max-width: 782px) {
+	.colorify-card {
+		padding: 12px;
+	}
+
+	.colorify-ui .colorify-tuning {
+		padding: 4px 12px;
+	}
+
+	.colorify-ui .colorify-tab {
+		min-height: 44px;
+	}
+
+	.colorify-scopeline label,
+	.colorify-scopeline a {
+		min-height: 44px;
+	}
+
+	.colorify-ui .colorify-swatch {
+		width: 52px;
+		height: 44px;
+	}
+
+	.colorify-ui .colorify-palette-panel .colorify-input {
+		height: 44px;
+	}
+
+	.colorify-ui .colorify-seg__opt {
+		min-height: 44px;
+	}
+
+	/* .button.button-large: rdzeń daje tu 40 px przez .wp-core-ui .button.button-large w tym samym zapytaniu. */
+	.colorify-ui .button,
+	.colorify-ui .button.button-large {
+		min-height: 44px;
+	}
+
+	.colorify-ui .colorify-scheme {
+		min-height: 44px;
+	}
+
+	.colorify-update a:not(.button),
+	.colorify-update summary {
+		min-height: 44px;
+	}
+
+	.colorify-ui .colorify-update__repo .colorify-input {
+		height: 44px;
+	}
+}
+
+@media (max-width: 600px) {
+	.colorify-current > .colorify-seg {
+		width: 100%;
+		margin-left: 0;
+	}
+
+	.colorify-current .colorify-seg__opt {
+		flex: 1;
+		justify-content: center;
+		min-height: 44px;
+	}
+
+	.colorify-update__actions {
+		width: 100%;
+		margin-left: 0;
+	}
+}
+
+@media (max-width: 430px) {
+	.colorify-palette__fields {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.colorify-spin,
+	#wpadminbar .quicklinks [data-colorify-mode][aria-busy="true"]::before,
+	#wpadminbar .quicklinks [data-colorify-toggle][aria-busy="true"]::before {
+		animation: none;
+	}
+
+	.colorify-tuning summary .chev {
+		transition: none;
+	}
+}

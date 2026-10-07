@@ -71,7 +71,7 @@ add_action( 'edit_user_profile_update', 'colorify_save_admin_appearance_profile'
 /**
  * Odczyt wybranego schematu z POST.
  *
- * Radio `admin_color` ma pierwszeństwo — ukryte pole ładuje się ze starej wartości strony
+ * Radio `admin_color` ma pierwszeństwo: ukryte pole ładuje się ze starej wartości strony
  * i po kliknięciu schematu (np. Szkarłat) bez pełnej synchronizacji JS nadpisywało zapis.
  */
 function colorify_resolve_admin_color_from_input( array $input ): string {
@@ -132,6 +132,12 @@ function colorify_filter_insert_user_meta_admin_color( array $meta, WP_User $use
 	$scheme = colorify_resolve_admin_color_from_request();
 	if ( '' !== $scheme ) {
 		$meta['admin_color'] = $scheme;
+	} else {
+		// Wybór schematu nie był ruszany (pole nie poszło w POST): rdzeń nie może go nadpisać swoim domyślnym.
+		$raw = colorify_get_raw_user_admin_color( (int) $user->ID );
+		if ( '' !== $raw ) {
+			$meta['admin_color'] = $raw;
+		}
 	}
 
 	return $meta;
@@ -139,7 +145,7 @@ function colorify_filter_insert_user_meta_admin_color( array $meta, WP_User $use
 add_filter( 'insert_user_meta', 'colorify_filter_insert_user_meta_admin_color', 10, 4 );
 
 /**
- * Po wp_update_user() — nadpisuje ewentualny fallback WP (modern), gdy radio nie trafiło do POST.
+ * Po wp_update_user(): nadpisuje ewentualny fallback WP (modern), gdy radio nie trafiło do POST.
  *
  * @param int           $user_id       User ID.
  * @param WP_User       $old_user_data Poprzednie dane.
@@ -173,7 +179,42 @@ function colorify_persist_user_appearance_on_profile_update( int $user_id, $old_
 add_action( 'profile_update', 'colorify_persist_user_appearance_on_profile_update', 20, 3 );
 
 /**
- * AJAX — zapis trybu dark/light.
+ * Zapis trybu wybranego w pasku: tam, skąd go czytamy (patrz colorify_get_effective_appearance_mode()).
+ *
+ * - osoba z własnym wyglądem: jej tryb,
+ * - administrator przy zakresie "jeden wygląd": tryb globalny,
+ * - pozostali: własny tryb. Gdy wyglądem rządzi zakres globalny, bieżący wygląd (schemat, paleta, dostrojenie)
+ *   trafia do profilu razem z trybem, żeby zmiana trybu nie podmieniła schematu na domyślny.
+ *
+ * @param int    $user_id User ID.
+ * @param string $mode    dark|light.
+ * @return string user|global Gdzie zapisano.
+ */
+function colorify_apply_mode_choice( int $user_id, string $mode ): string {
+	$mode = 'light' === $mode ? 'light' : 'dark';
+
+	if ( colorify_user_has_personal_appearance( $user_id ) ) {
+		colorify_set_user_appearance_mode( $user_id, $mode );
+		return 'user';
+	}
+
+	if ( colorify_uses_global_settings() ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			colorify_set_global_appearance_mode( $mode );
+			return 'global';
+		}
+
+		colorify_persist_user_admin_color( $user_id, colorify_get_effective_admin_color( $user_id ) );
+		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOM_COLORS_META, colorify_get_effective_custom_colors( $user_id ) );
+		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOM_TUNING_META, colorify_get_effective_custom_tuning( $user_id ) );
+	}
+
+	colorify_set_user_appearance_mode( $user_id, $mode );
+	return 'user';
+}
+
+/**
+ * AJAX: zapis trybu dark/light z paska.
  */
 function colorify_ajax_save_admin_appearance(): void {
 	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
@@ -183,18 +224,12 @@ function colorify_ajax_save_admin_appearance(): void {
 		wp_send_json_error( array( 'message' => 'not_logged_in' ), 403 );
 	}
 
-	$mode = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$mode = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : '';
 	if ( ! in_array( $mode, array( 'dark', 'light' ), true ) ) {
 		wp_send_json_error( array( 'message' => 'invalid_mode' ), 400 );
 	}
 
-	$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : 'user'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-
-	if ( 'global' === $scope && current_user_can( 'manage_options' ) ) {
-		colorify_set_global_appearance_mode( $mode );
-	} else {
-		colorify_set_user_appearance_mode( $user_id, $mode );
-	}
+	$scope = colorify_apply_mode_choice( $user_id, $mode );
 
 	wp_send_json_success(
 		array(
@@ -206,59 +241,38 @@ function colorify_ajax_save_admin_appearance(): void {
 add_action( 'wp_ajax_colorify_save_admin_appearance', 'colorify_ajax_save_admin_appearance' );
 
 /**
- * AJAX — tokeny CSS dla trybu (natychmiastowy podgląd paska bez przeładowania).
- */
-function colorify_ajax_get_scheme_tokens(): void {
-	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
-
-	$user_id = get_current_user_id();
-	if ( $user_id <= 0 ) {
-		wp_send_json_error( array( 'message' => 'not_logged_in' ), 403 );
-	}
-
-	$mode = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	if ( ! in_array( $mode, array( 'dark', 'light' ), true ) ) {
-		wp_send_json_error( array( 'message' => 'invalid_mode' ), 400 );
-	}
-
-	wp_send_json_success(
-		array(
-			'mode'   => $mode,
-			'tokens' => colorify_admin_scheme_css_tokens_for_mode( $mode, $user_id ),
-		)
-	);
-}
-add_action( 'wp_ajax_colorify_get_scheme_tokens', 'colorify_ajax_get_scheme_tokens' );
-
-/**
- * AJAX — pełny zapis wyglądu (schemat, tryb, paleta, dostrojenie, zakres) bez przeładowania.
+ * AJAX: pełny zapis wyglądu (schemat, tryb, paleta, dostrojenie, zakres) bez przeładowania.
+ * Zapisuje dla użytkownika z pola user_id (domyślnie bieżący), jeśli bieżący może go edytować.
  */
 function colorify_ajax_save_appearance_state(): void {
 	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
 
-	$user_id = get_current_user_id();
-	if ( $user_id <= 0 ) {
+	$current = get_current_user_id();
+	if ( $current <= 0 ) {
 		wp_send_json_error( array( 'message' => 'not_logged_in' ), 403 );
 	}
 
-	if ( ! isset( $_POST ) || ! is_array( $_POST ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		wp_send_json_error( array( 'message' => 'invalid_payload' ), 400 );
+	$target = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : $current;
+	if ( $target <= 0 || ! current_user_can( 'edit_user', $target ) ) {
+		wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
 	}
 
-	colorify_save_appearance_for_user( $user_id, wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	colorify_save_appearance_for_user( $target, wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- każde pole przechodzi sanitize_* w colorify_save_appearance_for_user().
 
 	wp_send_json_success(
 		array(
-			'scope'  => colorify_get_settings_scope(),
-			'mode'   => colorify_get_effective_appearance_mode( $user_id ),
-			'scheme' => colorify_get_effective_admin_color( $user_id ),
+			'scope'       => colorify_get_settings_scope(),
+			'mode'        => colorify_get_effective_appearance_mode( $current ),
+			'scheme'      => colorify_get_effective_admin_color( $current ),
+			'name'        => colorify_ui_scheme_name( $current ),
+			'hasPersonal' => colorify_user_has_personal_appearance( $current ),
 		)
 	);
 }
 add_action( 'wp_ajax_colorify_save_appearance_state', 'colorify_ajax_save_appearance_state' );
 
 /**
- * AJAX — włącz/wyłącz styl Colorify (tylko pasek przełączników zostaje przy OFF).
+ * AJAX: włączenie albo wyłączenie stylu Colorify (strona przeładowuje się po odpowiedzi).
  */
 function colorify_ajax_toggle_user_theme(): void {
 	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
@@ -268,7 +282,7 @@ function colorify_ajax_toggle_user_theme(): void {
 		wp_send_json_error( array( 'message' => 'not_logged_in' ), 403 );
 	}
 
-	$enabled = isset( $_POST['enabled'] ) ? (int) wp_unslash( $_POST['enabled'] ) : -1; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$enabled = isset( $_POST['enabled'] ) ? (int) wp_unslash( $_POST['enabled'] ) : -1;
 	if ( ! in_array( $enabled, array( 0, 1 ), true ) ) {
 		wp_send_json_error( array( 'message' => 'invalid_state' ), 400 );
 	}
@@ -278,48 +292,3 @@ function colorify_ajax_toggle_user_theme(): void {
 	wp_send_json_success( array( 'enabled' => (bool) $enabled ) );
 }
 add_action( 'wp_ajax_colorify_toggle_user_theme', 'colorify_ajax_toggle_user_theme' );
-
-/**
- * AJAX — zapis schematu po kliknięciu (zastępuje core handler z błędnym kluczem meta).
- */
-function colorify_ajax_save_user_color_scheme(): void {
-	global $_wp_admin_css_colors;
-
-	check_ajax_referer( 'save-color-scheme', 'nonce' );
-
-	$color_scheme = isset( $_POST['color_scheme'] ) ? sanitize_key( wp_unslash( $_POST['color_scheme'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-
-	if ( '' === $color_scheme || ! isset( $_wp_admin_css_colors[ $color_scheme ] ) ) {
-		wp_send_json_error();
-	}
-
-	$user_id = get_current_user_id();
-	if ( $user_id <= 0 ) {
-		wp_send_json_error();
-	}
-
-	if ( colorify_saves_appearance_to_global( $user_id ) ) {
-		$previous_color_scheme = colorify_get_global_admin_color();
-		colorify_persist_global_admin_color( $color_scheme );
-	} else {
-		$previous_color_scheme = get_user_option( 'admin_color', $user_id );
-		colorify_persist_user_admin_color( $user_id, $color_scheme );
-	}
-
-	wp_send_json_success(
-		array(
-			'previousScheme' => 'admin-color-' . $previous_color_scheme,
-			'currentScheme'  => 'admin-color-' . $color_scheme,
-		)
-	);
-}
-
-add_action( 'admin_init', 'colorify_replace_core_color_scheme_ajax', 100 );
-
-/**
- * Podmiana wp_ajax_save_user_color_scheme — core zapisuje do nieprefiksowanego meta bez sync.
- */
-function colorify_replace_core_color_scheme_ajax(): void {
-	remove_action( 'wp_ajax_save-user-color-scheme', 'wp_ajax_save_user_color_scheme' );
-	add_action( 'wp_ajax_save-user-color-scheme', 'colorify_ajax_save_user_color_scheme' );
-}

@@ -1,6 +1,7 @@
 <?php
 /**
- * Panel ustawień wtyczki Colorify.
+ * Ustawienia → Colorify: zakres, wygląd witryny, aktualizacja.
+ * Układ i teksty: design/SPEC.md rozdział 3.
  *
  * @package ColorifyByInyfinn
  */
@@ -8,15 +9,17 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Strona ustawień + przełącznik globalne / per użytkownik.
+ * Strona ustawień wtyczki.
  */
 final class Colorify_Settings {
+
+	const SLUG = 'colorify-by-inyfinn';
 
 	public static function init(): void {
 		add_action( 'admin_menu', array( self::class, 'register_menu' ) );
 		add_action( 'admin_init', array( self::class, 'handle_save' ) );
 		add_action( 'admin_init', array( self::class, 'handle_github_save' ) );
-		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_settings_assets' ), 10000 );
+		add_action( 'admin_notices', array( self::class, 'render_notices' ) );
 	}
 
 	public static function register_menu(): void {
@@ -24,18 +27,24 @@ final class Colorify_Settings {
 			__( 'Colorify by INYFINN', 'colorify-by-inyfinn' ),
 			__( 'Colorify', 'colorify-by-inyfinn' ),
 			'manage_options',
-			'colorify-by-inyfinn',
+			self::SLUG,
 			array( self::class, 'render_page' )
 		);
 	}
 
-	public static function enqueue_settings_assets( string $hook ): void {
-		if ( 'settings_page_colorify-by-inyfinn' !== $hook ) {
-			return;
-		}
-		colorify_enqueue_admin_assets( get_current_user_id() );
+	/**
+	 * Adres ekranu ustawień.
+	 *
+	 * @param array<string,string> $args Dodatkowe parametry.
+	 */
+	private static function page_url( array $args = array() ): string {
+		return add_query_arg( array_merge( array( 'page' => self::SLUG ), $args ), admin_url( 'options-general.php' ) );
 	}
 
+	/**
+	 * Zapis zakresu i wyglądu witryny (klasyczny POST). Wygląd witryny zapisuje się zawsze:
+	 * dotyczy logowania i osób bez własnego wyboru, niezależnie od zakresu.
+	 */
 	public static function handle_save(): void {
 		if ( ! isset( $_POST['colorify_settings_save'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			return;
@@ -49,28 +58,16 @@ final class Colorify_Settings {
 
 		$scope = isset( $_POST['colorify_settings_scope'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			? sanitize_key( wp_unslash( $_POST['colorify_settings_scope'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			: 'user';
+			: colorify_get_settings_scope();
 
 		if ( ! in_array( $scope, array( 'user', 'global' ), true ) ) {
 			$scope = 'user';
 		}
 
 		update_option( COLORIFY_SCOPE_OPTION, $scope );
+		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 
-		if ( 'global' === $scope ) {
-			colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		}
-
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'page'              => 'colorify-by-inyfinn',
-					'colorify_saved'    => '1',
-					'colorify_settings' => 'updated',
-				),
-				admin_url( 'options-general.php' )
-			)
-		);
+		wp_safe_redirect( self::page_url( array( 'colorify_saved' => '1' ) ) );
 		exit;
 	}
 
@@ -86,20 +83,11 @@ final class Colorify_Settings {
 		check_admin_referer( 'colorify_github_save', 'colorify_github_nonce' );
 
 		$repo = isset( $_POST['colorify_github_repo'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			? sanitize_text_field( wp_unslash( $_POST['colorify_github_repo'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			? trim( sanitize_text_field( wp_unslash( $_POST['colorify_github_repo'] ) ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			: '';
 
-		$repo = trim( $repo );
 		if ( '' !== $repo && ! preg_match( '#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $repo ) ) {
-			wp_safe_redirect(
-				add_query_arg(
-					array(
-						'page'           => 'colorify-by-inyfinn',
-						'colorify_github' => 'invalid',
-					),
-					admin_url( 'options-general.php' )
-				)
-			);
+			wp_safe_redirect( self::page_url( array( 'colorify_github' => 'invalid' ) ) );
 			exit;
 		}
 
@@ -109,16 +97,86 @@ final class Colorify_Settings {
 			delete_transient( 'colorify_github_release_' . md5( $repo ) );
 		}
 
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'page'            => 'colorify-by-inyfinn',
-					'colorify_github' => 'saved',
-				),
-				admin_url( 'options-general.php' )
-			)
-		);
+		wp_safe_redirect( self::page_url( array( 'colorify_github' => 'saved' ) ) );
 		exit;
+	}
+
+	/**
+	 * Komunikaty tego ekranu jako zwykłe .notice rdzenia: WordPress przenosi je pod nagłówek.
+	 */
+	public static function render_notices(): void {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'settings_page_' . self::SLUG !== $screen->id ) {
+			return;
+		}
+
+		$github = isset( $_GET['colorify_github'] ) ? sanitize_key( wp_unslash( $_GET['colorify_github'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( isset( $_GET['colorify_saved'] ) && '1' === $_GET['colorify_saved'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Ustawienia zapisane.', 'colorify-by-inyfinn' ) . '</p></div>';
+		}
+		if ( 'saved' === $github ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Repozytorium GitHub zapisane.', 'colorify-by-inyfinn' ) . '</p></div>';
+		} elseif ( 'invalid' === $github ) {
+			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Nieprawidłowy format repozytorium. Użyj owner/repo.', 'colorify-by-inyfinn' ) . '</p></div>';
+		}
+	}
+
+	/**
+	 * Tekst "Aktualna wersja..." (gotowy do wstawienia, zabezpieczony).
+	 */
+	private static function ok_text(): string {
+		$last = (int) get_option( 'colorify_last_update_check', 0 );
+		if ( $last <= 0 ) {
+			return esc_html__( 'Nie sprawdzano jeszcze.', 'colorify-by-inyfinn' );
+		}
+
+		$time = wp_date( 'H:i', $last );
+		if ( wp_date( 'Y-m-d', $last ) === wp_date( 'Y-m-d' ) ) {
+			/* translators: %s: godzina HH:MM */
+			return sprintf( esc_html__( 'Aktualna wersja. Sprawdzono dziś o&nbsp;%s.', 'colorify-by-inyfinn' ), esc_html( $time ) );
+		}
+
+		/* translators: 1: data, 2: godzina HH:MM */
+		return sprintf( esc_html__( 'Aktualna wersja. Sprawdzono %1$s o&nbsp;%2$s.', 'colorify-by-inyfinn' ), esc_html( wp_date( 'j.m.Y', $last ) ), esc_html( $time ) );
+	}
+
+	/**
+	 * Tekst "Dostępna wersja X." (zabezpieczony).
+	 *
+	 * @param string $version Numer wersji.
+	 */
+	private static function new_text( string $version ): string {
+		/* translators: %s: numer wersji */
+		return sprintf( esc_html__( 'Dostępna wersja %s.', 'colorify-by-inyfinn' ), esc_html( $version ) );
+	}
+
+	/**
+	 * Trzy mini-ramki (zakres: wiele wyglądów albo jeden) i miniatura ekranu logowania.
+	 *
+	 * @param array<int,array<string,mixed>> $defs  Definicje schematów.
+	 * @param bool                           $login Czy dołożyć mini ekran logowania.
+	 */
+	private static function scope_pic( array $defs, bool $login ): string {
+		$out         = '';
+		$first_style = '';
+
+		foreach ( $defs as $def ) {
+			$style       = colorify_ui_preview_style(
+				array(
+					'dark'  => colorify_build_tokens( $def, 'dark' ),
+					'light' => colorify_build_tokens( $def, 'light' ),
+				)
+			);
+			$first_style = '' === $first_style ? $style : $first_style;
+			$out        .= colorify_ui_preview_html( $style, 'colorify-preview--dark' );
+		}
+
+		if ( $login && '' !== $first_style ) {
+			$out .= '<span class="colorify-pic-sep"></span><span class="colorify-login" data-colorify-swatch style="' . esc_attr( $first_style ) . '"><i></i></span>';
+		}
+
+		return $out;
 	}
 
 	public static function render_page(): void {
@@ -126,263 +184,124 @@ final class Colorify_Settings {
 			return;
 		}
 
-		$scope      = colorify_get_settings_scope();
-		$profile_url = admin_url( 'profile.php' );
-		$user        = wp_get_current_user();
-		$show_saved       = isset( $_GET['colorify_saved'] ) && '1' === $_GET['colorify_saved']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$github_repo       = colorify_get_github_repo();
-		$github_from_const = defined( 'COLORIFY_GITHUB_REPO' ) && is_string( COLORIFY_GITHUB_REPO ) && '' !== COLORIFY_GITHUB_REPO;
-		$github_release    = '' !== $github_repo ? colorify_get_cached_github_release() : null;
-		$run_update_url    = colorify_get_manual_update_url( admin_url( 'options-general.php?page=colorify-by-inyfinn' ) );
+		$scope       = colorify_get_settings_scope();
+		$bundle      = colorify_get_scope_appearance_bundle( 'global' );
+		$github_repo = colorify_get_github_repo();
+		$fixed_repo  = defined( 'COLORIFY_GITHUB_REPO' ) && is_string( COLORIFY_GITHUB_REPO ) && '' !== COLORIFY_GITHUB_REPO;
+		$release     = '' !== $github_repo ? colorify_get_cached_github_release() : null;
+		$has_update  = colorify_has_github_update() && is_array( $release ) && ! empty( $release['version'] );
+		$version_new = $has_update ? (string) $release['version'] : '';
+		$release_url = is_array( $release ) && ! empty( $release['url'] )
+			? (string) $release['url']
+			: ( '' !== $github_repo ? 'https://github.com/' . $github_repo . '/releases' : '' );
+		$update_url  = colorify_get_manual_update_url( self::page_url() );
 
-		?>
-		<div class="wrap colorify-settings-wrap">
-			<header class="colorify-settings-hero">
-				<div class="colorify-settings-hero__brand">
-					<img src="<?php echo esc_url( COLORIFY_PLUGIN_URL . 'assets/inyfinn-logo-okrag.svg' ); ?>" alt="" width="48" height="48" decoding="async" />
-					<div>
-						<h1><?php esc_html_e( 'Colorify by INYFINN', 'colorify-by-inyfinn' ); ?></h1>
-						<p><?php esc_html_e( 'Personalizacja kolorów panelu WordPress — schematy, paleta, dostrojenie i tryb ciemny/jasny.', 'colorify-by-inyfinn' ); ?></p>
-					</div>
-				</div>
-			</header>
-
-			<?php if ( $show_saved ) : ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Ustawienia zapisane.', 'colorify-by-inyfinn' ); ?></p></div>
-			<?php endif; ?>
-
-			<?php if ( colorify_mu_module_is_loaded() ) : ?>
-				<div class="notice notice-warning"><p>
-					<strong><?php esc_html_e( 'Uwaga:', 'colorify-by-inyfinn' ); ?></strong>
-					<?php esc_html_e( 'Moduł MU mu-plugins/colorify/ jest załadowany równolegle z wtyczką. Działa tylko jeden silnik — dezaktywuj wtyczkę lub usuń colorify-loader.php.', 'colorify-by-inyfinn' ); ?>
-				</p></div>
-			<?php elseif ( colorify_mu_module_exists() ) : ?>
-				<div class="notice notice-info"><p>
-					<?php esc_html_e( 'Moduł MU mu-plugins/colorify/ jest obecny, ale wyłączony automatycznie, dopóki ta wtyczka jest aktywna. Inne MU-pluginy działają normalnie.', 'colorify-by-inyfinn' ); ?>
-				</p></div>
-			<?php endif; ?>
-
-			<form method="post" action="" id="colorify-settings-form" class="colorify-settings-form">
-				<?php wp_nonce_field( 'colorify_settings_save', 'colorify_settings_nonce' ); ?>
-				<input type="hidden" name="colorify_settings_save" value="1" />
-
-				<div class="colorify-settings-status" role="status" aria-live="polite">
-					<span class="colorify-settings-status__label"><?php esc_html_e( 'Aktualnie aktywne:', 'colorify-by-inyfinn' ); ?></span>
-					<span class="colorify-settings-status__badge colorify-settings-status__badge--<?php echo esc_attr( $scope ); ?>">
-						<?php
-						echo 'global' === $scope
-							? esc_html__( 'Globalne domyślne — fallback dla użytkowników bez własnego stylu', 'colorify-by-inyfinn' )
-							: esc_html__( 'Per użytkownik — każdy ustawia kolory w profilu', 'colorify-by-inyfinn' );
-						?>
-					</span>
-				</div>
-
-				<section class="colorify-settings-scope" aria-labelledby="colorify-scope-title">
-					<h2 id="colorify-scope-title"><?php esc_html_e( 'Zakres ustawień kolorów', 'colorify-by-inyfinn' ); ?></h2>
-					<p class="description"><?php esc_html_e( 'Globalne: wtyczka narzuca domyślny wygląd tylko użytkownikom bez własnego wyboru w profilu — w tym na stronie logowania. Per użytkownik: każdy konfiguruje kolory samodzielnie.', 'colorify-by-inyfinn' ); ?></p>
-
-					<div class="colorify-scope-toggle" role="radiogroup" aria-label="<?php esc_attr_e( 'Zakres ustawień', 'colorify-by-inyfinn' ); ?>">
-						<label class="colorify-scope-toggle__option<?php echo 'user' === $scope ? ' is-active' : ''; ?>">
-							<input type="radio" name="colorify_settings_scope" value="user" <?php checked( $scope, 'user' ); ?> />
-							<span class="colorify-scope-toggle__label"><?php esc_html_e( 'Per użytkownik', 'colorify-by-inyfinn' ); ?></span>
-							<span class="colorify-scope-toggle__hint"><?php esc_html_e( 'Każdy użytkownik zmienia kolory w swoim profilu.', 'colorify-by-inyfinn' ); ?></span>
-						</label>
-						<label class="colorify-scope-toggle__option<?php echo 'global' === $scope ? ' is-active' : ''; ?>">
-							<input type="radio" name="colorify_settings_scope" value="global" <?php checked( $scope, 'global' ); ?> />
-							<span class="colorify-scope-toggle__label"><?php esc_html_e( 'Globalne', 'colorify-by-inyfinn' ); ?></span>
-							<span class="colorify-scope-toggle__hint"><?php esc_html_e( 'Domyślny styl z wtyczki — tylko dla użytkowników bez własnej personalizacji.', 'colorify-by-inyfinn' ); ?></span>
-						</label>
-					</div>
-				</section>
-
-				<section class="colorify-settings-panel" id="colorify-user-scope-panel"<?php echo 'user' !== $scope ? ' hidden' : ''; ?>>
-					<div class="colorify-settings-callout">
-						<h2><?php esc_html_e( 'Ustawienia per użytkownik', 'colorify-by-inyfinn' ); ?></h2>
-						<p>
-							<?php
-							printf(
-								/* translators: %s: profile URL */
-								esc_html__( 'Aby zmienić kolory panelu, przejdź do %s → sekcja Personalizacja.', 'colorify-by-inyfinn' ),
-								'<a href="' . esc_url( $profile_url ) . '">' . esc_html__( 'Ustawienia użytkownika (profil)', 'colorify-by-inyfinn' ) . '</a>'
-							);
-							?>
-						</p>
-						<p><a class="button button-primary" href="<?php echo esc_url( $profile_url ); ?>"><?php esc_html_e( 'Otwórz profil użytkownika', 'colorify-by-inyfinn' ); ?></a></p>
-					</div>
-				</section>
-
-				<section class="colorify-settings-panel" id="colorify-global-scope-panel"<?php echo 'global' !== $scope ? ' hidden' : ''; ?>>
-					<h2><?php esc_html_e( 'Ustawienia globalne', 'colorify-by-inyfinn' ); ?></h2>
-					<p class="description"><?php esc_html_e( 'Poniżej ustawiasz domyślny wygląd witryny. Dotyczy tylko użytkowników, którzy nie wybrali własnego stylu w profilu.', 'colorify-by-inyfinn' ); ?></p>
-					<div class="colorify-settings-callout colorify-settings-callout--login" role="note">
-						<p>
-							<strong><?php esc_html_e( 'Panel logowania', 'colorify-by-inyfinn' ); ?></strong> —
-							<?php esc_html_e( 'Zmiana globalnego stylu aktualizuje także stronę logowania (wp-login.php). Kolory logowania zawsze pochodzą z ustawień globalnych.', 'colorify-by-inyfinn' ); ?>
-						</p>
-					</div>
-
-					<input type="hidden" name="colorify_admin_appearance" id="colorify-admin-appearance-field" value="<?php echo esc_attr( colorify_get_effective_appearance_mode() ); ?>" />
-
-					<div class="colorify-profile-mode-bar colorify-settings-mode-bar">
-						<div class="colorify-profile-mode-bar__row">
-							<span class="colorify-profile-mode-bar__label"><?php esc_html_e( 'Tryb panelu', 'colorify-by-inyfinn' ); ?></span>
-							<?php echo colorify_admin_mode_switch_html( colorify_get_effective_appearance_mode() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							<button type="button" class="button colorify-tuning-card__open colorify-profile-mode-bar__tuning-btn" id="colorify-tuning-open">
-								<?php esc_html_e( 'Dostrojenie kolorów', 'colorify-by-inyfinn' ); ?>
-							</button>
-						</div>
-						<p class="description colorify-profile-mode-bar__hint">
-							<?php esc_html_e( 'Podgląd globalnych kolorów w trybie ciemnym lub jasnym.', 'colorify-by-inyfinn' ); ?>
-						</p>
-					</div>
-
-					<div class="colorify-global-scheme-picker">
-						<label for="colorify-global-admin-color">
-							<?php esc_html_e( 'Domyślny schemat kolorów', 'colorify-by-inyfinn' ); ?>
-						</label>
-						<select name="admin_color" id="colorify-global-admin-color">
-							<?php
-							$current_scheme = colorify_get_effective_admin_color();
-							foreach ( colorify_admin_scheme_definitions() as $key => $def ) {
-								if ( ! empty( $def['custom'] ) ) {
-									continue;
-								}
-								printf(
-									'<option value="%s" %s>%s</option>',
-									esc_attr( $key ),
-									selected( $current_scheme, $key, false ),
-									esc_html( $def['name'] ?? $key )
-								);
-							}
-							printf(
-								'<option value="%s" %s>%s</option>',
-								esc_attr( COLORIFY_ADMIN_CUSTOM_SCHEME_KEY ),
-								selected( $current_scheme, COLORIFY_ADMIN_CUSTOM_SCHEME_KEY, false ),
-								esc_html__( 'Własna paleta', 'colorify-by-inyfinn' )
-							);
-							?>
-						</select>
-					</div>
-
-					<div id="colorify-global-appearance-mount">
-						<?php
-						if ( $user instanceof WP_User ) {
-							colorify_admin_custom_palette_markup( $user, true );
-						}
-						?>
-					</div>
-
-				</section>
-
-				<p class="colorify-settings-submit colorify-settings-submit--scope">
-					<button type="submit" class="button button-primary button-hero colorify-settings-save" id="colorify-scope-save">
-						<?php esc_html_e( 'Zapisz zakres ustawień', 'colorify-by-inyfinn' ); ?>
-					</button>
-					<span class="colorify-settings-submit__hint">
-						<?php esc_html_e( 'Zapisuje wybór: per użytkownik lub globalne. W trybie globalnym zapisuje też schemat i paletę poniżej.', 'colorify-by-inyfinn' ); ?>
-					</span>
-				</p>
-			</form>
-
-			<section class="colorify-settings-panel colorify-settings-updates" aria-labelledby="colorify-updates-title">
-				<h2 id="colorify-updates-title"><?php esc_html_e( 'Aktualizacja', 'colorify-by-inyfinn' ); ?></h2>
-				<p class="colorify-settings-updates__version">
-					<?php
-					printf(
-						/* translators: %s: current plugin version */
-						esc_html__( 'Wersja %s', 'colorify-by-inyfinn' ),
-						esc_html( COLORIFY_PLUGIN_VERSION )
-					);
-					?>
-				</p>
-
-				<?php if ( isset( $_GET['colorify_github'] ) && 'saved' === $_GET['colorify_github'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Repozytorium GitHub zapisane.', 'colorify-by-inyfinn' ); ?></p></div>
-				<?php elseif ( isset( $_GET['colorify_github'] ) && 'invalid' === $_GET['colorify_github'] ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-					<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'Nieprawidłowy format repozytorium. Użyj owner/repo.', 'colorify-by-inyfinn' ); ?></p></div>
-				<?php endif; ?>
-
-				<?php if ( '' !== $github_repo && current_user_can( 'update_plugins' ) ) : ?>
-					<p class="colorify-settings-submit colorify-settings-submit--updates">
-						<a class="button button-primary button-hero colorify-settings-update-btn" href="<?php echo esc_url( $run_update_url ); ?>">
-							<?php
-							echo esc_html(
-								colorify_has_github_update() && is_array( $github_release ) && ! empty( $github_release['version'] )
-									? sprintf(
-										/* translators: %s: new version number */
-										__( 'Aktualizuj do %s', 'colorify-by-inyfinn' ),
-										$github_release['version']
-									)
-									: __( 'Aktualizuj', 'colorify-by-inyfinn' )
-							);
-							?>
-						</a>
-					</p>
-				<?php endif; ?>
-
-				<?php if ( ! $github_from_const ) : ?>
-					<form method="post" action="" class="colorify-settings-github-form">
-						<?php wp_nonce_field( 'colorify_github_save', 'colorify_github_nonce' ); ?>
-						<input type="hidden" name="colorify_github_save" value="1" />
-						<p>
-							<label for="colorify-github-repo"><?php esc_html_e( 'Repozytorium GitHub', 'colorify-by-inyfinn' ); ?></label>
-							<input
-								type="text"
-								class="regular-text code"
-								id="colorify-github-repo"
-								name="colorify_github_repo"
-								value="<?php echo esc_attr( get_option( 'colorify_github_repo', '' ) ); ?>"
-								placeholder="inyfinn/colorify-by-inyfinn"
-							/>
-						</p>
-						<p class="colorify-settings-submit">
-							<button type="submit" class="button button-secondary"><?php esc_html_e( 'Zapisz repozytorium', 'colorify-by-inyfinn' ); ?></button>
-						</p>
-					</form>
-				<?php endif; ?>
-			</section>
-
-			<footer class="colorify-settings-footer">
-				<p>
-					<a href="<?php echo esc_url( COLORIFY_CREDITS_URL ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( COLORIFY_CREDITS ); ?></a>
-					· <?php esc_html_e( 'Dokumentacja w pliku README.md wtyczki', 'colorify-by-inyfinn' ); ?>
-				</p>
-			</footer>
-		</div>
-		<script>
-		(function () {
-			var form = document.getElementById('colorify-settings-form');
-			if (!form) return;
-			var userPanel = document.getElementById('colorify-user-scope-panel');
-			var globalPanel = document.getElementById('colorify-global-scope-panel');
-			var statusBadge = document.querySelector('.colorify-settings-status__badge');
-			var statusLabels = {
-				user: <?php echo wp_json_encode( __( 'Per użytkownik — każdy ustawia kolory w profilu', 'colorify-by-inyfinn' ) ); ?>,
-				global: <?php echo wp_json_encode( __( 'Globalne domyślne — fallback bez własnego stylu', 'colorify-by-inyfinn' ) ); ?>
-			};
-
-			function syncScopeUi() {
-				var checked = form.querySelector('input[name="colorify_settings_scope"]:checked');
-				var value = checked ? checked.value : 'user';
-				var isGlobal = value === 'global';
-				if (userPanel) userPanel.hidden = isGlobal;
-				if (globalPanel) globalPanel.hidden = !isGlobal;
-				form.querySelectorAll('.colorify-scope-toggle__option').forEach(function (opt) {
-					var input = opt.querySelector('input[type="radio"]');
-					opt.classList.toggle('is-active', input && input.checked);
-				});
-				if (statusBadge) {
-					statusBadge.textContent = statusLabels[value] || statusLabels.user;
-					statusBadge.className = 'colorify-settings-status__badge colorify-settings-status__badge--' + value;
-				}
+		// Trzy różne wyglądy (zakres "osobno") i trzy takie same plus logowanie (zakres "jeden wygląd").
+		$defs        = colorify_admin_scheme_definitions();
+		$sample_defs = array();
+		foreach ( array( 'colorify-lime', 'colorify-basil', 'colorify-sky' ) as $key ) {
+			if ( isset( $defs[ $key ] ) ) {
+				$sample_defs[] = $defs[ $key ];
 			}
+		}
+		$global_def = colorify_admin_get_resolved_global_scheme();
+		$pic_user   = self::scope_pic( $sample_defs, false );
+		$pic_global = self::scope_pic( array( $global_def, $global_def, $global_def ), true );
 
-			form.querySelectorAll('input[name="colorify_settings_scope"]').forEach(function (radio) {
-				radio.addEventListener('change', syncScopeUi);
-			});
-			syncScopeUi();
-		})();
-		</script>
-		<?php
+		echo '<div class="wrap colorify-wrap colorify-ui" data-view="' . esc_attr( $bundle['mode'] ) . '">';
+		echo '<h1 class="colorify-h1">' . colorify_ui_icon( 'logo', 'colorify-h1__logo colorify-i--fill' ) . esc_html__( 'Colorify', 'colorify-by-inyfinn' ) . '</h1>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<hr class="wp-header-end">';
+
+		echo '<form method="post" action="" class="colorify-form" id="colorify-settings-form">';
+		wp_nonce_field( 'colorify_settings_save', 'colorify_settings_nonce' );
+		echo '<input type="hidden" name="colorify_settings_save" value="1">';
+
+		colorify_ui_offstrip( esc_html__( 'Styl Colorify jest wyłączony dla Twojego konta (przełącznik w&nbsp;górnym pasku). Ustawienia witryny poniżej działają normalnie dla pozostałych osób.', 'colorify-by-inyfinn' ) );
+
+		// Kto wybiera kolory.
+		echo '<section class="colorify-card" aria-labelledby="colorify-scope-title">';
+		echo '<h2 id="colorify-scope-title">' . esc_html__( 'Kto wybiera kolory panelu', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<div class="colorify-scope" role="radiogroup" aria-labelledby="colorify-scope-title">';
+		printf(
+			'<label class="colorify-scope__opt"><input type="radio" name="colorify_settings_scope" value="user" %1$s><span class="colorify-scope__title">%2$s</span><p class="colorify-scope__hint">%3$s</p><span class="colorify-scope__pic" aria-hidden="true">%4$s</span></label>',
+			checked( $scope, 'user', false ),
+			esc_html__( 'Każdy użytkownik osobno', 'colorify-by-inyfinn' ),
+			esc_html__( 'Każdy wybiera schemat w&nbsp;swoim profilu. Osoby bez wyboru widzą domyślny wygląd wtyczki.', 'colorify-by-inyfinn' ),
+			$pic_user // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		);
+		printf(
+			'<label class="colorify-scope__opt"><input type="radio" name="colorify_settings_scope" value="global" %1$s><span class="colorify-scope__title">%2$s</span><p class="colorify-scope__hint">%3$s</p><span class="colorify-scope__pic" aria-hidden="true">%4$s</span></label>',
+			checked( $scope, 'global', false ),
+			esc_html__( 'Jeden wygląd dla całej witryny', 'colorify-by-inyfinn' ),
+			esc_html__( 'Poniższy wygląd dostaną osoby bez własnego wyboru w&nbsp;profilu oraz strona logowania.', 'colorify-by-inyfinn' ),
+			$pic_global // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		);
+		echo '</div></section>';
+
+		// Wygląd witryny: widoczny zawsze (logowanie i osoby bez własnego wyboru).
+		echo '<section class="colorify-card" id="colorify-global-look" aria-labelledby="colorify-global-title">';
+		echo '<h2 id="colorify-global-title">' . esc_html__( 'Wygląd witryny', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<p class="colorify-desc">' . esc_html__( 'Dla osób bez własnego wyboru w&nbsp;profilu i&nbsp;dla strony logowania. Każdy nadal może wybrać co innego u&nbsp;siebie.', 'colorify-by-inyfinn' ) . '</p>';
+		colorify_ui_render_picker(
+			array(
+				'context'     => 'settings',
+				'bundle'      => $bundle,
+				'scope'       => 'global',
+				'show_scope'  => false,
+				'target_user' => get_current_user_id(),
+				'actions'     => false,
+			)
+		);
+		echo '</section>';
+
+		// Twoje kolory: tylko przy zakresie "osobno" (wskazówka, gdzie wybiera się kolory panelu).
+		echo '<section class="colorify-card" id="colorify-user-look" aria-labelledby="colorify-user-title"' . ( 'user' === $scope ? '' : ' hidden' ) . '>';
+		echo '<h2 id="colorify-user-title">' . esc_html__( 'Twoje kolory', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<p class="colorify-desc">' . esc_html__( 'Kolory panelu wybiera się w&nbsp;profilu, tak samo jak każdy użytkownik.', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<a class="button" href="' . esc_url( admin_url( 'profile.php#colorify' ) ) . '">' . esc_html__( 'Otwórz mój profil', 'colorify-by-inyfinn' ) . '</a>';
+		echo '</section>';
+
+		echo '<div class="colorify-actions">'
+			. '<button type="submit" class="button button-primary button-large" id="colorify-save">' . esc_html__( 'Zapisz ustawienia', 'colorify-by-inyfinn' ) . '</button>'
+			. '<span class="colorify-status" id="colorify-status" data-state="idle" role="status" aria-live="polite"></span>'
+			. '</div>';
+		echo '</form>';
+
+		// Aktualizacja: jeden wiersz pod formularzem.
+		echo '<section class="colorify-update' . ( $has_update ? ' has-update' : '' ) . '" id="colorify-update" aria-labelledby="colorify-update-title">';
+		echo '<h2 id="colorify-update-title" class="screen-reader-text">' . esc_html__( 'Aktualizacja', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<span class="colorify-update__ver">' . esc_html( sprintf( /* translators: %s: wersja */ __( 'Colorify %s', 'colorify-by-inyfinn' ), COLORIFY_PLUGIN_VERSION ) ) . '</span>';
+		echo '<span class="colorify-update__ok" id="colorify-update-ok">' . self::ok_text() . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<span class="colorify-update__new" id="colorify-update-new">' . ( $has_update ? self::new_text( $version_new ) : '' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<div class="colorify-update__actions">';
+		if ( '' !== $release_url ) {
+			echo '<a href="' . esc_url( $release_url ) . '" id="colorify-release-link" target="_blank" rel="noopener">' . esc_html__( 'Lista zmian na GitHubie', 'colorify-by-inyfinn' ) . ' ' . colorify_ui_icon( 'ext' ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		// TODO-UPDATER: po podmianie updatera na wersję z 1.5.0 kierować na Colorify_Updater::check_url().
+		echo '<a class="button colorify-update__ok" id="colorify-check-update" href="' . esc_url( admin_url( 'update-core.php?force-check=1' ) ) . '">' . esc_html__( 'Sprawdź aktualizacje', 'colorify-by-inyfinn' ) . '</a>';
+		if ( current_user_can( 'update_plugins' ) ) {
+			echo '<a class="button button-primary colorify-update__new" id="colorify-run-update" href="' . esc_url( $update_url ) . '">'
+				. esc_html( $has_update ? sprintf( /* translators: %s: wersja */ __( 'Aktualizuj do %s', 'colorify-by-inyfinn' ), $version_new ) : __( 'Aktualizuj', 'colorify-by-inyfinn' ) )
+				. '</a>';
+		}
+		echo '</div>';
+		echo '<details><summary>' . colorify_ui_icon( 'chev' ) . esc_html__( 'Źródło aktualizacji', 'colorify-by-inyfinn' ) . '</summary>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		if ( $fixed_repo ) {
+			echo '<div class="colorify-update__repo"><label for="colorify-repo">' . esc_html__( 'Repozytorium GitHub (właściciel/nazwa)', 'colorify-by-inyfinn' ) . '</label>'
+				. '<input type="text" class="colorify-input" id="colorify-repo" value="' . esc_attr( $github_repo ) . '" readonly spellcheck="false"></div>';
+		} else {
+			echo '<form method="post" action="" class="colorify-update__repo">';
+			wp_nonce_field( 'colorify_github_save', 'colorify_github_nonce' );
+			echo '<input type="hidden" name="colorify_github_save" value="1">'
+				. '<label for="colorify-repo">' . esc_html__( 'Repozytorium GitHub (właściciel/nazwa)', 'colorify-by-inyfinn' ) . '</label>'
+				. '<input type="text" class="colorify-input" id="colorify-repo" name="colorify_github_repo" value="' . esc_attr( (string) get_option( 'colorify_github_repo', '' ) ) . '" placeholder="inyfinn/colorify-by-inyfinn" spellcheck="false">'
+				. '<button type="submit" class="button">' . esc_html__( 'Zapisz źródło', 'colorify-by-inyfinn' ) . '</button>'
+				. '</form>';
+		}
+		echo '</details>';
+		echo '</section>';
+
+		echo '<p class="colorify-footer">' . esc_html__( 'Colorify by INYFINN', 'colorify-by-inyfinn' ) . ' &middot; <a href="' . esc_url( COLORIFY_CREDITS_URL ) . '" target="_blank" rel="noopener">inyfinn.art</a></p>';
+		echo '</div>';
 	}
 }
