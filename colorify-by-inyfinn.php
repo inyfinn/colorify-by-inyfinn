@@ -90,7 +90,10 @@ colorify_emergency_repair_plugin_root();
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-scope.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-toolbar-actions.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-sparkle-button.php';
-require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-admin-schemes.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-scheme-definitions.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-legacy-tokens.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-profile-ui.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-save.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/class-colorify-settings.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/class-colorify-updater.php';
 
