@@ -98,10 +98,8 @@ function colorify_enqueue_toolbar_assets( int $context_user_id = 0 ): void {
 }
 
 /**
- * JS edytora wyglądu — wyłącznie profil / ustawienia Colorify.
- *
- * @param int $context_user_id User ID.
-
+ * Wyświetla pasek przełączników.
+ */
 function colorify_admin_render_mode_switch(): void {
 	if ( ! is_admin() || ! is_user_logged_in() ) {
 		return;

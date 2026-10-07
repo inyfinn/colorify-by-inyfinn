@@ -609,9 +609,6 @@ function colorify_is_appearance_editor_screen(): bool {
 }
 
 /**
- * Ekran WordPress Customizer (customize.php).
-
-/**
  * JS edytora wyglądu — wyłącznie profil / ustawienia Colorify.
  *
  * @param int $context_user_id User ID.
@@ -729,9 +726,6 @@ function colorify_admin_appearance_script_config( int $context_user_id, string $
 }
 
 /**
- * Główny CSS motywu — jeden plik na typowych stronach admina.
-
-/**
  * CSS edytora (profil / ustawienia) — tylko siatka schematów.
  */
 function colorify_enqueue_appearance_editor_styles(): void {
@@ -762,6 +756,3 @@ function colorify_enqueue_personalization_assets_when_theme_off(): void {
 		COLORIFY_PLUGIN_VERSION
 	);
 }
-
-/**
- * CSS WordPress Customizer (dark + light).
