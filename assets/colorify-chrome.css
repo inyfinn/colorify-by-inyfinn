@@ -18,12 +18,16 @@ body {
   color: var(--colorify-menu-icon);
 }
 
-#adminmenu a:hover,
+#adminmenu a:hover {
+  color: var(--colorify-menu-highlight-text);
+  background-color: var(--colorify-menu-highlight-background);
+}
+
 #adminmenu li.menu-top:hover,
 #adminmenu li.opensub > a.menu-top,
 #adminmenu li > a.menu-top:focus {
-  color: var(--colorify-menu-highlight-text);
-  background-color: var(--colorify-menu-highlight-background);
+  color: var(--colorify-menu-highlight-text) !important;
+  background-color: var(--colorify-menu-highlight-background) !important;
 }
 
 #adminmenu li.menu-top:hover div.wp-menu-image:before,
@@ -79,8 +83,8 @@ ul#adminmenu > li.current > a.current:after {
 #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,
 #adminmenu li.wp-has-current-submenu .wp-submenu .wp-submenu-head,
 .folded #adminmenu li.current.menu-top {
-  color: var(--colorify-menu-current-text);
-  background: var(--colorify-menu-current-background);
+  color: var(--colorify-menu-current-text) !important;
+  background: var(--colorify-menu-current-background) !important;
 }
 
 #adminmenu li.wp-has-current-submenu div.wp-menu-image:before,
@@ -96,16 +100,16 @@ ul#adminmenu > li.current > a.current:after {
 #adminmenu .menu-counter,
 #adminmenu .awaiting-mod,
 #adminmenu .update-plugins {
-  color: var(--colorify-menu-bubble-text);
-  background: var(--colorify-menu-bubble-background);
+  color: var(--colorify-menu-bubble-text) !important;
+  background: var(--colorify-menu-bubble-background) !important;
 }
 
 #adminmenu li.current a .awaiting-mod,
 #adminmenu li a.wp-has-current-submenu .update-plugins,
 #adminmenu li:hover a .awaiting-mod,
 #adminmenu li.menu-top:hover > a .update-plugins {
-  color: var(--colorify-menu-bubble-current-text);
-  background: var(--colorify-menu-bubble-current-background);
+  color: var(--colorify-menu-bubble-current-text) !important;
+  background: var(--colorify-menu-bubble-current-background) !important;
 }
 #collapse-button {
   color: var(--colorify-menu-collapse-text);
@@ -113,12 +117,12 @@ ul#adminmenu > li.current > a.current:after {
 
 #collapse-button:hover,
 #collapse-button:focus {
-  color: var(--colorify-menu-highlight-text);
-  background: var(--colorify-menu-highlight-background);
+  color: var(--colorify-menu-highlight-text) !important;
+  background: var(--colorify-menu-highlight-background) !important;
 }
 #wpadminbar {
-  color: var(--colorify-menu-text);
-  background: var(--colorify-menu-background);
+  color: var(--colorify-menu-text) !important;
+  background: var(--colorify-menu-background) !important;
 }
 
 #wpadminbar .ab-item,
@@ -140,8 +144,8 @@ ul#adminmenu > li.current > a.current:after {
 #wpadminbar.nojq .quicklinks .ab-top-menu > li > .ab-item:focus,
 #wpadminbar.nojs .ab-top-menu > li.menupop:hover > .ab-item,
 #wpadminbar .ab-top-menu > li.menupop.hover > .ab-item {
-  color: var(--colorify-menu-submenu-focus-text);
-  background: var(--colorify-menu-submenu-background);
+  color: var(--colorify-menu-submenu-focus-text) !important;
+  background: var(--colorify-menu-submenu-background) !important;
 }
 
 #wpadminbar:not(.mobile) > #wp-toolbar li:hover span.ab-label,
@@ -216,12 +220,12 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 #wpadminbar > #wp-toolbar > #wp-admin-bar-top-secondary > #wp-admin-bar-search #adminbarsearch input.adminbar-input:focus {
-  color: var(--colorify-menu-text);
-  background: var(--colorify-adminbar-input-background);
+  color: var(--colorify-menu-text) !important;
+  background: var(--colorify-adminbar-input-background) !important;
 }
 #wpadminbar #wp-admin-bar-recovery-mode {
-  color: var(--colorify-adminbar-recovery-exit-text);
-  background-color: var(--colorify-adminbar-recovery-exit-background);
+  color: var(--colorify-adminbar-recovery-exit-text) !important;
+  background-color: var(--colorify-adminbar-recovery-exit-background) !important;
 }
 
 #wpadminbar #wp-admin-bar-recovery-mode .ab-item,
@@ -233,8 +237,8 @@ ul#adminmenu > li.current > a.current:after {
 #wpadminbar.nojq .quicklinks .ab-top-menu > #wp-admin-bar-recovery-mode > .ab-item:focus,
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode:hover > .ab-item,
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode > .ab-item:focus {
-  color: var(--colorify-adminbar-recovery-exit-text);
-  background-color: var(--colorify-adminbar-recovery-exit-background-alt);
+  color: var(--colorify-adminbar-recovery-exit-text) !important;
+  background-color: var(--colorify-adminbar-recovery-exit-background-alt) !important;
 }
 #wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
   border-color: var(--colorify-adminbar-avatar-frame);

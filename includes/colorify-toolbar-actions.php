@@ -9,17 +9,40 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Bieżący URL panelu (do powrotu po przełączeniu).
+ * Adres bezwzględny z REQUEST_URI (ścieżka od korzenia domeny, razem z podkatalogiem WordPressa).
  *
- * REQUEST_URI to ścieżka od korzenia domeny, więc nie przepuszczamy jej przez admin_url()
- * (dałoby /wp-admin/wp-admin/…).
+ * home_url( $path ) dokleja ścieżkę do adresu, który już zawiera podkatalog (home = https://x.pl/blog daje
+ * /blog/blog/wp-admin/...), a admin_url() dokleja /wp-admin/. Dlatego bierzemy z adresu witryny tylko
+ * schemat, host i port.
+ *
+ * @param string $home        Adres witryny (home_url()).
+ * @param string $request_uri $_SERVER['REQUEST_URI'].
+ * @return string Pusty, gdy adres witryny nie ma hosta.
+ */
+function colorify_url_from_request_uri( string $home, string $request_uri ): string {
+	$parts = wp_parse_url( $home );
+	if ( ! is_array( $parts ) || empty( $parts['host'] ) ) {
+		return '';
+	}
+
+	return ( isset( $parts['scheme'] ) ? $parts['scheme'] : 'https' )
+		. '://' . $parts['host']
+		. ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' )
+		. '/' . ltrim( $request_uri, '/' );
+}
+
+/**
+ * Bieżący URL panelu (do powrotu po przełączeniu).
  */
 function colorify_current_admin_url(): string {
 	if ( isset( $_SERVER['REQUEST_URI'] ) ) {
 		$path = wp_unslash( $_SERVER['REQUEST_URI'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$path = is_string( $path ) ? $path : '';
 		if ( '' !== $path ) {
-			return home_url( $path );
+			$url = colorify_url_from_request_uri( home_url(), $path );
+			if ( '' !== $url ) {
+				return $url;
+			}
 		}
 	}
 
@@ -79,6 +102,11 @@ function colorify_handle_toolbar_get_actions(): void {
 
 		$mode = sanitize_key( wp_unslash( $_GET['colorify_mode'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! in_array( $mode, array( 'dark', 'light' ), true ) ) {
+			return;
+		}
+
+		// W oknie aktualizacji ze starego kodu ten plik bywa nowy, a colorify-save.php jeszcze stary (bez tej funkcji).
+		if ( ! function_exists( 'colorify_apply_mode_choice' ) ) {
 			return;
 		}
 

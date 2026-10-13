@@ -278,3 +278,24 @@ function colorify_ui_enqueue(): void {
 	wp_add_inline_script( 'colorify-ui', 'window.colorifyUi = ' . wp_json_encode( $config, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';', 'before' );
 }
 add_action( 'admin_enqueue_scripts', 'colorify_ui_enqueue', 101 );
+
+/**
+ * Tuż przed wypisaniem stylów: zależności arkusza, które inna wtyczka zdążyła wyrejestrować (np. kreator WPForms
+ * wyrzuca uchwyt "colors"), wypadają z listy. Inaczej WordPress pomija cały arkusz i ekrany wtyczki tracą styl.
+ */
+function colorify_ui_prune_missing_style_deps(): void {
+	$styles = wp_styles();
+	if ( ! isset( $styles->registered['colorify-ui'] ) ) {
+		return;
+	}
+
+	$styles->registered['colorify-ui']->deps = array_values(
+		array_filter(
+			(array) $styles->registered['colorify-ui']->deps,
+			static function ( $handle ) use ( $styles ) {
+				return isset( $styles->registered[ $handle ] );
+			}
+		)
+	);
+}
+add_action( 'admin_print_styles', 'colorify_ui_prune_missing_style_deps', 0 );

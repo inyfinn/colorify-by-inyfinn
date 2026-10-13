@@ -8,34 +8,51 @@
 defined( 'ABSPATH' ) || exit;
 
 function colorify_branding_login_brand_html(): string {
-	$icon_url  = colorify_branding_site_icon_url( 512 );
-	$is_fav    = colorify_branding_uses_site_favicon();
-	$img_class = 'colorify-login-brand__icon-img' . ( $is_fav ? '' : ' colorify-login-brand__icon-img--fallback' );
+	if ( colorify_branding_uses_site_favicon() ) {
+		$icon = '<img src="' . esc_url( colorify_branding_site_icon_url( 512 ) ) . '" alt="" class="colorify-login-brand__icon-img" width="40" height="40" decoding="async" />';
+	} else {
+		// Znak INYFINN rysuje arkusz (maska), więc pasuje do każdego schematu.
+		$icon = '<span class="colorify-login-brand__mark" aria-hidden="true"></span>';
+	}
 
 	return '<span class="colorify-login-brand">'
-		. '<span class="colorify-login-brand__icon">'
-		. '<img src="' . esc_url( $icon_url ) . '" alt="" class="' . esc_attr( $img_class ) . '" width="32" height="32" decoding="async" />'
-		. '</span>'
+		. '<span class="colorify-login-brand__icon">' . $icon . '</span>'
 		. '<span class="colorify-login-brand__wordmark">' . esc_html( colorify_branding_site_name() ) . '</span>'
 		. '</span>';
 }
 
+/**
+ * Arkusz logowania i tokeny schematu globalnego (zawsze ustawienia globalne, nie konto, bo nikt nie jest zalogowany).
+ * Bez Dark Readera i bez żądań poza serwer: czcionki EB Garamond i IBM Plex Sans leżą w assets/fonts/.
+ */
 function colorify_branding_login_assets(): void {
 	wp_enqueue_style(
-		'colorify-branding-fonts',
-		'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap',
-		array(),
-		null
-	);
-
-	wp_enqueue_style(
-		'colorify-branding',
-		COLORIFY_PLUGIN_URL . 'assets/colorify-branding.css',
-		array( 'colorify-branding-fonts', 'login' ),
+		'colorify-login',
+		COLORIFY_PLUGIN_URL . 'assets/colorify-login.css',
+		array( 'login' ),
 		COLORIFY_PLUGIN_VERSION
 	);
+
+	$tokens = colorify_login_tokens();
+	wp_add_inline_style( 'colorify-login', ':root{' . colorify_engine_declarations( $tokens['css'] ) . '}' );
 }
 add_action( 'login_enqueue_scripts', 'colorify_branding_login_assets' );
+
+/**
+ * Tryb (ciemny albo jasny) na <html>: arkusz bierze z niego tło strony.
+ *
+ * @param string $output Atrybuty języka.
+ */
+function colorify_branding_login_html_attr( $output ): string {
+	$output = is_string( $output ) ? $output : '';
+
+	if ( ! colorify_is_login_request() ) {
+		return $output;
+	}
+
+	return trim( $output . ' data-colorify-login="' . esc_attr( colorify_get_global_appearance_mode() ) . '"' );
+}
+add_filter( 'language_attributes', 'colorify_branding_login_html_attr' );
 
 add_filter(
 	'login_headertext',

@@ -20,6 +20,7 @@
 
 	var state = { mode: cfg.mode === 'light' ? 'light' : 'dark', payloads: cfg.payloads };
 	var loading = null;
+	var seq = 0;
 
 	function ensureDarkReader() {
 		if ( w.DarkReader ) {
@@ -84,10 +85,14 @@
 			d.body.classList.toggle( 'colorify-light', ! dark );
 		}
 
+		// Every call invalidates the earlier ones: a late engine load must not paint over a newer choice.
+		var token = ++seq;
 		var done;
 		if ( dark ) {
 			done = ensureDarkReader().then( function ( DR ) {
-				enable( DR, payload.dark );
+				if ( token === seq ) {
+					enable( DR, payload.dark );
+				}
 			} );
 		} else {
 			if ( w.DarkReader && w.DarkReader.isEnabled() ) {
@@ -115,6 +120,18 @@
 			return apply( state.payloads[ ( mode || state.mode ) === 'light' ? 'light' : 'dark' ] );
 		},
 	};
+
+	// Screens without admin_body_class (the Customizer) get the state classes here, so the contrast guard runs there too.
+	function markBody() {
+		d.body.classList.add( 'colorify-on' );
+		d.body.classList.toggle( 'colorify-dark', state.mode === 'dark' );
+		d.body.classList.toggle( 'colorify-light', state.mode !== 'dark' );
+	}
+	if ( d.body ) {
+		markBody();
+	} else {
+		d.addEventListener( 'DOMContentLoaded', markBody );
+	}
 
 	// First paint. In dark mode the engine script is already on the page (enqueued before this file).
 	var first = state.payloads[ state.mode ];

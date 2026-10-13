@@ -39,7 +39,7 @@ Progi: `AA = 4.5`, `AA_SAFE = 4.6` (zapas na zaokrąglenia; do niego dobieramy),
 ## 3. Wejście
 
 `$def` z `colorify_admin_get_resolved_scheme()` po `colorify_admin_apply_user_tuning_to_scheme()`:
-`accent`, `accent_soft`, `bg_dark`, `bg2_dark`, `bg_light`, `bg2_light`. Braki lub błędy → wartości schematu Limonka
+`accent`, `accent_soft`, `bg_dark`, `bg2_dark`, `bg_light`, `bg2_light`. Braki lub błędy (śmieciowe wejście, nie wybór schematu) → wartości schematu Limonka
 (`#b4e717`, `#92c200`, `#050f0c`, `#0b231c`, `#fefefd`, `#f7f6f3`). Tryb: `dark` albo `light`.
 Kluczy `accent_light`, `accent_soft_light` nowy silnik nie używa. `bg_light` nie jest używany wcale, `bg2_light`
 tylko jako źródło chromy `canvas` w trybie jasnym (4.1). `accent_soft` jest tylko normalizowany, żaden token z niego nie powstaje.
@@ -169,7 +169,27 @@ albo `var(--darkreader-border--…)` zależnie od roli. Te zmienne ustawiamy sam
 Trzy ostatnie tokeny (stany) to kolor tekstu i ikon na `surface` i `surface2`, kontrast co najmniej AA_SAFE na obu.
 Punkty startowe to kolory rdzenia WordPressa, nie zależą od palety usera.
 
-### 4.6 Pozostałe
+### 4.6 Zachowanie reguł (nie tokeny)
+
+- **Pary z !important.** `assets/colorify-chrome.css` (generowany przez `tools/build-scheme-css.mjs`): każda reguła, która ustawia
+  kolor tekstu i tło naraz (najechana i bieżąca pozycja menu, plakietki, pozycje górnego paska), ma obie deklaracje z `!important`.
+  Wtyczki, które przemalowują samo tło bieżącej pozycji (Wordfence, All-in-One WP Migration) albo robią je przezroczystym
+  (Elementor), nie zostawią naszego koloru tekstu na cudzym tle. Obie wartości pochodzą z jednej tabeli tokenów.
+- **Kolor motywu w edytorze blokowym (obejście, rdzeń 7.1.3).** `edit-post` (`getAdminThemeColors()`) wybiera ziarno koloru z zaszytej mapy
+  po klasie `admin-color-<schemat>` na `body`; nieznany schemat daje domyślny niebieski `#3858e9`, a hakiem ani filtrem nie da się tego zmienić.
+  `ThemeProvider` wpisuje wtedy `--wp-admin-theme-color` i ok. 130 zmiennych `--wpds-color-*` w atrybut `style` kontenerów. Arkusz `#colorify-tokens`
+  ma regułę `[style*="--wp-admin-theme-color"],[style*="--wpds-color-"]{... !important}` z rodziną `theme` (6 zmiennych) i 14 zmiennymi marki
+  `--wpds-color-*` wyliczonymi z tokenu motywu (`colorify_engine_tokens_css()`), a deklaracja `!important` z arkusza wygrywa z atrybutem `style`
+  bez `!important`. **Do zdjęcia, gdy rdzeń udostępni hak na kolor ziarna (albo schemat z `wp_admin_css_color` trafi do mapy).**
+- **Tło ekranu w trybie ciemnym.** Biegun tła silnika to `surface` (karty). silnik ustawia tło `html` w anonimowej warstwie `@layer` z `!important`, której nie przebije żadna zwykła reguła, więc `fixes.css`
+  daje `html{background-image:linear-gradient(var(--colorify-body-background),var(--colorify-body-background))!important}` (jednokolorowy gradient
+  nad kolorem silnika): `html` i `body` mają to samo `canvas` (także pod stopką i poniżej pierwszego ekranu). SVG bez `fill` dostaje `fill:currentColor`
+  (domyślna czerń nie jest przeliczana przez silnik).
+- **Schemat domyślny** to stała `COLORIFY_DEFAULT_SCHEME` (`includes/colorify-scope.php`), obecnie `colorify-kancelaria`
+  ("Grafit i złoto"). Stary klucz `colorify-jungle` jest w mapie `colorify_admin_normalize_scheme_key()`. Pozycja puli schematów może mieć
+  opcjonalne `[4]`, `[5]` = `bg_light`, `bg2_light`; wtedy nie bierze udziału w drabince jasnych teł grupy.
+
+### 4.7 Pozostałe
 
 - Ikony SVG menu (trzeci argument `icons` w `wp_admin_css_color()`): `base = menu_icon`, `focus = on_fill`, `current = on_fill`.
 - Podgląd schematu (4 kolory): `[ menu_bg, canvas, fill, theme ]`.

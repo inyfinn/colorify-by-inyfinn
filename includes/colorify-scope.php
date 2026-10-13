@@ -15,6 +15,11 @@ const COLORIFY_GLOBAL_OPTION_PREFIX      = 'colorify_global_';
 const COLORIFY_ADMIN_CUSTOMIZED_META     = 'colorify_admin_has_customized';
 const COLORIFY_THEME_ENABLED_META        = 'colorify_theme_enabled';
 
+// Schemat używany, gdy nikt nic nie wybrał (jedyne miejsce, gdzie ta wartość jest wpisana).
+if ( ! defined( 'COLORIFY_DEFAULT_SCHEME' ) ) {
+	define( 'COLORIFY_DEFAULT_SCHEME', 'colorify-kancelaria' );
+}
+
 /**
  * Czy Colorify styluje panel (OFF = natywny WordPress + pasek przełączników).
  *
@@ -47,7 +52,7 @@ function colorify_set_user_theme_enabled( int $user_id, bool $enabled ): void {
 }
 
 /**
- * Gdy motyw OFF — WordPress ładuje domyślny schemat (nie colorify-admin-colors.css).
+ * Gdy motyw OFF - WordPress ładuje domyślny schemat (nie colorify-admin-colors.css).
  *
  * @param mixed               $value  Wartość opcji.
  * @param string              $option Nazwa opcji.
@@ -91,7 +96,7 @@ function colorify_uses_global_settings(): bool {
 }
 
 /**
- * Surowa wartość admin_color z user_meta (bez filtrów WP — unika pętli rekurencji).
+ * Surowa wartość admin_color z user_meta (bez filtrów WP - unika pętli rekurencji).
  */
 function colorify_get_raw_user_admin_color( int $user_id ): string {
 	if ( $user_id <= 0 ) {
@@ -210,9 +215,9 @@ function colorify_get_global_custom_tuning(): array {
  * @return string
  */
 function colorify_get_global_admin_color(): string {
-	$scheme = get_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'admin_color', 'colorify-lime' );
-	$scheme = is_string( $scheme ) ? colorify_admin_normalize_scheme_key( $scheme ) : 'colorify-lime';
-	return colorify_admin_scheme_is_registered( $scheme ) ? $scheme : 'colorify-lime';
+	$scheme = get_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'admin_color', COLORIFY_DEFAULT_SCHEME );
+	$scheme = is_string( $scheme ) ? colorify_admin_normalize_scheme_key( $scheme ) : COLORIFY_DEFAULT_SCHEME;
+	return colorify_admin_scheme_is_registered( $scheme ) ? $scheme : COLORIFY_DEFAULT_SCHEME;
 }
 
 /**
@@ -270,14 +275,14 @@ function colorify_saves_appearance_to_global( int $user_id = 0, ?array $input = 
 function colorify_get_user_stored_admin_color( int $user_id = 0 ): string {
 	$user_id = $user_id > 0 ? $user_id : get_current_user_id();
 	if ( $user_id <= 0 ) {
-		return 'colorify-lime';
+		return COLORIFY_DEFAULT_SCHEME;
 	}
 	$scheme = colorify_get_raw_user_admin_color( $user_id );
 	$scheme = '' !== $scheme ? colorify_admin_normalize_scheme_key( $scheme ) : '';
 	if ( '' !== $scheme && colorify_admin_scheme_is_registered( $scheme ) ) {
 		return $scheme;
 	}
-	return 'colorify-lime';
+	return COLORIFY_DEFAULT_SCHEME;
 }
 
 /**
@@ -333,7 +338,7 @@ function colorify_get_effective_appearance_mode( int $user_id = 0 ): string {
 }
 
 /**
- * Zapis trybu — profil użytkownika (własna personalizacja).
+ * Zapis trybu - profil użytkownika (własna personalizacja).
  *
  * @param int $user_id User ID.
  */
@@ -391,7 +396,7 @@ function colorify_get_effective_admin_color( int $user_id = 0 ): string {
 		if ( '' !== $scheme && colorify_admin_scheme_is_registered( $scheme ) ) {
 			return $scheme;
 		}
-		return 'colorify-lime';
+		return COLORIFY_DEFAULT_SCHEME;
 	}
 
 	return colorify_get_global_admin_color();
@@ -425,7 +430,7 @@ function colorify_save_global_appearance( array $input ): void {
 }
 
 /**
- * Filtr user option — globalny domyślny schemat tylko bez własnego wyboru użytkownika.
+ * Filtr user option - globalny domyślny schemat tylko bez własnego wyboru użytkownika.
  *
  * @param mixed         $value  Wartość opcji.
  * @param string        $option Nazwa opcji.

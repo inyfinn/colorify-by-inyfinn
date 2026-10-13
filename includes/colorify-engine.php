@@ -78,7 +78,7 @@ function colorify_engine_filter_admin_color( $value ): string {
 		return $legacy[ $value ];
 	}
 
-	return colorify_admin_scheme_is_registered( $value ) ? $value : 'colorify-lime';
+	return colorify_admin_scheme_is_registered( $value ) ? $value : COLORIFY_DEFAULT_SCHEME;
 }
 add_filter( 'get_user_option_admin_color', 'colorify_engine_filter_admin_color' );
 
@@ -111,8 +111,50 @@ function colorify_engine_declarations( array $vars, bool $important = false ): s
 function colorify_engine_tokens_css( array $tokens ): string {
 	$vars = isset( $tokens['css'] ) && is_array( $tokens['css'] ) ? $tokens['css'] : array();
 
+	// Edytor blokowy (ThemeProvider) wpisuje swój niebieski kolor motywu w atrybut style kontenerów. Deklaracja
+	// !important z arkusza wygrywa z atrybutem style bez !important, więc cały edytor dostaje kolor motywu schematu.
+	$theme_vars = array_intersect_key(
+		$vars,
+		array_flip(
+			array(
+				'--wp-admin-theme-color',
+				'--wp-admin-theme-color--rgb',
+				'--wp-admin-theme-color-darker-10',
+				'--wp-admin-theme-color-darker-10--rgb',
+				'--wp-admin-theme-color-darker-20',
+				'--wp-admin-theme-color-darker-20--rgb',
+			)
+		)
+	);
+	// OBEJSCIE rdzenia 7.1.3 (edit-post getAdminThemeColors(); do zdjecia, gdy rdzen da hak na ziarno koloru): ThemeProvider liczy ok. 130 zmiennych --wpds-color-* z ziarna wybranego po klasie body
+	// admin-color-<schemat> z zaszytej mapy rdzenia (nieznany schemat = domyslny niebieski), bez haka. Zmienne
+	// marki (przyciski, pola wyboru, linki, obramowania) dostaja wiec kolory z tokenow motywu.
+	$brand = array();
+	$theme = isset( $vars['--wp-admin-theme-color'] ) ? (string) $vars['--wp-admin-theme-color'] : '';
+	if ( preg_match( '/^#[0-9a-f]{6}$/', $theme ) && isset( $vars['--wp-admin-theme-color-darker-10'], $vars['--wp-admin-theme-color-darker-20'] ) ) {
+		$d10   = (string) $vars['--wp-admin-theme-color-darker-10'];
+		$d20   = (string) $vars['--wp-admin-theme-color-darker-20'];
+		$brand = array(
+			'--wpds-color-background-interactive-brand-strong'        => $theme,
+			'--wpds-color-background-interactive-brand-strong-active' => $d10,
+			'--wpds-color-foreground-interactive-brand-strong'        => '#ffffff',
+			'--wpds-color-foreground-interactive-brand-strong-active' => '#ffffff',
+			'--wpds-color-foreground-interactive-brand'               => $theme,
+			'--wpds-color-foreground-interactive-brand-active'        => $d20,
+			'--wpds-color-background-thumb-brand'                     => $theme,
+			'--wpds-color-background-thumb-brand-active'              => $theme,
+			'--wpds-color-stroke-interactive-brand'                   => $theme,
+			'--wpds-color-stroke-interactive-brand-active'            => $d20,
+			'--wpds-color-stroke-surface-brand-strong'                => $theme,
+			'--wpds-color-stroke-surface-brand'                       => colorify_cm_mix( $theme, '#ffffff', 0.7 ),
+			'--wpds-color-background-surface-brand'                   => colorify_cm_mix( $theme, '#ffffff', 0.92 ),
+			'--wpds-color-background-interactive-brand-weak-active'   => colorify_cm_mix( $theme, '#ffffff', 0.88 ),
+		);
+	}
+	$inline = '[style*="--wp-admin-theme-color"],[style*="--wpds-color-"]{' . colorify_engine_declarations( array_merge( $theme_vars, $brand ), true ) . '}';
+
 	if ( 'dark' !== ( $tokens['mode'] ?? '' ) || ! isset( $vars['--colorify-body-background'] ) ) {
-		return 'html,body{' . colorify_engine_declarations( $vars ) . '}';
+		return 'html,body{' . colorify_engine_declarations( $vars ) . '}' . $inline;
 	}
 
 	// Ciemne tło ekranu dopiero wtedy, gdy silnik trybu ciemnego naprawdę maluje stronę: sam ustawia
@@ -123,7 +165,8 @@ function colorify_engine_tokens_css( array $tokens ): string {
 	$vars['--colorify-body-background'] = '#f0f0f0';
 
 	return 'html,body{' . colorify_engine_declarations( $vars ) . '}'
-		. 'html[data-darkreader-scheme],html[data-darkreader-scheme] body{' . colorify_engine_declarations( array( '--colorify-body-background' => $canvas ) ) . '}';
+		. 'html[data-darkreader-scheme],html[data-darkreader-scheme] body{' . colorify_engine_declarations( array( '--colorify-body-background' => $canvas ) ) . '}'
+		. $inline;
 }
 
 /**
@@ -151,10 +194,12 @@ function colorify_engine_enqueue(): void {
 		return;
 	}
 
+	// Zaleznosc od arkusza schematu tylko, gdy jest zarejestrowany: niektore wtyczki (kreator WPForms) wyrejestrowuja
+	// uchwyt "colors", a WordPress nie wypisuje wtedy stylu wcale (menu i gorny pasek bez naszych kolorow).
 	wp_enqueue_style(
 		'colorify-chrome',
 		COLORIFY_PLUGIN_URL . 'assets/colorify-chrome.css',
-		array( 'colors' ),
+		wp_style_is( 'colors', 'registered' ) ? array( 'colors' ) : array(),
 		COLORIFY_PLUGIN_VERSION
 	);
 }
@@ -224,7 +269,7 @@ function colorify_engine_ajax_preview_tokens(): void {
 		wp_send_json_error( null, 403 );
 	}
 
-	$scheme = isset( $_POST['scheme'] ) ? sanitize_key( wp_unslash( $_POST['scheme'] ) ) : 'colorify-lime';
+	$scheme = isset( $_POST['scheme'] ) ? sanitize_key( wp_unslash( $_POST['scheme'] ) ) : COLORIFY_DEFAULT_SCHEME;
 	$custom = null;
 	if ( isset( $_POST['custom'] ) && is_array( $_POST['custom'] ) ) {
 		$custom = array_map( 'sanitize_text_field', wp_unslash( $_POST['custom'] ) );

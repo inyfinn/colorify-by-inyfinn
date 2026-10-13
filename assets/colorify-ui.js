@@ -381,7 +381,8 @@
 		function readState() {
 			var s = { scheme: '', mode: modeField ? modeField.value : 'dark', custom: {}, tuning: { dark: {}, light: {} } };
 			var checked = $( 'input[name="admin_color"]:checked', root );
-			s.scheme = checked ? checked.value : '';
+			// Schemat bez karty w siatce (nieznany klucz): zostaje wartość z serwera, nigdy pusty ciąg.
+			s.scheme = checked ? checked.value : ( data.scheme || '' );
 			PALETTE_KEYS.forEach( function ( k ) {
 				var hex = $( '#colorify-hex-' + k, root );
 				s.custom[ k ] = hex ? hex.value.toLowerCase() : '';

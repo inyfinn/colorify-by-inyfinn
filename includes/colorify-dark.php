@@ -81,7 +81,16 @@ function colorify_dark_reader_arguments( array $tokens ): array {
 			'invert'                  => array(),
 			// Role akcentu: silnik zamienia var(--wp-admin-theme-color) na te zmienne zależnie od tego,
 			// czy kolor jest tłem, tekstem czy ramką. Podajemy je sami, policzone pod kontrast.
-			'css'                     => 'body{' . colorify_engine_declarations( $vars, true ) . '}',
+			'css'                     => 'body{' . colorify_engine_declarations( $vars, true ) . '}'
+				// Biegun tła silnika to powierzchnia kart; ekran (html, także pod stopką i menu) ma kolor canvas jak body. Silnik ustawia tło html w warstwie @layer z !important, której nie przebije żadna zwykła reguła, więc kolor idzie jako obraz tła (gradient jednokolorowy) nad jego kolorem.
+				. 'html{background-image:linear-gradient(var(--colorify-body-background),var(--colorify-body-background))!important}'
+				// SVG bez własnego fill maluje się domyślną czernią, której silnik nie przelicza: kolor tekstu.
+				. 'svg:not([fill]){fill:currentColor}'
+				// Pierscien fokusu rdzenia to box-shadow z koloru motywu; silnik przelicza go jak tlo (ciemny, ok. 2.4:1).
+				// Wskaznik klawiatury dostaje kontur w kolorze fokusu z tokenow (co najmniej 4.5:1 na powierzchniach).
+				. ':is(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--colorify-ui-focus)!important;outline-offset:1px}'
+				// Znaczenie "danger" rdzenia (usun, kosz, spam) w kolorze z tokenow, z gwarancja kontrastu na powierzchniach.
+				. '.submitdelete,.row-actions .delete a,.row-actions .trash a,.row-actions .spam a,.row-actions .submitdelete,a.delete,.button-link-delete,#delete-link a,.delete-attachment,.trash-attachment{color:var(--colorify-ui-danger)!important}',
 			'ignoreInlineStyle'       => colorify_dark_literal_color_selectors(),
 			'ignoreImageAnalysis'     => array(),
 			'disableStyleSheetsProxy' => false,
@@ -101,6 +110,18 @@ function colorify_dark_enqueue(): void {
 	$mode   = colorify_get_effective_appearance_mode();
 	$vendor = COLORIFY_PLUGIN_URL . 'assets/vendor/darkreader.js';
 	$deps   = array();
+
+	/**
+	 * Ekrany (identyfikatory WP_Screen), na ktorych silnik trybu ciemnego sie nie wlacza. Wyjscie awaryjne wlasciciela
+	 * strony: ekran zostaje jasny i czytelny, reszta panelu jest ciemna. Domyslnie pusta lista.
+	 *
+	 * @param array<int,string> $screens Identyfikatory ekranow.
+	 */
+	$off_screens = (array) apply_filters( 'colorify_dark_engine_screens', array() );
+	$screen      = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( 'dark' === $mode && $screen instanceof WP_Screen && in_array( $screen->id, array_map( 'strval', $off_screens ), true ) ) {
+		$mode = 'light';
+	}
 
 	if ( 'dark' === $mode ) {
 		wp_enqueue_script( 'colorify-darkreader', $vendor, array(), COLORIFY_DARKREADER_VERSION, false );

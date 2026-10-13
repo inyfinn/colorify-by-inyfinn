@@ -10,10 +10,11 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Link „Zmień kolory” na liście wtyczek.
  *
- * @param array<int,string> $links Istniejące linki akcji.
+ * @param mixed $links Istniejące linki akcji (zwykle tablica).
  * @return array<int,string>
  */
-function colorify_plugin_action_links( array $links ): array {
+function colorify_plugin_action_links( $links ): array {
+	$links        = (array) $links; // Cudzy filtr plugin_action_links_* mógł zwrócić nie-tablicę.
 	$profile_url  = admin_url( 'profile.php' );
 	$settings_url = admin_url( 'options-general.php?page=colorify-by-inyfinn' );
 
@@ -33,25 +34,13 @@ function colorify_plugin_action_links( array $links ): array {
 		array_unshift( $links, $settings_link );
 	}
 
-	if ( current_user_can( 'update_plugins' ) && '' !== colorify_get_github_repo() ) {
-		$cached     = colorify_get_cached_github_release();
-		$has_update = is_array( $cached ) && ! empty( $cached['version'] )
-			&& version_compare( COLORIFY_PLUGIN_VERSION, $cached['version'], '<' );
-		$label      = $has_update
-			? sprintf(
-				/* translators: %s: new version number */
-				__( 'Aktualizuj do %s', 'colorify-by-inyfinn' ),
-				$cached['version']
-			)
-			: __( 'Aktualizuj', 'colorify-by-inyfinn' );
-
-		$update_link = sprintf(
-			'<a href="%1$s"%2$s>%3$s</a>',
-			esc_url( colorify_get_manual_update_url( admin_url( 'plugins.php' ) ) ),
-			$has_update ? ' class="colorify-plugin-update-link"' : '',
-			$has_update ? '<strong>' . esc_html( $label ) . '</strong>' : esc_html( $label )
+	if ( current_user_can( 'update_plugins' ) ) {
+		$check_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( Colorify_Updater::check_url( 'plugins' ) ),
+			esc_html__( 'Sprawdź aktualizacje', 'colorify-by-inyfinn' )
 		);
-		array_unshift( $links, $update_link );
+		array_unshift( $links, $check_link );
 	}
 
 	return $links;

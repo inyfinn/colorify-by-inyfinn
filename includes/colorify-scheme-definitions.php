@@ -27,6 +27,7 @@ function colorify_admin_normalize_scheme_key( string $key ): string {
 	$explicit = array(
 		'vp-custom'   => 'colorify-custom',
 		'gc-lime'     => 'colorify-lime',
+		'colorify-jungle' => 'colorify-kancelaria',
 		'gc-forest'   => 'colorify-forest',
 		'gc-emerald'  => 'colorify-jade',
 		'gc-violet'   => 'colorify-violet',
@@ -304,7 +305,7 @@ function colorify_admin_green_scheme_keys(): array {
 }
 
 /**
- * Klucze schematów ciepłych (dawne zielone sloty — rubin, rdza, złoto itd.).
+ * Klucze schematów ciepłych (dawne zielone sloty - rubin, rdza, złoto itd.).
  *
  * @return array<int,string>
  */
@@ -325,7 +326,7 @@ function colorify_admin_warm_scheme_keys(): array {
 }
 
 /**
- * Surowa drabinka ciepłych teł — rubin → czekolada (ciemne → jaśniejsze).
+ * Surowa drabinka ciepłych teł - rubin → czekolada (ciemne → jaśniejsze).
  *
  * @return array<int,array{0:string,1:string}>
  */
@@ -377,7 +378,7 @@ function colorify_admin_lift_bg_pair( array $pair, float $percent = 5.0 ): array
 }
 
 /**
- * Tekst czytelny na tle koloru — WCAG AA (domyślnie 4.5:1).
+ * Tekst czytelny na tle koloru - WCAG AA (domyślnie 4.5:1).
  *
  * @param string $bg         Tło (hex).
  * @param float  $min_ratio  Min. stosunek kontrastu.
@@ -595,7 +596,7 @@ function colorify_admin_scheme_skip_dark_dim( string $key ): bool {
 }
 
 /**
- * Dodatkowe przyciemnienie ciemnego tła (HSL L −15) — Purpura, Fuksja, Dymny itd.
+ * Dodatkowe przyciemnienie ciemnego tła (HSL L −15) - Purpura, Fuksja, Dymny itd.
  */
 function colorify_admin_scheme_dark_dim_amount( string $key ): float {
 	return colorify_admin_scheme_skip_dark_dim( $key ) ? 0.0 : 15.0;
@@ -648,7 +649,7 @@ function colorify_admin_apply_user_tuning_to_scheme( array $def, string $mode, a
 }
 
 /**
- * Współczynniki szczypnięcia akcentem — dark + light per schemat.
+ * Współczynniki szczypnięcia akcentem - dark + light per schemat.
  *
  * @return array{dark:array{0:float,1:float},light:array{0:float,1:float}}
  */
@@ -728,9 +729,9 @@ function colorify_admin_hex_to_hsl( string $hex ): array {
 }
 
 /**
- * @param float $h 0–360.
- * @param float $s 0–100.
- * @param float $l 0–100.
+ * @param float $h 0-360.
+ * @param float $s 0-100.
+ * @param float $l 0-100.
  */
 function colorify_admin_hsl_to_hex( float $h, float $s, float $l ): string {
 	$h = fmod( $h, 360 );
@@ -880,7 +881,7 @@ function colorify_admin_apply_custom_tuning_colors( array $colors, string $mode,
 }
 
 /**
- * Względna luminancja sRGB (0–1) — do sortowania teł L→P.
+ * Względna luminancja sRGB (0-1) - do sortowania teł L→P.
  */
 function colorify_admin_relative_luminance( string $hex ): float {
 	$hex = ltrim( $hex, '#' );
@@ -901,7 +902,7 @@ function colorify_admin_relative_luminance( string $hex ): float {
 }
 
 /**
- * Sortuje klucze schematów po ciemności tła (bg_dark) — ciemniejsze pierwsze.
+ * Sortuje klucze schematów po ciemności tła (bg_dark) - ciemniejsze pierwsze.
  *
  * @param array<int,string>              $keys   Klucze w grupie.
  * @param array<string,array<string,mixed>> $built Częściowo zbudowane definicje.
@@ -924,7 +925,7 @@ function colorify_admin_sort_scheme_keys_by_bg( array $keys, array $built ): arr
 }
 
 /**
- * Grupy kolorystyczne — każda w osobnych rzędach siatki 4×N.
+ * Grupy kolorystyczne - każda w osobnych rzędach siatki 4×N.
  *
  * @return array<string,array<int,string>>
  */
@@ -940,7 +941,7 @@ function colorify_admin_scheme_color_groups(): array {
 			'colorify-violet', 'colorify-purple', 'colorify-fuchsia', 'colorify-rose',
 		),
 		'earth'  => array(
-			'colorify-amber', 'colorify-stone', 'colorify-emerald',
+			COLORIFY_DEFAULT_SCHEME, 'colorify-amber', 'colorify-stone', 'colorify-emerald',
 		),
 	);
 }
@@ -968,7 +969,7 @@ function colorify_admin_black_bg_ladder(): array {
 }
 
 /**
- * Kolejność w siatce — grupy kolorystyczne, w rzędzie L→P ciemniejsze → jaśniejsze tło.
+ * Kolejność w siatce - grupy kolorystyczne, w rzędzie L→P ciemniejsze → jaśniejsze tło.
  *
  * @param array<string,array<string,mixed>>|null $built Opcjonalnie do sortowania po luminancji.
  * @return array<int,string>
@@ -998,6 +999,9 @@ function colorify_admin_scheme_pool_raw(): array {
 	$black = colorify_admin_black_bg_ladder();
 
 	return array(
+		// Domyślny schemat (COLORIFY_DEFAULT_SCHEME): wygląd strony kancelarii. Opcjonalne [4], [5] = bg_light, bg2_light.
+		'colorify-kancelaria' => array( 'Grafit i złoto', array( '#1a1a1a', '#242424' ), '#b1976b', '#d8c195', '#ffffff', '#f5f5f5' ),
+
 		'colorify-deep'       => array( 'Głęboka zieleń', $green[0], '#4a9b84', '#6db89f' ),
 		'colorify-hunter'     => array( 'Myśliwska', $green[1], '#355E3B', '#4A7C59' ),
 		'colorify-marsh'      => array( 'Bagno', $green[2], '#1c4b42', '#2a5c52' ),
@@ -1046,7 +1050,7 @@ function colorify_admin_scheme_pool_raw(): array {
 }
 
 /**
- * Motywy — akcenty bez zmian; tła z drabinki; kolejność po luminancji w grupach.
+ * Motywy - akcenty bez zmian; tła z drabinki; kolejność po luminancji w grupach.
  *
  * @return array<string,array<string,mixed>>
  */
@@ -1088,8 +1092,8 @@ function colorify_admin_scheme_definitions(): array {
 			$bg_pair[1],
 			$item[2],
 			$item[3],
-			'#fefefd',
-			'#f7f6f3'
+			$item[4] ?? '#fefefd',
+			$item[5] ?? '#f7f6f3'
 		);
 	}
 
@@ -1123,8 +1127,15 @@ function colorify_admin_scheme_definitions(): array {
 	}
 
 	foreach ( $groups as $group_keys ) {
+		// Schematy z własnymi wartościami jasnymi (pool [4], [5]) nie biorą udziału w drabince, żeby nie przesuwać cudzych.
 		$sorted       = colorify_admin_sort_scheme_keys_by_bg( $group_keys, $built );
+		$own_light    = array_values( array_filter( $sorted, static function ( $k ) use ( $pool ) { return isset( $pool[ $k ][5] ); } ) );
+		$sorted       = array_values( array_diff( $sorted, $own_light ) );
 		$light_ladder = colorify_admin_light_bg_ladder( count( $sorted ) );
+		foreach ( $own_light as $key ) {
+			$sorted[]                    = $key;
+			$light_ladder[ count( $sorted ) - 1 ] = array( $pool[ $key ][4], $pool[ $key ][5] );
+		}
 
 		foreach ( $sorted as $index => $key ) {
 			if ( ! isset( $built[ $key ], $light_ladder[ $index ] ) ) {
@@ -1138,8 +1149,8 @@ function colorify_admin_scheme_definitions(): array {
 				$ratios['light'][0],
 				$ratios['light'][1]
 			);
-			$bg_l  = $tinted[0];
-			$bg2_l = $tinted[1];
+			$bg_l  = $pool[ $key ][4] ?? $tinted[0];
+			$bg2_l = $pool[ $key ][5] ?? $tinted[1];
 			$acc_l = colorify_admin_light_preview_accents(
 				$built[ $key ]['accent'],
 				$built[ $key ]['accent_soft'],
@@ -1218,7 +1229,7 @@ function colorify_admin_get_resolved_scheme( string $key, int $user_id = 0 ): ar
 		);
 	}
 
-	return $defs[ $key ] ?? colorify_admin_get_resolved_scheme( 'colorify-lime', $user_id );
+	return $defs[ $key ] ?? colorify_admin_get_resolved_scheme( COLORIFY_DEFAULT_SCHEME, $user_id );
 }
 
 /**
@@ -1309,7 +1320,7 @@ function colorify_admin_hex_to_rgb_csv( string $hex ): string {
 }
 
 /**
- * Schemat globalny (panel wtyczki) — używany na stronie logowania.
+ * Schemat globalny (panel wtyczki) - używany na stronie logowania.
  *
  * @return array<string,mixed>
  */

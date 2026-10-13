@@ -1,0 +1,696 @@
+/*! Colorify by INYFINN - strona logowania (wp-login.php) w stylu strony kancelarii (KANON.md).
+ * Kolory wyłącznie z tokenów schematu globalnego (colorify_login_tokens(), wypisane jako :root w tym samym arkuszu).
+ * Kształt i typografia są stałe: prostokąty bez zaokrągleń (pola 2 px), EB Garamond i IBM Plex Sans lokalnie. Bez Dark Readera.
+ * Nazwa pliku zawiera "colorify-login": silnik trybu ciemnego tego arkusza nie przelicza. */
+
+@font-face {
+	font-family: "EB Garamond";
+	font-style: normal;
+	font-weight: 400 800;
+	font-display: swap;
+	src: url("fonts/eb-garamond-latin-ext-wght-normal.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: "EB Garamond";
+	font-style: normal;
+	font-weight: 400 800;
+	font-display: swap;
+	src: url("fonts/eb-garamond-latin-wght-normal.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-ext-400-normal.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-ext-500-normal.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-500-normal.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-ext-600-normal.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: "IBM Plex Sans";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- Pary kolorów strony ----------
+ * Tło strony i tekst poza kartą: w trybie ciemnym kolory ekranu (canvas i tekst), w jasnym ciemna rama schematu
+ * (menu), bo logowanie ma być grafitowe jak ciemne sekcje strony. Karta i pola zawsze z tokenów ekranu. */
+html[data-colorify-login] {
+	--cl-bg: var(--colorify-menu-background);
+	--cl-fg: var(--colorify-menu-text);
+	--cl-muted: var(--colorify-menu-icon);
+	--cl-link: var(--colorify-menu-submenu-focus-text);
+	--cl-gold: var(--colorify-ui-brand);
+	--cl-field: color-mix(in srgb, var(--colorify-ui-text-muted) 70%, transparent);
+	--cl-line: color-mix(in srgb, var(--colorify-ui-text) 12%, transparent);
+	--cl-serif: "EB Garamond", Georgia, serif;
+	--cl-sans: "IBM Plex Sans", system-ui, sans-serif;
+	background: var(--cl-bg);
+}
+
+html[data-colorify-login="dark"] {
+	--cl-bg: var(--colorify-ui-bg);
+	--cl-fg: var(--colorify-ui-text);
+	--cl-muted: var(--colorify-ui-text-muted);
+	--cl-link: var(--colorify-ui-accent);
+	color-scheme: dark;
+}
+
+html[data-colorify-login="light"] {
+	color-scheme: light;
+}
+
+html[data-colorify-login] body.login {
+	min-height: 100vh;
+	min-height: 100dvh;
+	margin: 0;
+	padding: 0 20px 40px;
+	background: var(--cl-bg);
+	color: var(--cl-fg);
+	font-family: var(--cl-sans);
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.6;
+	hyphens: none;
+	overflow-x: hidden;
+}
+
+html[data-colorify-login] body.login *,
+html[data-colorify-login] body.login *::before,
+html[data-colorify-login] body.login *::after {
+	box-sizing: border-box;
+}
+
+/* ---------- Układ ---------- */
+html[data-colorify-login] .login #login {
+	width: 100%;
+	max-width: 440px;
+	margin: 0 auto;
+	padding: clamp(32px, 9vh, 88px) 0 8px;
+}
+
+/* Marka: ikona witryny i nazwa w EB Garamond, bez rozciągania. */
+html[data-colorify-login] .login h1.wp-login-logo {
+	margin: 0 0 12px;
+	text-align: center;
+}
+
+html[data-colorify-login] .login h1.wp-login-logo a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 4px;
+	overflow: visible;
+	background: none;
+	color: var(--cl-fg);
+	font-family: var(--cl-serif);
+	font-size: clamp(28px, 22px + 1.2vw, 34px);
+	font-weight: 500;
+	line-height: 1.15;
+	letter-spacing: -0.005em;
+	text-decoration: none;
+	text-indent: 0;
+	text-wrap: balance;
+}
+
+.colorify-login-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.colorify-login-brand__icon {
+	display: block;
+	flex: none;
+	width: 40px;
+	height: 40px;
+	overflow: hidden;
+}
+
+.colorify-login-brand__icon-img {
+	display: block;
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+}
+
+/* Znak INYFINN (SVG z fill: currentColor) maluje się maską w kolorze tekstu strony, bo jako <img> byłby czarny. */
+.colorify-login-brand__mark {
+	display: block;
+	width: 40px;
+	height: 40px;
+	background: var(--cl-fg);
+	-webkit-mask: url("inyfinn-logo-okrag.svg") center / contain no-repeat;
+	mask: url("inyfinn-logo-okrag.svg") center / contain no-repeat;
+}
+
+.colorify-login-brand__wordmark {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+html[data-colorify-login] .colorify-login-tagline {
+	margin: 0 0 28px;
+	text-align: center;
+	color: var(--cl-muted);
+}
+
+/* ---------- Komunikaty (błąd, wylogowanie, reset) ----------
+ * Pole z linią 1 px i 3 px kreską z lewej w kolorze znaczenia; znaczenie niesie też tekst ("Błąd:"), nie sam kolor. */
+html[data-colorify-login] .login #login_error,
+html[data-colorify-login] .login .notice,
+html[data-colorify-login] .login .message,
+html[data-colorify-login] .login .success {
+	margin: 0 0 20px;
+	padding: 16px 20px;
+	border: 1px solid var(--cl-line);
+	border-left: 3px solid var(--cl-gold);
+	border-radius: 0;
+	background: var(--colorify-ui-surface);
+	box-shadow: none;
+	color: var(--colorify-ui-text);
+	word-wrap: break-word;
+}
+
+html[data-colorify-login] .login #login_error,
+html[data-colorify-login] .login .notice-error {
+	border-left-color: var(--colorify-ui-danger);
+}
+
+html[data-colorify-login] .login .success,
+html[data-colorify-login] .login .notice-success {
+	border-left-color: var(--colorify-ui-success);
+}
+
+html[data-colorify-login] .login #login_error a,
+html[data-colorify-login] .login .notice a,
+html[data-colorify-login] .login .message a {
+	color: var(--colorify-ui-accent);
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-color: var(--cl-gold);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 5px;
+}
+
+html[data-colorify-login] .login #login_error strong {
+	font-weight: 700;
+}
+
+/* ---------- Karta formularza: 1 px linia, bez zaokrągleń i cieni, padding 32 / 28 px ---------- */
+html[data-colorify-login] .login form {
+	margin: 0;
+	padding: 32px 28px;
+	overflow: visible;
+	border: 1px solid var(--cl-line);
+	border-radius: 0;
+	background: var(--colorify-ui-surface);
+	box-shadow: none;
+	color: var(--colorify-ui-text);
+	font-weight: 400;
+}
+
+html[data-colorify-login] .login #login form p,
+html[data-colorify-login] .login #login form .user-pass-wrap {
+	margin: 0 0 20px;
+}
+
+html[data-colorify-login] .login label {
+	display: block;
+	margin: 0 0 8px;
+	color: var(--colorify-ui-text);
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+html[data-colorify-login] .login .forgetmenot label,
+html[data-colorify-login] .login .language-switcher label {
+	margin: 0;
+}
+
+/* Pola: obrys 1 px, promień 2 px (jedyny promień kanonu), 50 px wysokości, tekst 16 px. */
+html[data-colorify-login] .login #login form .input,
+html[data-colorify-login] .login #login input[type="text"],
+html[data-colorify-login] .login #login input[type="password"],
+html[data-colorify-login] .login #login input[type="email"],
+html[data-colorify-login] .login select {
+	width: 100%;
+	min-height: 50px;
+	margin: 0;
+	padding: 0 14px;
+	border: 1px solid var(--cl-field);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface-2);
+	box-shadow: none;
+	color: var(--colorify-ui-text);
+	font-family: inherit;
+	font-size: 16px;
+	line-height: 1.4;
+	transition: border-color 0.2s ease;
+}
+
+html[data-colorify-login] .login input.password-input {
+	padding-right: 54px;
+}
+
+html[data-colorify-login] .login #login input:focus,
+html[data-colorify-login] .login #login select:focus {
+	border-color: var(--colorify-ui-focus);
+	box-shadow: none;
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 2px;
+}
+
+html[data-colorify-login] .login .wp-pwd {
+	position: relative;
+}
+
+/* Oko hasła: pole dotyku 44 px po prawej stronie pola. */
+html[data-colorify-login] .login .wp-pwd .button.wp-hide-pw {
+	position: absolute;
+	top: 3px;
+	right: 3px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--colorify-ui-text-muted);
+}
+
+html[data-colorify-login] .login .wp-pwd .button.wp-hide-pw:hover {
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+}
+
+html[data-colorify-login] .login .wp-pwd .button.wp-hide-pw:focus-visible {
+	border: 0;
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: -2px;
+	box-shadow: none;
+}
+
+html[data-colorify-login] .login .wp-pwd .button.wp-hide-pw .dashicons {
+	width: 22px;
+	height: 22px;
+	font-size: 22px;
+	line-height: 22px;
+	top: 0;
+}
+
+/* Zapamiętaj mnie: własne pole wyboru, wiersz 44 px. */
+html[data-colorify-login] .login #login form .forgetmenot {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	float: none;
+	min-height: 44px;
+	margin: 0 0 8px;
+}
+
+html[data-colorify-login] .login input[type="checkbox"] {
+	display: inline-grid;
+	place-content: center;
+	flex: none;
+	appearance: none;
+	-webkit-appearance: none;
+	width: 22px;
+	min-width: 22px;
+	height: 22px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--cl-field);
+	border-radius: 2px;
+	background: var(--colorify-ui-surface-2);
+	box-shadow: none;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+html[data-colorify-login] .login input[type="checkbox"]::before {
+	content: "";
+	display: block;
+	width: 6px;
+	height: 11px;
+	margin: -2px 0 0;
+	border: solid var(--colorify-ui-on-accent);
+	border-width: 0 2px 2px 0;
+	float: none;
+	transform: rotate(45deg) scale(0);
+	transition: transform 0.2s ease;
+}
+
+html[data-colorify-login] .login input[type="checkbox"]:checked {
+	border-color: var(--colorify-ui-accent-fill);
+	background: var(--colorify-ui-accent-fill);
+}
+
+html[data-colorify-login] .login input[type="checkbox"]:checked::before {
+	transform: rotate(45deg) scale(1);
+}
+
+html[data-colorify-login] .login .wp-tooltip__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	margin: 0 0 0 -8px;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: var(--colorify-ui-text-muted);
+	cursor: pointer;
+}
+
+html[data-colorify-login] .login .wp-tooltip__toggle:hover {
+	color: var(--colorify-ui-text);
+}
+
+html[data-colorify-login] .login .wp-tooltip__toggle:focus-visible,
+html[data-colorify-login] .login .wp-tooltip__close:focus-visible {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 3px;
+}
+
+html[data-colorify-login] .login .wp-tooltip__bubble {
+	max-width: min(340px, calc(100vw - 40px));
+	padding: 20px 48px 20px 20px;
+	border: 1px solid var(--cl-line);
+	border-left: 3px solid var(--cl-gold);
+	border-radius: 0;
+	background: var(--colorify-ui-surface);
+	box-shadow: none;
+	color: var(--colorify-ui-text);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+html[data-colorify-login] .login .wp-tooltip__close {
+	color: var(--colorify-ui-text-muted);
+}
+
+/* ---------- Przyciski: bez zaokrągleń, Plex 14 / 600, wersaliki, .06em, obrys 1 px, 200 ms ---------- */
+html[data-colorify-login] .login .button,
+html[data-colorify-login] .login .button.button-large {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	float: none;
+	min-height: 44px;
+	padding: 0 32px;
+	border: 1px solid var(--cl-gold);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--colorify-ui-text);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0.06em;
+	text-shadow: none;
+	text-transform: uppercase;
+	text-decoration: none;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Główny (52 px): wypełnienie z tokenu akcentu, tekst z jego własnego tokenu. Hover i fokus: inwersja tekst/powierzchnia. */
+html[data-colorify-login] .login .button.button-primary,
+html[data-colorify-login] .login .button.button-primary:focus {
+	min-height: 52px;
+	border-color: var(--colorify-ui-accent-fill);
+	background: var(--colorify-ui-accent-fill);
+	color: var(--colorify-ui-on-accent);
+}
+
+html[data-colorify-login] .login .button.button-primary:hover,
+html[data-colorify-login] .login .button.button-primary:active,
+html[data-colorify-login] .login .button.button-primary:focus-visible {
+	border-color: var(--colorify-ui-text);
+	background: var(--colorify-ui-text);
+	color: var(--colorify-ui-surface);
+}
+
+html[data-colorify-login] .login .button:active {
+	transform: translateY(1px);
+}
+
+html[data-colorify-login] .login .button:focus-visible {
+	outline: 2px solid var(--colorify-ui-focus);
+	outline-offset: 3px;
+}
+
+html[data-colorify-login] .login #login form p.submit {
+	margin: 16px 0 0;
+	text-align: left;
+}
+
+/* Przycisk "Zmień" przy wyborze języka leży na tle strony, nie na karcie. */
+html[data-colorify-login] .login .language-switcher .button {
+	padding: 0 24px;
+	border-color: var(--cl-fg);
+	background: transparent;
+	color: var(--cl-fg);
+}
+
+html[data-colorify-login] .login .language-switcher .button:hover {
+	background: var(--cl-fg);
+	color: var(--cl-bg);
+}
+
+html[data-colorify-login] .login .language-switcher .button:focus-visible {
+	outline-color: var(--cl-link);
+}
+
+/* ---------- Linki pod kartą: 600, podkreślenie złote 2 px, odstęp 5 px (kolory pary strony) ---------- */
+html[data-colorify-login] .login #nav,
+html[data-colorify-login] .login #backtoblog {
+	margin: 12px 0 0;
+	padding: 0;
+	text-align: center;
+}
+
+html[data-colorify-login] .login #nav a,
+html[data-colorify-login] .login #backtoblog a,
+html[data-colorify-login] .colorify-login-credits a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	color: var(--cl-link);
+	font-size: 16px;
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-color: var(--cl-gold);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 5px;
+	transition: color 0.2s ease;
+}
+
+html[data-colorify-login] .login #nav a:hover,
+html[data-colorify-login] .login #backtoblog a:hover,
+html[data-colorify-login] .colorify-login-credits a:hover {
+	color: var(--cl-fg);
+}
+
+html[data-colorify-login] .login #nav a:focus-visible,
+html[data-colorify-login] .login #backtoblog a:focus-visible,
+html[data-colorify-login] .colorify-login-credits a:focus-visible,
+html[data-colorify-login] .login h1.wp-login-logo a:focus-visible {
+	box-shadow: none;
+	outline: 2px solid var(--cl-link);
+	outline-offset: 3px;
+}
+
+html[data-colorify-login] .login .language-switcher {
+	width: 100%;
+	max-width: 440px;
+	margin: 24px auto 0;
+	padding: 0;
+}
+
+html[data-colorify-login] .login .language-switcher form {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	padding: 0;
+	border: 0;
+	background: none;
+}
+
+html[data-colorify-login] .login .language-switcher label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--cl-muted);
+	font-size: 14px;
+	font-weight: 400;
+}
+
+/* Wybór języka leży na tle strony: kolory pary strony, nie karty. */
+html[data-colorify-login] .login #login ~ .language-switcher select {
+	width: auto;
+	min-width: 160px;
+	max-width: 100%;
+	border-color: color-mix(in srgb, var(--cl-fg) 30%, transparent);
+	background: transparent;
+	color: var(--cl-fg);
+}
+
+html[data-colorify-login] .login .language-switcher select option {
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+}
+
+html[data-colorify-login] .colorify-login-credits {
+	margin: 28px 0 0;
+	text-align: center;
+	color: var(--cl-muted);
+	font-size: 14px;
+}
+
+html[data-colorify-login] .colorify-login-credits a {
+	min-height: 0;
+	font-size: 14px;
+}
+
+/* ---------- Reset hasła: siła hasła, podpowiedź ---------- */
+html[data-colorify-login] .login #pass-strength-result {
+	min-height: 0;
+	margin: 12px 0 0;
+	padding: 10px 14px;
+	border: 1px solid var(--cl-field);
+	border-radius: 0;
+	background: var(--colorify-ui-surface-2);
+	color: var(--colorify-ui-text);
+	font-size: 14px;
+	font-weight: 600;
+	opacity: 1;
+}
+
+html[data-colorify-login] .login #pass-strength-result.short,
+html[data-colorify-login] .login #pass-strength-result.bad {
+	border-color: var(--colorify-ui-danger);
+	background: var(--colorify-ui-surface-2);
+}
+
+html[data-colorify-login] .login #pass-strength-result.good {
+	border-color: var(--colorify-ui-warning);
+	background: var(--colorify-ui-surface-2);
+}
+
+html[data-colorify-login] .login #pass-strength-result.strong {
+	border-color: var(--colorify-ui-success);
+	background: var(--colorify-ui-surface-2);
+}
+
+html[data-colorify-login] .login .indicator-hint,
+html[data-colorify-login] .login .description {
+	margin: 8px 0 0;
+	color: var(--colorify-ui-text-muted);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+html[data-colorify-login] .login .pw-weak {
+	margin: 12px 0 0;
+}
+
+html[data-colorify-login] .login .pw-weak label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+	font-weight: 400;
+}
+
+/* ---------- Szerokości ---------- */
+@media (max-width: 599px) {
+	/* Do 599 px przycisk główny ma pełną szerokość karty (jak na stronie). */
+	html[data-colorify-login] .login #login form p.submit .button {
+		width: 100%;
+	}
+}
+
+@media (max-width: 480px) {
+	html[data-colorify-login] body.login {
+		padding: 0 16px 32px;
+	}
+
+	html[data-colorify-login] .login form {
+		padding: 24px 20px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html[data-colorify-login] .login .button,
+	html[data-colorify-login] .login input,
+	html[data-colorify-login] .login input[type="checkbox"]::before,
+	html[data-colorify-login] .login #nav a,
+	html[data-colorify-login] .login #backtoblog a,
+	html[data-colorify-login] .colorify-login-credits a {
+		transition: none;
+	}
+
+	html[data-colorify-login] .login .button:active {
+		transform: none;
+	}
+}

@@ -213,6 +213,24 @@ if (VERIFY) {
 	process.exit(0);
 }
 
+// Pairs: a rule that sets a text colour and a background together (menu item hover and current, admin bar items)
+// keeps both with !important. Plugins that repaint only the background of the current menu item (Wordfence,
+// All-in-One WP Migration) or make it transparent (Elementor) would otherwise leave our text colour on their
+// background. Both values come from one token table, so the pair stays readable.
+const pair = (rule) => {
+	const text = [];
+	let bg = false;
+	rule.each((d) => {
+		if (d.type !== 'decl') return;
+		if (d.prop === 'color') text.push(d);
+		if (d.prop === 'background' || d.prop === 'background-color') bg = true;
+	});
+	if (!bg || !text.length) return;
+	rule.each((d) => {
+		if (d.type === 'decl' && (d.prop === 'color' || d.prop === 'background' || d.prop === 'background-color')) d.important = true;
+	});
+};
+
 const css = prepare(VARS, true);
 const root = postcss.parse(css);
 const chrome = postcss.root();
@@ -226,7 +244,16 @@ root.each((node) => {
 	}
 	const inChrome = node.selectors.filter(isChrome);
 	const inScheme = node.selectors.filter((s) => !isChrome(s));
-	if (inChrome.length) chrome.append(node.clone({ selectors: inChrome }));
+	if (inChrome.length) {
+		// Plain links (submenu items) keep the ordinary cascade: forcing a background there would paint every hovered
+		// submenu link, and plugin badges inside it would sit on our fill.
+		const plain = inChrome.filter((x) => x.trim() === '#adminmenu a:hover');
+		const strong = inChrome.filter((x) => x.trim() !== '#adminmenu a:hover');
+		if (plain.length && strong.length) chrome.append(node.clone({ selectors: plain }));
+		const copy = node.clone({ selectors: plain.length && strong.length ? strong : inChrome });
+		if (!(plain.length && !strong.length)) pair(copy);
+		chrome.append(copy);
+	}
 	if (inScheme.length) scheme.append(node.clone({ selectors: inScheme }));
 });
 

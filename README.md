@@ -1,182 +1,125 @@
 # Colorify by INYFINN
 
-Personalizacja wyglądu panelu WordPress (`wp-admin` + strona logowania) dla projektu **Colorify**.
+Kolory panelu WordPress (wp-admin) i strony logowania: gotowe schematy, własna paleta, tryb jasny i ciemny.
+Ustawienia per użytkownik albo jedne dla całej witryny.
 
-Autor: [INYFINN](https://inyfinn.art) · Wersja wtyczki: **1.4.9**
+Autor: [INYFINN](https://inyfinn.art). Licencja: GPL-2.0-or-later.
 
----
+**Interfejs wtyczki jest po polsku.** Wtyczka nie dostarcza tłumaczeń (nie ma plików `.mo`); angielskie panele
+WordPressa zobaczą polskie teksty Colorify.
 
-## Szybki start
+## Wymagania
 
-| Tryb | Gdzie zmieniać kolory |
-|------|------------------------|
-| **Per użytkownik** (domyślny) | **Użytkownicy → Profil** → sekcja *Kolory administracyjne* |
-| **Globalne** | **Ustawienia → Colorify** → przełącznik *Globalne* |
+- WordPress 7.0 lub nowszy
+- PHP 7.4 lub nowszy
 
-Przycisk **„Zapisz ustawienia”** w karcie *Dostrojenie kolorów* zapisuje schemat, paletę i dostrojenie bez przewijania do góry formularza profilu.
+Na starszym środowisku wtyczka pokazuje komunikat w panelu i nie ładuje reszty (front strony działa bez zmian).
 
----
+## Jak działa
+
+- **Tryb jasny.** Colorify rejestruje własny schemat kolorów przez mechanizm WordPressa (`wp_admin_css_color`)
+  i ustawia zmienne `--wp-admin-theme-color*`. Menu boczne i górny pasek mają kolory schematu, treść zostaje jasna.
+  Kolory nie przykrywają panelu setkami reguł `!important`.
+- **Tryb ciemny.** Przelicza kolory silnik [Dark Reader](https://darkreader.org) (licencja MIT), dołączony do wtyczki
+  (`assets/vendor/`). Jest ładowany tylko w trybie ciemnym. Gdy się nie uruchomi, panel zostaje czytelny: ciemna rama,
+  jasna treść.
+- **Strażnik kontrastu.** Mały skrypt mierzy teksty i poprawia te o zbyt niskim kontraście (poniżej 4.5:1; ikony
+  poniżej 3:1) atrybutem i regułą, nie stylem inline. W trybie ciemnym obejmuje cały panel, w jasnym tylko menu
+  boczne i górny pasek. Poprawka działa w stanie spoczynku: elementy najechane i wciśnięte zachowują własne kolory.
+- **Schemat domyślny: Grafit i złoto** (ciemne menu i pasek `#1a1a1a`, złoty akcent `#b1976b`). Osoby z zapisanym
+  własnym wyborem zachowują go.
+- **Ograniczenie:** edytor blokowy działa w ramce (iframe), do której Colorify nie sięga; obszar edycji treści
+  zostaje jasny.
 
 ## Instalacja
 
-Na tej instalacji Colorify działa **wyłącznie jako wtyczka** (`wp-content/plugins/colorify-by-inyfinn/`). Moduł MU (`colorify-loader.php` + `mu-plugins/colorify/`) został usunięty.
+1. Pobierz `colorify-by-inyfinn.zip` z [wydań na GitHubie](https://github.com/inyfinn/colorify-by-inyfinn/releases).
+2. **Wtyczki, Dodaj nową, Wyślij wtyczkę**, wskaż plik, włącz. Albo: `wp plugin install colorify-by-inyfinn.zip --force --activate`.
+3. Kolory wybierasz w **Użytkownicy, Profil** (swoje) i **Ustawienia, Colorify** (wygląd witryny, strona logowania,
+   wybór: każdy osobno albo jeden wygląd dla wszystkich).
 
-Wtyczka nadal wykrywa przypadkowe równoległe ładowanie MU (`COLORIFY_MU_MODULE`, `colorify-loader.php`) i wtedy nie startuje — żeby uniknąć duplikatu stylów.
+Wtyczka nie może działać razem z modułem MU `colorify/` (komunikat w panelu): działa jeden silnik naraz.
 
----
+## Aktualizacje
 
-## Struktura plików
+Wtyczka aktualizuje się jak zwykłe wtyczki WordPressa, z GitHub Releases. Nagłówek `Update URI` wskazuje
+repozytorium, a WordPress przy swoim zwykłym sprawdzaniu (mniej więcej co 12 godzin) pyta GitHuba o ostatnie wydanie.
+Nowa wersja pokazuje się paskiem "Dostępna jest nowa wersja" na ekranie Wtyczki, instaluje ją "Zaktualizuj teraz"
+(albo `wp plugin update colorify-by-inyfinn`) i wtyczka zostaje włączona.
 
-```
-colorify-by-inyfinn/
-├── colorify-by-inyfinn.php      # Bootstrap, assety, login branding, hooki admina
-├── README.md                    # Ten dokument
-├── includes/
-│   ├── colorify-admin-schemes.php  # Rdzeń: schematy, tokeny CSS, paleta, dostrojenie
-│   ├── colorify-scope.php            # Zakres globalny vs per-user (opcje witryny)
-│   └── class-colorify-settings.php   # Panel Ustawienia → Colorify
-└── assets/
-    ├── colorify-branding.css       # Login + ogólny branding admina
-    ├── colorify-admin-colors.css   # Placeholder schematów WP (rejestracja admin_color)
-    ├── colorify-admin-overrides.css        # UI profilu: paleta, dostrojenie, modal, przycisk Zapisz
-    ├── colorify-admin-appearance.js # Live preview, suwaki, zapis, dark/light switch
-    ├── colorify-settings.css         # Styl panelu ustawień wtyczki
-    └── inyfinn-logo-okrag.svg        # Fallback favicon / logo
-```
+- **Od razu:** ekran **Aktualizacje, Sprawdź ponownie** (albo link "Sprawdź aktualizacje" w wierszu wtyczki
+  i w Ustawieniach) czyści cache wydania i pyta ponownie. Cache trwa 11 godzin (krócej niż cykl WordPressa).
+- **Z wersji 1.x:** stary kod nie ma przycisku sprawdzania. Raz kliknij link **Aktualizuj** w wierszu wtyczki
+  (albo użyj `wp plugin install ... --force`). Od 2.0 aktualizacje przychodzą same.
+- **Bezpieczeństwo paczki:** instalowany jest wyłącznie asset `colorify-by-inyfinn.zip` z adresu
+  `https://github.com/<repo>/releases/download/` (nigdy zipball). Gdy API GitHuba podaje sumę SHA-256 assetu,
+  pobrany plik musi się z nią zgadzać, inaczej instalacja jest wstrzymana (brak sumy: instalacja jak dotąd).
+  Paczka o złym katalogu głównym albo brakującym pliku głównym nie jest instalowana (rdzeń przywraca poprzednią wersję),
+  a wydanie wymagające nowszego PHP lub WordPressa niż na stronie jest wstrzymywane.
+- **Repozytorium** można zmienić w `wp-config.php` (np. na próbę na repozytorium testowym):
 
-### Co jest do czego
+  ```php
+  define( 'COLORIFY_GITHUB_REPO', 'wlasciciel/repozytorium' );
+  ```
 
-| Plik | Odpowiedzialność | Bezpiecznie edytować? |
-|------|------------------|----------------------|
-| `colorify-by-inyfinn.php` | Ładowanie modułów, enqueue assetów, stopka, switch dark/light | Tak (ścieżki, wersje) |
-| `colorify-admin-schemes.php` | **Najważniejszy** — definicje ~40 schematów, HSL tuning, PHP→JS data | Ostrożnie — testuj wszystkie schematy |
-| `colorify-scope.php` | `user` / `global` scope, opcje `colorify_global_*` | Tak |
-| `class-colorify-settings.php` | UI ustawień wtyczki | Tak |
-| `colorify-admin-appearance.js` | Cała logika podglądu na żywo | Tak — bump `COLORIFY_APPEARANCE_JS_VERSION` |
-| `colorify-admin-overrides.css` | Layout kart profilu, modal dostrojenia, **przycisk Zapisz** | Tak — bump `COLORIFY_ADMIN_OVERRIDES_VER` |
-| `colorify-branding.css` | Kolory loginu, admin bar, formularze (duży plik) | Ostrożnie — regresje UI |
+Zwykłe wydanie oznaczone na GitHubie jako Latest jest oferowane stronom. Pre-release nie jest (endpoint
+`releases/latest` go nie zwraca).
 
----
+## Filtry
 
-## Jak to działa (architektura)
+| Filtr | Domyślnie | Do czego |
+|-------|-----------|----------|
+| `colorify_contrast_guard` | `true` | `false` wyłącza strażnika kontrastu w trybie ciemnym. |
+| `colorify_dark_literal_color_selectors` | próbki kolorów (`.wp-color-result` i podobne) | Selektory elementów, których kolory z atrybutu `style` tryb ciemny zostawia dosłownie (próbki kolorów nie mogą się przekolorować). |
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  PHP: colorify_admin_scheme_definitions()                     │
-│       → rejestracja admin_color (WP core)                       │
-│       → colorify_admin_get_resolved_scheme() + tuning         │
-│       → colorify_admin_tokens_from_scheme() → CSS variables   │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-┌────────────────────────────▼────────────────────────────────────┐
-│  JS: colorify-admin-appearance.js                               │
-│       → applyAppearance(scheme, mode) na :root                    │
-│       → suwaki dostrojenia (−90…+90)                              │
-│       → własna paleta 4 kolory (colorify-custom)                        │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-┌────────────────────────────▼────────────────────────────────────┐
-│  Zapis                                                            │
-│   • Profil użytkownika: user_meta (admin_color, colorify_admin_*)       │
-│   • Globalne: wp_options (colorify_global_*)                      │
-│   • AJAX: tylko tryb dark/light (colorify_save_admin_appearance)          │
-│   • Przycisk Zapisz: submit formularza profilu / ustawień         │
-└─────────────────────────────────────────────────────────────────┘
-```
+## Znane ograniczenia
 
-### User meta / opcje
+- **Limit API GitHuba:** 60 zapytań na godzinę na adres IP (bez tokenu). Przy wielu stronach za jednym IP sprawdzenie
+  może się nie udać; błąd jest zapamiętany na 15 minut, potem następuje ponowna próba.
+- **Edytor w ramce** (iframe) zostaje jasny (patrz wyżej).
+- **Komunikat "pliki w trakcie aktualizacji"**: podczas ręcznego kopiowania plików (stary link "Aktualizuj", FTP)
+  wtyczka przez chwilę sprawdza kompletność plików i nic nie ładuje. Odśwież stronę; jeśli komunikat nie znika,
+  zainstaluj wtyczkę ponownie. To samo zobaczysz, gdy pliki zostały zmienione po instalacji (np. przesłane
+  w trybie tekstowym FTP).
+- Dark Reader dokłada skrypt około 350 KB w panelu, tylko w trybie ciemnym.
+- **Wyłączona wtyczka nie dostaje ofert aktualizacji** (updater działa tylko, gdy wtyczka jest włączona).
+  W multisite włączaj Colorify sieciowo; włączony na jednej podstronie pokazuje i chowa ofertę zależnie od tego,
+  która witryna uruchomiła sprawdzenie.
+- **Suma kontrolna chroni transport, nie konto GitHub.** Suma pochodzi z tej samej odpowiedzi API co adres paczki:
+  wykryje uszkodzony albo podmieniony plik po drodze, nie wykryje wydania opublikowanego z przejętego konta.
+- Przycisk "Aktualizuj" w Ustawieniach i "Zaktualizuj teraz" na ekranie Wtyczki instalują przez ścieżkę zbiorczą rdzenia
+  (tryb konserwacji, wtyczka zostaje włączona, kontrola wymagań). Błąd instalacji nie wyłącza Colorify.
 
-| Klucz | Zawartość |
-|-------|-----------|
-| `admin_color` | Klucz schematu (`colorify-lime`, `colorify-custom`, …) |
-| `colorify_admin_appearance` | `dark` lub `light` |
-| `colorify_admin_custom_colors` | `{ bg, bg2, accent, accent2 }` HEX |
-| `colorify_admin_custom_tuning` | `{ dark: {…}, light: {…} }` suwaki |
-| `colorify_settings_scope` | `user` lub `global` |
-| `colorify_global_*` | Te same dane w trybie globalnym |
+## Wydanie nowej wersji
 
----
+1. Podbij wersję w dwóch miejscach `colorify-by-inyfinn.php`: nagłówek `Version:` i stała `COLORIFY_PLUGIN_VERSION`
+   (muszą być równe).
+2. Dopisz sekcję `## <wersja>` na górze `CHANGELOG.md` (jej treść trafia do opisu wydania; wersja z sufiksem
+   `-rc1` bez własnej sekcji bierze sekcję wersji bazowej).
+3. Zatwierdź i wypchnij zmiany (`git push`): `release.sh` wymaga, żeby commit istniał na zdalnym repo
+   i żeby tagu `v<wersja>` jeszcze tam nie było.
+4. `tools/release.sh <wersja> [owner/repo] --dry-run` buduje paczkę i pokazuje, co zostanie opublikowane;
+   bez `--dry-run` tworzy wydanie `v<wersja>` z assetem `colorify-by-inyfinn.zip`. `--prerelease` oznacza je jako
+   pre-release (strony go nie dostaną).
 
-## Schematy kolorów
+`node tools/build-zip.mjs <wersja>` buduje samą paczkę `dist/colorify-by-inyfinn.zip`: jeden katalog główny
+`colorify-by-inyfinn/`, bez `tools/`, `docs/`, `.git*`, `node_modules`, `dist/`. Odmawia, gdy nagłówek i stała
+wersji różnią się od argumentu, i pilnuje listy plików sprzątanych po starszych wersjach (`ORPHANS` w updaterze).
+Czego nie robić przy wydaniach:
 
-- **~40 presetów** w grupach: zielone (`colorify-*`), ciepłe, fioletowe, ziemiste (Bursztyn, Kamień, Szmaragd).
-- **Własna paleta** (`colorify-custom`): 4 kolory użytkownika.
-- **Dostrojenie** (−90…+90): jasność i nasycenie tła/akcentów, osobno dark/light.
-- Wartości **> +50** oznaczone wizualnie (czerwone) — ostrzeżenie przed ekstremalnymi korektami.
-- **Dark mode**: niektóre schematy mają przyciemnione tło (−15% HSL); wyjątki: zielone, Bursztyn, Kamień, Szmaragd.
+- **Nie zmieniaj nazwy konta ani repozytorium** `inyfinn/colorify-by-inyfinn`. Adres paczki musi zaczynać się od
+  `https://github.com/<repo>/releases/download/`, więc po zmianie nazwy strony przestają widzieć wydania. Przy
+  przenosinach najpierw wydaj wersję z nową domyślną stałą `COLORIFY_GITHUB_REPO`.
+- **Nie podmieniaj assetu opublikowanego wydania.** Strony z zapamiętaną ofertą dostają błąd sumy kontrolnej przez
+  do 12 godzin. Błąd w paczce naprawiaj nowym numerem wersji.
+- Wydanie oznaczone jako Latest trafia od razu do stron z 1.x (ich stary updater nie zna wymagań): sprawdź wersje
+  WordPressa na tych stronach przed wydaniem.
 
-### Czego NIE zmieniać bez powodu
+`tools/mock-release/` to atrapa GitHuba do prób aktualizacji (tylko narzędzie testowe, patrz jego README).
 
-1. **Klucze schematów** (`colorify-lime`, `colorify-amber`, …) — zapisane w `user_meta` użytkowników. Stare `dk-*` / `vp-*` mapuje `colorify_admin_normalize_scheme_key()`.
-2. **Stała `COLORIFY_ADMIN_CUSTOM_SCHEME_KEY`** (`colorify-custom`) — powiązana z JS i radio w profilu.
-3. **Duplikaty kluczy w tablicach PHP** (np. dwie grupy `'warm'`) — nadpisują się i gubią schematy w UI.
-4. **Kolejność hooków** `admin_init` priority 99 dla rejestracji schematów.
-5. **Wersje assetów** — po zmianie CSS/JS zwiększ stałe w bootstrapie (cache bust).
+## Licencje
 
-### Bezpieczne zmiany
-
-- Nowe schematy (unikalny klucz + wpis w `colorify_admin_scheme_definitions()`).
-- Style wizualne w `colorify-admin-overrides.css` / `colorify-branding.css`.
-- Teksty UI, etykiety, README.
-- Panel ustawień wtyczki (`class-colorify-settings.php`).
-
----
-
-## Co zrobiliśmy (historia funkcji)
-
-| Funkcja | Implementacja |
-|---------|---------------|
-| Dark / Light mode | Klasa `colorify-admin-light`, switch floating, meta `colorify_admin_appearance` |
-| ~40 schematów | `colorify-admin-schemes.php` + `colorify-admin-colors.css` |
-| Własna paleta 4 kolory | Karta w profilu, live preview w JS |
-| Dostrojenie HSL | Modal z zakresem −90…+90, pola number + range |
-| Responsywność | Mobile-first grid 1→2→3→4 kolumny schematów |
-| Przycisk **Zapisz** | `.colorify-tuning-card__actions` — prawy dolny róg karty dostrojenia |
-| Zakres globalny | Ustawienia → Colorify, przełącznik per-user / global |
-| Pakiet wtyczki | Ten katalog — gotowy do aktywacji po wyłączeniu MU-pluginu |
-
----
-
-## Wersjonowanie assetów (cache bust)
-
-W `colorify-by-inyfinn.php` / MU-plugin:
-
-```php
-const COLORIFY_BRANDING_CSS_VERSION  = '1.11.3';
-const COLORIFY_APPEARANCE_JS_VERSION = '1.8.0';
-const COLORIFY_ADMIN_OVERRIDES_VER   = '1.7.0';
-```
-
-**Po każdej zmianie CSS/JS — podbij odpowiednią stałą.**
-
----
-
-## Dla agentów AI / developerów
-
-1. Zacznij od **`/wordpress`** → `wp-plugin-development`.
-2. Przeczytaj ten README i `colorify-admin-schemes.php` (definicje schematów).
-3. Zmiany UI → `colorify-admin-overrides.css` + `colorify-admin-appearance.js`.
-4. Zmiany kolorów/tokenów → PHP schemes + test dark **i** light.
-5. Nie usuwaj prefiksów funkcji `colorify_*` bez migracji — używane w całym stacku.
-6. Testuj na **Profil użytkownika** (`/wp-admin/profile.php`) i po hard refresh (`Ctrl+Shift+R`).
-
-### Znane pułapki
-
-- Dwa klucze `'warm'` w `colorify_admin_scheme_color_groups()` powodowały znikające schematy — każda grupa musi mieć **unikalny** klucz.
-- `scheme_order_for_js` bierze się z definicji — schematy poza grupami muszą trafić do `$ordered` (fallback).
-- Edycja cudzego profilu: `canSaveMode = false` — przycisk Zapisz pokazuje komunikat.
-
----
-
-## Aktywacja wtyczki
-
-1. **Wtyczki → Colorify by INYFINN → Aktywuj** (moduł MU już usunięty z tej instalacji).
-2. Ustaw zakres w **Ustawienia → Colorify** (per użytkownik lub globalne).
-3. Zweryfikuj profil użytkownika, listę wtyczek i przełącznik dark/light.
-4. Po zmianach CSS/JS: hard refresh `Ctrl+Shift+R`.
-
----
-
-## Licencja i autor
-
-© 2026 [INYFINN](https://inyfinn.art) · Projekt: Colorify CMS (headless)
+- Colorify: GPL-2.0-or-later.
+- Dark Reader (`assets/vendor/darkreader.js`): MIT, patrz `assets/vendor/darkreader.LICENSE.txt`.
+- EB Garamond i IBM Plex Sans (`assets/fonts/`): SIL Open Font License 1.1, patrz `assets/fonts/EBGaramond-OFL.txt`
+  i `assets/fonts/IBMPlexSans-OFL.txt`.

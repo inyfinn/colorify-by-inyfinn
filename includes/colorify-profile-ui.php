@@ -182,6 +182,7 @@ function colorify_ui_render_picker( array $args ): void {
 		'hasPersonal'  => colorify_user_has_personal_appearance( get_current_user_id() ),
 		'bundles'      => isset( $args['bundles'] ) ? $args['bundles'] : null,
 		'customKey'    => $custom_key,
+		'scheme'       => $scheme,
 		'tuningWarn'   => COLORIFY_ADMIN_TUNING_WARN,
 		'settingsUrl'  => admin_url( 'options-general.php?page=colorify-by-inyfinn' ),
 	);
