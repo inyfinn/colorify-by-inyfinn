@@ -181,7 +181,8 @@ function colorify_toolbar_admin_bar_menu( $bar ): void {
 			'id'     => 'colorify-change',
 			'parent' => 'colorify',
 			'title'  => esc_html__( 'Zmień styl', 'colorify-by-inyfinn' ),
-			'href'   => admin_url( 'profile.php#colorify' ),
+			// Administrator trafia do ustawień witryny (kolory, czcionki, "Dopasuj do strony"), pozostali do swojego profilu.
+			'href'   => current_user_can( 'manage_options' ) ? admin_url( 'options-general.php?page=colorify-by-inyfinn' ) : admin_url( 'profile.php#colorify' ),
 			'meta'   => array( 'class' => 'colorify-ab-row' ),
 		)
 	);

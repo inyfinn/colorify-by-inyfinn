@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.1.1
+
+- **"Zmień styl" w górnym pasku prowadzi administratora do Ustawienia, Colorify.** Tam są kolory witryny, czcionki
+  i przycisk "Dopasuj do strony". Pozostałe osoby nadal trafiają do swojego profilu.
+
 ## 2.1.0
 
 Wygląd ekranów Colorify i strony logowania dopasowuje się do strony, na której wtyczka działa.
