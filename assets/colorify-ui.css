@@ -128,8 +128,8 @@
  * (--colorify-ui-accent), wypełnienie przycisku to token wypełnienia akcentu z jego własnym kolorem tekstu.
  * Pomocnicze zmienne --cu-* to tylko kombinacje tokenów. */
 .colorify-ui {
-	--cu-serif: "EB Garamond", Georgia, serif;
-	--cu-sans: "IBM Plex Sans", system-ui, sans-serif;
+	--cu-serif: var(--colorify-skin-serif, "EB Garamond", Georgia, serif);
+	--cu-sans: var(--colorify-skin-sans, "IBM Plex Sans", system-ui, sans-serif);
 	--cu-gold: var(--colorify-ui-brand);
 	--cu-gold-ink: var(--colorify-ui-accent);
 	/* Linia 12 % koloru tekstu: obrys kart i paneli, dzielniki. */
@@ -208,7 +208,7 @@
 /* IBM Plex Sans tylko w elementach Colorify, reszta paska zostaje czcionką rdzenia. */
 #wpadminbar #wp-admin-bar-colorify,
 #wpadminbar #wp-admin-bar-colorify-mode {
-	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-family: var(--colorify-skin-sans, "IBM Plex Sans", system-ui, sans-serif);
 }
 
 #wpadminbar #wp-admin-bar-colorify button,
@@ -254,7 +254,7 @@
 	height: 24px;
 	margin: 4px 4px;
 	padding: 0 10px 0 8px;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	font-size: 14px;
 	font-weight: 600;
 	letter-spacing: 0.06em;
@@ -338,12 +338,12 @@
 }
 
 #wpadminbar .quicklinks .colorify-ab-seg__opt:first-child {
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	padding-left: 10px;
 }
 
 #wpadminbar .quicklinks .colorify-ab-seg__opt:last-child {
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	margin-left: -1px;
 	padding-right: 10px;
 }
@@ -397,7 +397,7 @@
 	padding: 6px;
 	right: 0;
 	left: auto;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-menu-submenu-background);
 	color: var(--colorify-menu-submenu-text);
 	box-shadow: none;
@@ -422,7 +422,7 @@
 	width: 100%;
 	height: 36px;
 	padding: 0 14px;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	font-size: 14px;
 	font-weight: 500;
 	line-height: 1;
@@ -435,7 +435,7 @@
 /* Para trybu to jeden element z dwiema pozycjami: sam kontener nie ma własnego tła ani podświetlenia. */
 #wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-submode-row > .ab-item,
 #wpadminbar .quicklinks #wp-admin-bar-colorify .ab-submenu .colorify-ab-submode-row > .ab-item:hover {
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: none;
 }
 
@@ -476,7 +476,7 @@
 	height: auto;
 	max-width: 260px;
 	padding: 6px 14px 10px;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: none;
 	color: var(--colorify-menu-submenu-text);
 	font-size: 14px;
@@ -529,7 +529,7 @@
 		height: 46px;
 		margin: 0;
 		padding: 0 11px;
-		border-radius: 0;
+		border-radius: var(--colorify-skin-radius, 0);
 	}
 
 	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-icon,
@@ -564,7 +564,7 @@
 	margin: 0 0 24px;
 	padding: 32px 28px;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	color: var(--colorify-ui-text);
 }
@@ -599,7 +599,7 @@
 	margin: 0 0 24px;
 	padding: 16px 20px 16px 24px;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface-2);
 	color: var(--colorify-ui-text);
 }
@@ -648,7 +648,7 @@
 	min-height: 44px;
 	padding: 0 32px;
 	border: 1px solid var(--cu-gold);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	color: var(--colorify-ui-text);
 	font-family: inherit;
@@ -796,7 +796,7 @@
 	display: inline-flex;
 	padding: 0;
 	border: 1px solid var(--cu-field);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 }
 
@@ -809,7 +809,7 @@
 	min-height: 44px;
 	padding: 0 24px;
 	border: 0;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	color: var(--colorify-ui-text);
 	font-size: 14px;
@@ -846,7 +846,7 @@
 	gap: 20px 24px;
 	padding: 20px 24px;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface-2);
 	color: var(--colorify-ui-text);
 }
@@ -902,7 +902,7 @@
 	min-height: 52px;
 	padding: 0 16px;
 	border: 0;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	color: var(--colorify-ui-text-muted);
 	font-size: 16px;
@@ -937,7 +937,7 @@
 	width: 10px;
 	height: 10px;
 	border: 1px solid color-mix(in srgb, var(--colorify-ui-text) 20%, transparent);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 }
 
 /* Licznik: mikroetykieta 14 / 600, wersaliki, .08em, kolor tekstu złotego, bez tła. */
@@ -962,7 +962,7 @@
 	display: block;
 	padding: 8px;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	color: var(--colorify-ui-text);
 	cursor: pointer;
@@ -1063,7 +1063,7 @@
 	aspect-ratio: 3 / 2;
 	overflow: hidden;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--p-canvas);
 }
 
@@ -1089,7 +1089,7 @@
 .colorify-preview__menu > span {
 	display: block;
 	height: 9%;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: color-mix(in srgb, #ffffff 35%, var(--p-menu));
 }
 
@@ -1108,7 +1108,7 @@
 	display: block;
 	width: 80%;
 	height: 8%;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: color-mix(in srgb, var(--p-ink) 45%, transparent);
 }
 
@@ -1185,7 +1185,7 @@
 	margin: 0;
 	padding: 0 14px;
 	border: 1px solid var(--cu-field);
-	border-radius: 2px;
+	border-radius: var(--colorify-skin-radius, 2px);
 	background: var(--colorify-ui-surface);
 	color: var(--colorify-ui-text);
 	font: inherit;
@@ -1209,7 +1209,7 @@
 	height: 50px;
 	padding: 3px;
 	border: 1px solid var(--cu-field);
-	border-radius: 2px;
+	border-radius: var(--colorify-skin-radius, 2px);
 	background: var(--colorify-ui-surface);
 	cursor: pointer;
 }
@@ -1447,7 +1447,7 @@
 	gap: 4px 14px;
 	padding: 20px 24px;
 	border: 1px solid var(--cu-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	cursor: pointer;
 	transition: border-color 0.2s ease, background-color 0.2s ease;
@@ -1492,7 +1492,7 @@
 
 .colorify-scope__pic .colorify-preview {
 	width: 64px;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 }
 
 .colorify-scope__pic .colorify-login {
@@ -1501,7 +1501,7 @@
 	width: 40px;
 	aspect-ratio: 3 / 2;
 	border: 1px solid var(--colorify-ui-border);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--pd-menu);
 }
 
@@ -1509,7 +1509,7 @@
 	display: block;
 	width: 45%;
 	height: 55%;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--pd-fill);
 }
 
@@ -1662,5 +1662,79 @@
 
 	.colorify-ui .button:active {
 		transform: none;
+	}
+}
+
+/* ---------- Skora: wybor i "Dopasuj do strony" ---------- */
+.colorify-scope__opt:has(input:disabled) {
+	cursor: default;
+	opacity: 0.6;
+}
+
+.colorify-match {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 16px;
+	margin-top: 24px;
+}
+
+.colorify-match__hint,
+.colorify-match__note {
+	color: var(--colorify-ui-text-muted);
+	font-size: 14px;
+}
+
+.colorify-match__result {
+	flex: 1 0 100%;
+	padding: 20px 24px;
+	border: 1px solid var(--cu-line);
+	border-left: 3px solid var(--cu-gold);
+	border-radius: var(--colorify-skin-radius, 0);
+	background: var(--colorify-ui-surface-2);
+}
+
+.colorify-match__list {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 8px 24px;
+	margin: 0 0 12px;
+}
+
+.colorify-match__list dt {
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-match__list dd {
+	display: flex;
+	gap: 8px;
+	margin: 0;
+	font-weight: 500;
+}
+
+.colorify-match__swatch {
+	width: 28px;
+	height: 28px;
+	border: 1px solid var(--cu-field);
+	border-radius: var(--colorify-skin-radius, 0);
+}
+
+.colorify-match__note {
+	margin: 0 0 8px;
+}
+
+.colorify-match__note:empty {
+	display: none;
+}
+
+.colorify-match__actions {
+	display: flex;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+@media (min-width: 1200px) {
+	.colorify-ui .colorify-scope.colorify-skins {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }

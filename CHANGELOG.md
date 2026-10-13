@@ -1,5 +1,19 @@
 # Historia zmian
 
+## 2.1.0
+
+Wygląd ekranów Colorify i strony logowania dopasowuje się do strony, na której wtyczka działa.
+
+- **Styl: czcionki i kształt.** Nowa sekcja w Ustawienia, Colorify. Do wyboru: Neutralny (czcionka panelu WordPressa,
+  lekko zaokrąglone rogi), Jak strona oraz Kancelaria (EB Garamond i IBM Plex Sans, ostre rogi, wygląd z wersji 2.0).
+- **Domyślnie styl neutralny.** Na nowej stronie Colorify nie narzuca już czcionek i ostrych rogów kancelarii.
+  Kto chce wygląd z wersji 2.0, wybiera styl Kancelaria.
+- **Przycisk "Dopasuj do strony".** Odczytuje ze strony głównej kolor przycisków i odnośników, ciemny kolor stopki albo
+  tekstu, czcionki nagłówków i tekstu oraz zaokrąglenie przycisków. Pokazuje wynik i zapisuje go dopiero po zatwierdzeniu:
+  kolory jako własna paleta witryny, czcionki i rogi jako styl "Jak strona". Działa z każdym motywem i kreatorem stron.
+- **Czcionki tylko z własnego serwera.** Colorify używa plików czcionek strony, gdy leżą na tym samym serwerze.
+  Gdy strona ładuje je z zewnątrz, zostaje czcionka systemowa.
+
 ## 2.0.0
 
 Nowy wygląd panelu, czytelny na każdym ekranie, i aktualizacje jak w zwykłych wtyczkach.

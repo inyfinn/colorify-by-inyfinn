@@ -973,11 +973,291 @@
 		app.picker = { follows: follows };
 	}
 
+	/* ---------- Dopasuj do strony ---------- */
+	/* Strona główna ładuje się w niewidocznej ramce w przeglądarce administratora, a wygląd czytamy z gotowych stylów
+	 * (getComputedStyle). Działa z każdym motywem i kreatorem, bo nie zależy od tego, gdzie motyw trzyma ustawienia. */
+
+	function parseColor( value ) {
+		var m = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,/\s]+([\d.]+%?))?/.exec( value || '' );
+		if ( ! m ) {
+			return null;
+		}
+		var a = m[ 4 ] === undefined ? 1 : m[ 4 ].slice( -1 ) === '%' ? parseFloat( m[ 4 ] ) / 100 : parseFloat( m[ 4 ] );
+		var rgb = [ +m[ 1 ], +m[ 2 ], +m[ 3 ] ];
+		var lin = rgb.map( function ( c ) {
+			c /= 255;
+			return c <= 0.03928 ? c / 12.92 : Math.pow( ( c + 0.055 ) / 1.055, 2.4 );
+		} );
+		return {
+			hex: '#' + rgb.map( function ( c ) {
+				return ( '0' + c.toString( 16 ) ).slice( -2 );
+			} ).join( '' ),
+			alpha: a,
+			lum: 0.2126 * lin[ 0 ] + 0.7152 * lin[ 1 ] + 0.0722 * lin[ 2 ],
+			sat: Math.max.apply( null, rgb ) - Math.min.apply( null, rgb ),
+		};
+	}
+
+	function mixHex( hex, target, ratio ) {
+		return '#' + [ 1, 3, 5 ].map( function ( i ) {
+			var v = Math.round( parseInt( hex.substr( i, 2 ), 16 ) * ( 1 - ratio ) + target * ratio );
+			return ( '0' + v.toString( 16 ) ).slice( -2 );
+		} ).join( '' );
+	}
+
+	function firstFamily( stack ) {
+		return ( stack || '' ).split( ',' )[ 0 ].replace( /["']/g, '' ).trim();
+	}
+
+	/** Pliki czcionek (tylko z tego samego serwera) dla podanych rodzin, z arkuszy strony. */
+	function collectFaces( doc, families ) {
+		var wanted = families.map( function ( f ) {
+			return f.toLowerCase();
+		} );
+		var faces = [];
+		function walk( sheet ) {
+			var rules;
+			try {
+				rules = sheet.cssRules;
+			} catch ( e ) {
+				return; // arkusz z innego serwera
+			}
+			Array.prototype.forEach.call( rules || [], function ( rule ) {
+				if ( rule.styleSheet ) {
+					walk( rule.styleSheet );
+					return;
+				}
+				if ( rule.type !== 5 || faces.length >= 16 ) {
+					return;
+				}
+				var family = firstFamily( rule.style.getPropertyValue( 'font-family' ) );
+				var src = rule.style.getPropertyValue( 'src' );
+				var hit = /url\(\s*["']?([^"')]+\.woff2)[^"')]*["']?\s*\)/i.exec( src ) || /url\(\s*["']?([^"')]+\.(?:woff|ttf|otf))[^"')]*["']?\s*\)/i.exec( src );
+				if ( wanted.indexOf( family.toLowerCase() ) === -1 || ! hit ) {
+					return;
+				}
+				var url;
+				try {
+					url = new URL( hit[ 1 ], sheet.href || doc.baseURI );
+				} catch ( e ) {
+					return;
+				}
+				if ( url.origin !== w.location.origin ) {
+					return;
+				}
+				faces.push( {
+					family: family,
+					url: url.origin + url.pathname,
+					weight: rule.style.getPropertyValue( 'font-weight' ) || '400',
+					style: rule.style.getPropertyValue( 'font-style' ) || 'normal',
+					range: rule.style.getPropertyValue( 'unicode-range' ) || '',
+				} );
+			} );
+		}
+		Array.prototype.forEach.call( doc.styleSheets, walk );
+		return faces;
+	}
+
+	function measureSite( doc, win ) {
+		function shown( el ) {
+			var r = el.getBoundingClientRect();
+			return r.width > 20 && r.height > 10;
+		}
+		function firstShown( selector ) {
+			return Array.prototype.filter.call( doc.querySelectorAll( selector ), shown )[ 0 ] || null;
+		}
+		var bodyCs = win.getComputedStyle( doc.body );
+		var text = parseColor( bodyCs.color );
+		var headingEl = firstShown( 'h1, h2, h3' );
+		var heading = headingEl ? win.getComputedStyle( headingEl ).fontFamily : bodyCs.fontFamily;
+
+		// Przycisk: pierwszy widoczny z własnym, nieprzezroczystym i niebiałym tłem.
+		var button = null;
+		var buttonBg = null;
+		Array.prototype.some.call(
+			doc.querySelectorAll( '.elementor-button, .wp-block-button__link, .ast-button, .ast-custom-button, .btn, a.button, button[type="submit"], input[type="submit"], [class*="button"], [class*="btn"]' ),
+			function ( el ) {
+				var bg = shown( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
+				if ( bg && bg.alpha > 0.5 && bg.lum < 0.85 ) {
+					button = el;
+					buttonBg = bg;
+					return true;
+				}
+				return false;
+			}
+		);
+
+		// Odnośnik w treści: pierwszy w kolorze innym niż tekst.
+		var link = null;
+		Array.prototype.some.call( doc.querySelectorAll( 'main a, article a, .entry-content a, .elementor a, a' ), function ( el ) {
+			var c = shown( el ) ? parseColor( win.getComputedStyle( el ).color ) : null;
+			if ( c && c.sat > 40 && ( ! text || c.hex !== text.hex ) ) {
+				link = c;
+				return true;
+			}
+			return false;
+		} );
+
+		var accent = buttonBg && ( buttonBg.sat > 25 || ! link ) ? buttonBg : link || buttonBg;
+
+		// Ciemna powierzchnia strony (stopka, nagłówek) na menu panelu; bez niej kolor tekstu, a na końcu grafit.
+		var ink = null;
+		Array.prototype.some.call( doc.querySelectorAll( 'footer, .site-footer, [data-elementor-type="footer"], header, .site-header' ), function ( el ) {
+			var bg = shown( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
+			if ( bg && bg.alpha > 0.5 && bg.lum < 0.12 ) {
+				ink = bg;
+				return true;
+			}
+			return false;
+		} );
+		if ( ! ink ) {
+			ink = text && text.lum < 0.12 ? text : { hex: '#1d2327', lum: 0.015 };
+		}
+		// Szary tekst albo szara stopka to za jasne tło dla menu: przyciemniamy do grafitu w tym samym odcieniu.
+		ink = ink.lum > 0.03 ? mixHex( ink.hex, 0, 0.6 ) : ink.hex;
+
+		var radius = button ? parseFloat( win.getComputedStyle( button ).borderTopLeftRadius ) || 0 : 4;
+
+		return {
+			heading: heading,
+			body: bodyCs.fontFamily,
+			radius: Math.round( Math.min( 10, radius ) ),
+			faces: collectFaces( doc, [ firstFamily( heading ), firstFamily( bodyCs.fontFamily ) ] ),
+			colors: accent
+				? { bg: mixHex( ink, 0, 0.25 ), bg2: ink, accent: accent.hex, accent2: ( link || accent ).hex }
+				: null,
+		};
+	}
+
+	function initSiteMatch() {
+		var run = $( '#colorify-match-run' );
+		var box = $( '#colorify-match-result' );
+		if ( ! run || ! box || ! cfg.homeUrl ) {
+			return;
+		}
+
+		function show( nodes ) {
+			box.textContent = '';
+			[].concat( nodes ).forEach( function ( n ) {
+				box.appendChild( typeof n === 'string' ? d.createTextNode( n ) : n );
+			} );
+			box.hidden = false;
+		}
+
+		function el( tag, cls, text ) {
+			var n = d.createElement( tag );
+			if ( cls ) {
+				n.className = cls;
+			}
+			if ( text ) {
+				n.textContent = text;
+			}
+			return n;
+		}
+
+		/** Nazwa czcionki dla człowieka: słowo kluczowe przeglądarki to czcionka systemowa. */
+		function fontLabel( stack ) {
+			var name = firstFamily( stack );
+			return /^(-apple-system|blinkmacsystemfont|system-ui|ui-sans-serif|ui-serif|sans-serif|serif)$/i.test( name ) ? cfg.i18n.matchSystem : name;
+		}
+
+		function preview( look ) {
+			var list = el( 'dl', 'colorify-match__list' );
+			function row( label, value ) {
+				list.appendChild( el( 'dt', '', label ) );
+				var dd = el( 'dd' );
+				[].concat( value ).forEach( function ( v ) {
+					dd.appendChild( typeof v === 'string' ? d.createTextNode( v ) : v );
+				} );
+				list.appendChild( dd );
+			}
+			if ( look.colors ) {
+				row( cfg.i18n.matchColors, [ 'bg2', 'accent', 'accent2' ].map( function ( key ) {
+					var sw = el( 'span', 'colorify-match__swatch' );
+					sw.setAttribute( 'data-colorify-swatch', '' );
+					sw.style.background = look.colors[ key ];
+					sw.title = look.colors[ key ];
+					return sw;
+				} ) );
+			}
+			row( cfg.i18n.matchHeading, fontLabel( look.heading ) );
+			row( cfg.i18n.matchBody, fontLabel( look.body ) );
+			row( cfg.i18n.matchRadius, look.radius + ' px' );
+
+			var apply = el( 'button', 'button button-primary', cfg.i18n.matchApply );
+			apply.type = 'button';
+			var cancel = el( 'button', 'button', cfg.i18n.matchCancel );
+			cancel.type = 'button';
+			cancel.addEventListener( 'click', function () {
+				box.hidden = true;
+			} );
+			apply.addEventListener( 'click', function () {
+				apply.disabled = true;
+				post( 'colorify_apply_site_look', { look: JSON.stringify( look ) } )
+					.then( function () {
+						w.location.reload();
+					} )
+					.catch( function () {
+						apply.disabled = false;
+						show( cfg.i18n.saveError );
+					} );
+			} );
+			var actions = el( 'div', 'colorify-match__actions' );
+			actions.appendChild( apply );
+			actions.appendChild( cancel );
+
+			show( [
+				list,
+				el( 'p', 'colorify-match__note', look.faces.length ? cfg.i18n.matchFonts + ' ' + look.faces.length + '.' : cfg.i18n.matchNoFonts ),
+				el( 'p', 'colorify-match__note', look.colors ? cfg.i18n.matchNote : '' ),
+				actions,
+			] );
+		}
+
+		run.addEventListener( 'click', function () {
+			var frame = d.createElement( 'iframe' );
+			var done = false;
+			function finish( look ) {
+				if ( done ) {
+					return;
+				}
+				done = true;
+				clearTimeout( timer );
+				frame.remove();
+				run.disabled = false;
+				if ( look ) {
+					preview( look );
+				} else {
+					show( cfg.i18n.matchError );
+				}
+			}
+			var timer = setTimeout( finish, 25000 );
+			run.disabled = true;
+			show( cfg.i18n.matchRun );
+			frame.setAttribute( 'aria-hidden', 'true' );
+			frame.tabIndex = -1;
+			frame.style.cssText = 'position:absolute;left:-9999px;top:0;width:1280px;height:900px;border:0;visibility:hidden';
+			frame.addEventListener( 'load', function () {
+				// Chwila na czcionki i style dokładane skryptem.
+				setTimeout( function () {
+					try {
+						finish( measureSite( frame.contentDocument, frame.contentWindow ) );
+					} catch ( e ) {
+						finish( null ); // strona zabrania ramki albo przekierowała na inny serwer
+					}
+				}, 1200 );
+			} );
+			frame.src = cfg.homeUrl;
+			d.body.appendChild( frame );
+		} );
+	}
+
 	/* ---------- Start ---------- */
 
 	function init() {
 		initBarMenu();
 		initPicker();
+		initSiteMatch();
 	}
 
 	if ( d.readyState === 'loading' ) {

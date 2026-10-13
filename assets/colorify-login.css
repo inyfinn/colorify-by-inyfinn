@@ -86,8 +86,8 @@ html[data-colorify-login] {
 	--cl-gold: var(--colorify-ui-brand);
 	--cl-field: color-mix(in srgb, var(--colorify-ui-text-muted) 70%, transparent);
 	--cl-line: color-mix(in srgb, var(--colorify-ui-text) 12%, transparent);
-	--cl-serif: "EB Garamond", Georgia, serif;
-	--cl-sans: "IBM Plex Sans", system-ui, sans-serif;
+	--cl-serif: var(--colorify-skin-serif, "EB Garamond", Georgia, serif);
+	--cl-sans: var(--colorify-skin-sans, "IBM Plex Sans", system-ui, sans-serif);
 	background: var(--cl-bg);
 }
 
@@ -211,7 +211,7 @@ html[data-colorify-login] .login .success {
 	padding: 16px 20px;
 	border: 1px solid var(--cl-line);
 	border-left: 3px solid var(--cl-gold);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	box-shadow: none;
 	color: var(--colorify-ui-text);
@@ -249,7 +249,7 @@ html[data-colorify-login] .login form {
 	padding: 32px 28px;
 	overflow: visible;
 	border: 1px solid var(--cl-line);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	box-shadow: none;
 	color: var(--colorify-ui-text);
@@ -286,7 +286,7 @@ html[data-colorify-login] .login select {
 	margin: 0;
 	padding: 0 14px;
 	border: 1px solid var(--cl-field);
-	border-radius: 2px;
+	border-radius: var(--colorify-skin-radius, 2px);
 	background: var(--colorify-ui-surface-2);
 	box-shadow: none;
 	color: var(--colorify-ui-text);
@@ -326,7 +326,7 @@ html[data-colorify-login] .login .wp-pwd .button.wp-hide-pw {
 	margin: 0;
 	padding: 0;
 	border: 0;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	box-shadow: none;
 	color: var(--colorify-ui-text-muted);
@@ -374,7 +374,7 @@ html[data-colorify-login] .login input[type="checkbox"] {
 	margin: 0;
 	padding: 0;
 	border: 1px solid var(--cl-field);
-	border-radius: 2px;
+	border-radius: var(--colorify-skin-radius, 2px);
 	background: var(--colorify-ui-surface-2);
 	box-shadow: none;
 	transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -411,7 +411,7 @@ html[data-colorify-login] .login .wp-tooltip__toggle {
 	margin: 0 0 0 -8px;
 	padding: 0;
 	border: 0;
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	color: var(--colorify-ui-text-muted);
 	cursor: pointer;
@@ -432,7 +432,7 @@ html[data-colorify-login] .login .wp-tooltip__bubble {
 	padding: 20px 48px 20px 20px;
 	border: 1px solid var(--cl-line);
 	border-left: 3px solid var(--cl-gold);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface);
 	box-shadow: none;
 	color: var(--colorify-ui-text);
@@ -454,7 +454,7 @@ html[data-colorify-login] .login .button.button-large {
 	min-height: 44px;
 	padding: 0 32px;
 	border: 1px solid var(--cl-gold);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: transparent;
 	box-shadow: none;
 	color: var(--colorify-ui-text);
@@ -618,7 +618,7 @@ html[data-colorify-login] .login #pass-strength-result {
 	margin: 12px 0 0;
 	padding: 10px 14px;
 	border: 1px solid var(--cl-field);
-	border-radius: 0;
+	border-radius: var(--colorify-skin-radius, 0);
 	background: var(--colorify-ui-surface-2);
 	color: var(--colorify-ui-text);
 	font-size: 14px;

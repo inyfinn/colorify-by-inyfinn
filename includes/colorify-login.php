@@ -34,7 +34,7 @@ function colorify_branding_login_assets(): void {
 	);
 
 	$tokens = colorify_login_tokens();
-	wp_add_inline_style( 'colorify-login', ':root{' . colorify_engine_declarations( $tokens['css'] ) . '}' );
+	wp_add_inline_style( 'colorify-login', ':root{' . colorify_engine_declarations( $tokens['css'] ) . '}' . colorify_skin_css() );
 }
 add_action( 'login_enqueue_scripts', 'colorify_branding_login_assets' );
 

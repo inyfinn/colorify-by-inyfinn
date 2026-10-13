@@ -468,3 +468,165 @@ function colorify_filter_global_user_option( $value, string $option, $user ) {
 	return $value;
 }
 add_filter( 'get_user_option_admin_color', 'colorify_filter_global_user_option', 20, 3 );
+
+/*
+ * Skóra: czcionki i zaokrąglenie rogów ekranów Colorify i strony logowania (kolory dają tokeny schematu).
+ *   neutral     czcionka systemowa panelu WordPressa, rogi 4 px (domyślna: pasuje do każdej strony)
+ *   kancelaria  EB Garamond + IBM Plex Sans, ostre rogi (wartości zapasowe w arkuszach)
+ *   site        czcionki i rogi zmierzone na stronie głównej przyciskiem "Dopasuj do strony"
+ */
+const COLORIFY_SKIN_OPTION = 'colorify_skin';
+
+/**
+ * Stos czcionek z wartości font-family: każda nazwa to litery, cyfry, spacja, podkreślenie albo łącznik.
+ * Wynik jest gotowy do wstawienia w CSS (nazwy w cudzysłowach, słowa kluczowe bez).
+ *
+ * @param mixed $value Surowa wartość font-family.
+ */
+function colorify_skin_sanitize_font_stack( $value ): string {
+	if ( ! is_string( $value ) ) {
+		return '';
+	}
+
+	$generic = array( 'serif', 'sans-serif', 'monospace', 'system-ui', 'ui-serif', 'ui-sans-serif', '-apple-system', 'blinkmacsystemfont' );
+	$out     = array();
+	foreach ( array_slice( explode( ',', $value ), 0, 8 ) as $name ) {
+		$name = trim( $name, " \t\n\r\"'" );
+		if ( ! preg_match( '/^[A-Za-z0-9 _-]{1,60}$/', $name ) ) {
+			continue;
+		}
+		$out[] = in_array( strtolower( $name ), $generic, true ) ? $name : '"' . $name . '"';
+	}
+
+	return implode( ', ', $out );
+}
+
+/**
+ * @param mixed $input Zapisana albo nadesłana skóra.
+ * @return array{preset:string,heading:string,body:string,radius:int,faces:array<int,array<string,string>>}
+ */
+function colorify_skin_sanitize( $input ): array {
+	$input  = is_array( $input ) ? $input : array();
+	$preset = isset( $input['preset'] ) && in_array( $input['preset'], array( 'neutral', 'kancelaria', 'site' ), true ) ? $input['preset'] : 'neutral';
+	$host   = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+	$faces  = array();
+
+	foreach ( array_slice( is_array( $input['faces'] ?? null ) ? $input['faces'] : array(), 0, 16 ) as $face ) {
+		if ( ! is_array( $face ) ) {
+			continue;
+		}
+		$family = trim( (string) ( $face['family'] ?? '' ), " \"'" );
+		$url    = esc_url_raw( (string) ( $face['url'] ?? '' ), array( 'http', 'https' ) );
+		$weight = trim( (string) ( $face['weight'] ?? '400' ) );
+		$range  = trim( (string) ( $face['range'] ?? '' ) );
+		// Pliki czcionek tylko z tego samego serwera: Colorify nie ładuje niczego z zewnątrz.
+		if ( ! preg_match( '/^[A-Za-z0-9 _-]{1,60}$/', $family )
+			|| '' === $url || preg_match( '/["\'()\\\\<>\s]/', $url )
+			|| strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) ) !== $host
+			|| ! preg_match( '/\.(woff2|woff|ttf|otf)$/i', (string) wp_parse_url( $url, PHP_URL_PATH ) ) ) {
+			continue;
+		}
+		$faces[] = array(
+			'family' => $family,
+			'url'    => $url,
+			'weight' => preg_match( '/^(normal|bold|\d{3}( \d{3})?)$/', $weight ) ? $weight : '400',
+			'style'  => 'italic' === ( $face['style'] ?? '' ) ? 'italic' : 'normal',
+			'range'  => preg_match( '/^[Uu0-9A-Fa-f+?, -]{1,600}$/', $range ) ? $range : '',
+		);
+	}
+
+	return array(
+		'preset'  => $preset,
+		'heading' => colorify_skin_sanitize_font_stack( $input['heading'] ?? '' ),
+		'body'    => colorify_skin_sanitize_font_stack( $input['body'] ?? '' ),
+		'radius'  => max( 0, min( 10, (int) ( $input['radius'] ?? 0 ) ) ),
+		'faces'   => $faces,
+	);
+}
+
+/**
+ * @return array{preset:string,heading:string,body:string,radius:int,faces:array<int,array<string,string>>}
+ */
+function colorify_get_skin(): array {
+	$skin = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
+	// "site" bez pomiaru nie ma czego pokazać.
+	if ( 'site' === $skin['preset'] && '' === $skin['body'] ) {
+		$skin['preset'] = 'neutral';
+	}
+	return $skin;
+}
+
+/**
+ * Arkusz skóry: zmienne czytane przez colorify-ui.css i colorify-login.css oraz @font-face czcionek strony.
+ * Skóra kancelarii nie wypisuje nic: jej wartości są zapasowymi w arkuszach.
+ */
+function colorify_skin_css(): string {
+	$skin = colorify_get_skin();
+
+	if ( 'kancelaria' === $skin['preset'] ) {
+		return '';
+	}
+
+	if ( 'neutral' === $skin['preset'] ) {
+		$system = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
+		return ':root{--colorify-skin-serif:' . $system . ';--colorify-skin-sans:' . $system . ';--colorify-skin-radius:4px}';
+	}
+
+	$css = '';
+	foreach ( $skin['faces'] as $face ) {
+		$css .= '@font-face{font-family:"' . $face['family'] . '";src:url("' . $face['url'] . '");font-weight:' . $face['weight']
+			. ';font-style:' . $face['style'] . ';font-display:swap' . ( '' !== $face['range'] ? ';unicode-range:' . $face['range'] : '' ) . '}';
+	}
+	$heading = '' !== $skin['heading'] ? $skin['heading'] : $skin['body'];
+
+	return $css . ':root{--colorify-skin-serif:' . $heading . ', serif;--colorify-skin-sans:' . $skin['body'] . ', sans-serif;--colorify-skin-radius:' . $skin['radius'] . 'px}';
+}
+
+/**
+ * Skóra w nagłówku panelu.
+ */
+function colorify_skin_print(): void {
+	$css = colorify_skin_css();
+	if ( '' !== $css ) {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- zbudowane z wartości po colorify_skin_sanitize().
+		echo '<style id="colorify-skin-vars">' . $css . '</style>' . "\n";
+	}
+}
+add_action( 'admin_head', 'colorify_skin_print', 2 );
+add_action( 'customize_controls_head', 'colorify_skin_print', 2 );
+
+/**
+ * AJAX: zapis wyglądu zmierzonego na stronie głównej (kolory jako własna paleta witryny, czcionki i rogi jako skóra).
+ */
+function colorify_ajax_apply_site_look(): void {
+	check_ajax_referer( 'colorify-admin-appearance', 'nonce' );
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+	}
+
+	$look = json_decode( isset( $_POST['look'] ) ? (string) wp_unslash( $_POST['look'] ) : '', true ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* niżej.
+	if ( ! is_array( $look ) ) {
+		wp_send_json_error( array( 'message' => 'invalid' ), 400 );
+	}
+
+	$skin = colorify_skin_sanitize( array_merge( $look, array( 'preset' => 'site' ) ) );
+	if ( '' === $skin['body'] ) {
+		wp_send_json_error( array( 'message' => 'no_font' ), 400 );
+	}
+	update_option( COLORIFY_SKIN_OPTION, $skin );
+
+	if ( isset( $look['colors'] ) && is_array( $look['colors'] ) && '' !== colorify_admin_sanitize_hex_color( $look['colors']['accent'] ?? '' ) ) {
+		$colors = colorify_admin_sanitize_custom_colors( $look['colors'] );
+		update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_colors', $colors );
+		colorify_persist_global_admin_color( COLORIFY_ADMIN_CUSTOM_SCHEME_KEY );
+		// Osoba, która dopasowuje wygląd, ma go od razu zobaczyć: jej konto dostaje tę samą paletę (tryb zostaje).
+		$user_id = get_current_user_id();
+		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOM_COLORS_META, $colors );
+		update_user_meta( $user_id, $GLOBALS['wpdb']->get_blog_prefix() . 'admin_color', COLORIFY_ADMIN_CUSTOM_SCHEME_KEY );
+		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOMIZED_META, 1 );
+	}
+
+	wp_send_json_success( array( 'faces' => count( $skin['faces'] ) ) );
+}
+add_action( 'wp_ajax_colorify_apply_site_look', 'colorify_ajax_apply_site_look' );

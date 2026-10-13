@@ -64,6 +64,12 @@ final class Colorify_Settings {
 		}
 
 		update_option( COLORIFY_SCOPE_OPTION, $scope );
+		if ( isset( $_POST['colorify_skin_preset'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			// Zmienia się tylko wybór skóry: pomiar strony (czcionki, rogi) zostaje zapisany.
+			$skin           = colorify_get_skin();
+			$skin['preset'] = sanitize_key( wp_unslash( $_POST['colorify_skin_preset'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			update_option( COLORIFY_SKIN_OPTION, colorify_skin_sanitize( $skin ) );
+		}
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 
 		wp_safe_redirect( self::page_url( array( 'colorify_saved' => '1' ) ) );
@@ -225,6 +231,44 @@ final class Colorify_Settings {
 				'actions'     => false,
 			)
 		);
+		echo '</section>';
+
+		// Skóra: czcionki i rogi ekranów Colorify i strony logowania.
+		$skin      = colorify_get_skin();
+		$stored    = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
+		$measured  = '' !== $stored['body'];
+		$body_name = str_replace( '"', '', (string) strtok( $stored['body'], ',' ) );
+		$body_name = preg_match( '/^(-apple-system|BlinkMacSystemFont|system-ui|ui-sans-serif|ui-serif|sans-serif|serif)$/i', $body_name ) ? __( 'czcionka systemowa', 'colorify-by-inyfinn' ) : $body_name;
+		$site_hint = $measured
+			/* translators: 1: czcionka tekstu, 2: zaokrąglenie w px */
+			? sprintf( __( 'Zmierzone na stronie głównej: %1$s, rogi %2$d px.', 'colorify-by-inyfinn' ), $body_name, $stored['radius'] )
+			: __( 'Najpierw użyj przycisku „Dopasuj do strony”.', 'colorify-by-inyfinn' );
+		$skins     = array(
+			'neutral'    => array( __( 'Neutralny', 'colorify-by-inyfinn' ), __( 'Czcionka panelu WordPressa, lekko zaokrąglone rogi. Pasuje do każdej strony.', 'colorify-by-inyfinn' ) ),
+			'site'       => array( __( 'Jak strona', 'colorify-by-inyfinn' ), $site_hint ),
+			'kancelaria' => array( __( 'Kancelaria', 'colorify-by-inyfinn' ), __( 'EB Garamond i IBM Plex Sans, ostre rogi.', 'colorify-by-inyfinn' ) ),
+		);
+		echo '<section class="colorify-card" id="colorify-skin" aria-labelledby="colorify-skin-title">';
+		echo '<p class="colorify-label">' . esc_html__( 'Styl', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<h2 id="colorify-skin-title">' . esc_html__( 'Czcionki i kształt', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<p class="colorify-desc">' . esc_html__( 'Dla ekranów Colorify i&nbsp;strony logowania. Reszta panelu zostaje przy czcionce WordPressa.', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<div class="colorify-scope colorify-skins" role="radiogroup" aria-labelledby="colorify-skin-title">';
+		foreach ( $skins as $key => $row ) {
+			printf(
+				'<label class="colorify-scope__opt"><input type="radio" name="colorify_skin_preset" value="%1$s" %2$s %3$s><span class="colorify-scope__title">%4$s</span><p class="colorify-scope__hint">%5$s</p></label>',
+				esc_attr( $key ),
+				checked( $skin['preset'], $key, false ),
+				disabled( 'site' === $key && ! $measured, true, false ),
+				esc_html( $row[0] ),
+				esc_html( $row[1] )
+			);
+		}
+		echo '</div>';
+		echo '<div class="colorify-match">';
+		echo '<button type="button" class="button" id="colorify-match-run">' . esc_html__( 'Dopasuj do strony', 'colorify-by-inyfinn' ) . '</button>';
+		echo '<span class="colorify-match__hint">' . esc_html__( 'Odczytuje kolory, czcionki i&nbsp;rogi przycisków ze strony głównej. Nic nie zapisuje, dopóki nie zatwierdzisz.', 'colorify-by-inyfinn' ) . '</span>';
+		echo '<div class="colorify-match__result" id="colorify-match-result" role="status" aria-live="polite" hidden></div>';
+		echo '</div>';
 		echo '</section>';
 
 		// Twoje kolory: tylko przy zakresie "osobno" (wskazówka, gdzie wybiera się kolory panelu).
