@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.1.2
+
+- **Kolor schematu także na stronie publicznej, dla zalogowanych.** Narzędzia pokazywane tam osobom z panelu
+  (na przykład zgłaszanie poprawek) dostają akcent schematu zamiast domyślnego niebieskiego WordPressa.
+
 ## 2.1.1
 
 - **"Zmień styl" w górnym pasku prowadzi administratora do Ustawienia, Colorify.** Tam są kolory witryny, czcionki

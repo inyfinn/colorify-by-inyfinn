@@ -187,6 +187,30 @@ add_action( 'admin_head', 'colorify_engine_print_tokens', 1 );
 add_action( 'customize_controls_head', 'colorify_engine_print_tokens', 1 );
 
 /**
+ * Kolor motywu schematu także na stronie publicznej, dla zalogowanych. Narzędzia, które pokazują się tam
+ * osobom z panelu (np. zgłaszanie poprawek), biorą akcent z --wp-admin-theme-color, a poza panelem tę zmienną
+ * ustawia tylko arkusz bloków rdzenia (niebieski WordPressa, stąd html:root). Wartości z trybu jasnego, bo strona nie jest przyciemniana.
+ */
+function colorify_engine_print_front_theme_color(): void {
+	if ( ! is_user_logged_in() || ! colorify_engine_is_active() ) {
+		return;
+	}
+
+	$tokens = colorify_current_tokens( 0, 'light' );
+	$vars   = array();
+	foreach ( (array) $tokens['css'] as $name => $value ) {
+		if ( 0 === strpos( (string) $name, '--wp-admin-theme-color' ) ) {
+			$vars[ $name ] = $value;
+		}
+	}
+
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- zbudowane z przefiltrowanych nazw i wartości.
+	echo '<style id="colorify-front-theme-color">html:root{' . colorify_engine_declarations( $vars ) . '}</style>' . "
+";
+}
+add_action( 'wp_head', 'colorify_engine_print_front_theme_color', 1 );
+
+/**
  * Arkusz ramy (menu, górny pasek, tło ekranu) po arkuszu schematu.
  */
 function colorify_engine_enqueue(): void {
