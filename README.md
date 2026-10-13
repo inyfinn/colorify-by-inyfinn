@@ -70,6 +70,7 @@ Zwykłe wydanie oznaczone na GitHubie jako Latest jest oferowane stronom. Pre-re
 | Filtr | Domyślnie | Do czego |
 |-------|-----------|----------|
 | `colorify_contrast_guard` | `true` | `false` wyłącza strażnika kontrastu w trybie ciemnym. |
+| `colorify_dark_engine_screens` | pusta lista | Identyfikatory ekranów (np. `post`), na których silnik trybu ciemnego się nie włącza: ekran zostaje jasny i czytelny, reszta panelu jest ciemna. Wyjście awaryjne, gdy ciemny tryb zwalnia ciężki ekran. |
 | `colorify_dark_literal_color_selectors` | próbki kolorów (`.wp-color-result` i podobne) | Selektory elementów, których kolory z atrybutu `style` tryb ciemny zostawia dosłownie (próbki kolorów nie mogą się przekolorować). |
 
 ## Znane ograniczenia
