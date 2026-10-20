@@ -178,9 +178,33 @@ final class Colorify_Settings {
 			);
 		}
 		echo '</div>';
-		echo '<button type="button" class="button colorify-match-btn" id="colorify-match-run">' . esc_html__( 'Dopasuj do mojej strony', 'colorify-by-inyfinn' ) . '</button>';
 		echo '</div></div>';
+
+		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.
+		$skin_now  = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
+		$site_cols = get_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_colors', array() );
+		$site_on   = COLORIFY_ADMIN_CUSTOM_SCHEME_KEY === colorify_get_global_admin_color() && 'site' === $skin_now['preset'] && is_array( $site_cols );
+		$host      = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+		echo '<div class="colorify-site">';
+		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Dopasowanie do strony', 'colorify-by-inyfinn' ) . '</p>';
+		/* translators: %s: domena strony */
+		echo '<p class="colorify-site__hint">' . esc_html( sprintf( __( 'Odczytuje kolory, czcionki i rogi z %s. Nic się nie zmienia, dopóki nie klikniesz „Zastosuj”.', 'colorify-by-inyfinn' ), $host ) ) . '</p>';
+		if ( $site_on ) {
+			$font = str_replace( '"', '', (string) strtok( $skin_now['body'], ',' ) );
+			echo '<p class="colorify-site__now"><span>' . esc_html__( 'Teraz w panelu:', 'colorify-by-inyfinn' ) . '</span>';
+			foreach ( array( 'bg2', 'accent', 'accent2' ) as $k ) {
+				$hex = (string) sanitize_hex_color( (string) ( $site_cols[ $k ] ?? '' ) );
+				if ( '' !== $hex ) {
+					echo '<i class="colorify-match__swatch" data-colorify-swatch style="background:' . esc_attr( $hex ) . '" title="' . esc_attr( $hex ) . '"></i>';
+				}
+			}
+			/* translators: 1: czcionka, 2: zaokrąglenie w px */
+			echo '<span>' . esc_html( sprintf( __( '%1$s, rogi %2$d px', 'colorify-by-inyfinn' ), $font, $skin_now['radius'] ) ) . '</span></p>';
+		}
+		echo '</div>';
+		echo '<button type="button" class="button button-primary colorify-match-btn" id="colorify-match-run">' . esc_html( $site_on ? __( 'Odczytaj ponownie', 'colorify-by-inyfinn' ) : __( 'Dopasuj do mojej strony', 'colorify-by-inyfinn' ) ) . '</button>';
 		echo '<div class="colorify-match__result" id="colorify-match-result" role="status" aria-live="polite" hidden></div>';
+		echo '</div>';
 		colorify_ui_render_picker(
 			array(
 				'context'     => 'settings',

@@ -1150,34 +1150,74 @@
 		var headingEl = firstShown( 'h1, h2, h3' );
 		var heading = headingEl ? win.getComputedStyle( headingEl ).fontFamily : bodyCs.fontFamily;
 
-		// Przycisk: pierwszy widoczny z własnym, nieprzezroczystym i niebiałym tłem.
+		// Nakładki, które nie są stroną: baner cookies, pasek administratora, okienka czatu.
+		var FOREIGN = '#wpadminbar, [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i], [class*="cmplz" i], [id*="cmplz" i], [class*="gdpr" i], [id*="chat" i]';
+		function foreign( el ) {
+			try {
+				// Klasy na body/html (np. "cmplz-..." od wtyczki cookies) nie czynią całej strony nakładką.
+				var hit = el.closest( FOREIGN );
+				return !! hit && hit !== doc.body && hit !== doc.documentElement;
+			} catch ( e ) {
+				return false;
+			}
+		}
+
+		// Przycisk strony (do rogów): pierwszy widoczny z własnym tłem, poza nakładkami.
 		var button = null;
-		var buttonBg = null;
 		Array.prototype.some.call(
 			doc.querySelectorAll( '.elementor-button, .wp-block-button__link, .ast-button, .ast-custom-button, .btn, a.button, button[type="submit"], input[type="submit"], [class*="button"], [class*="btn"]' ),
 			function ( el ) {
-				var bg = shown( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
+				var bg = shown( el ) && ! foreign( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
 				if ( bg && bg.alpha > 0.5 && bg.lum < 0.85 ) {
 					button = el;
-					buttonBg = bg;
 					return true;
 				}
 				return false;
 			}
 		);
 
-		// Odnośnik w treści: pierwszy w kolorze innym niż tekst.
+		// Akcent: kolor nasycony, który na stronie widać najwięcej (tła przycisków, kolory odnośników, ikon, nagłówków),
+		// a nie pierwszy z brzegu element. Kolory prawie czarne to tło menu, nie akcent.
+		var votes = {};
+		Array.prototype.forEach.call( doc.querySelectorAll( 'a, button, [class*="button"], [class*="btn"], h1, h2, h3, h4, svg, i, strong' ), function ( el ) {
+			if ( foreign( el ) ) {
+				return;
+			}
+			var r = el.getBoundingClientRect();
+			if ( r.width < 4 || r.height < 4 ) {
+				return;
+			}
+			var cs = win.getComputedStyle( el );
+			[ [ cs.backgroundColor, r.width * r.height / 100 ], [ cs.color, r.width / 10 ], [ cs.fill, r.width / 10 ] ].forEach( function ( pair ) {
+				var c = parseColor( pair[ 0 ] );
+				if ( ! c || c.alpha < 0.6 || c.sat < 40 || c.lum < 0.04 || c.lum > 0.8 ) {
+					return;
+				}
+				votes[ c.hex ] = votes[ c.hex ] || { c: c, n: 0 };
+				votes[ c.hex ].n += pair[ 1 ];
+			} );
+		} );
+		var ranked = Object.keys( votes ).map( function ( k ) {
+			return votes[ k ];
+		} ).sort( function ( a, b ) {
+			return b.n - a.n;
+		} );
+		var accent = ranked[ 0 ] ? ranked[ 0 ].c : null;
+		// Drugi akcent: następny wyraźnie inny kolor, a gdy go nie ma, jaśniejszy odcień akcentu.
 		var link = null;
-		Array.prototype.some.call( doc.querySelectorAll( 'main a, article a, .entry-content a, .elementor a, a' ), function ( el ) {
-			var c = shown( el ) ? parseColor( win.getComputedStyle( el ).color ) : null;
-			if ( c && c.sat > 40 && ( ! text || c.hex !== text.hex ) ) {
-				link = c;
+		ranked.slice( 1 ).some( function ( v ) {
+			var diff = [ 1, 3, 5 ].reduce( function ( s, i ) {
+				return s + Math.abs( parseInt( v.c.hex.substr( i, 2 ), 16 ) - parseInt( accent.hex.substr( i, 2 ), 16 ) );
+			}, 0 );
+			if ( diff > 60 ) {
+				link = v.c;
 				return true;
 			}
 			return false;
 		} );
-
-		var accent = buttonBg && ( buttonBg.sat > 25 || ! link ) ? buttonBg : link || buttonBg;
+		if ( accent && ! link ) {
+			link = { hex: mixHex( accent.hex, 255, 0.25 ) };
+		}
 
 		// Ciemna powierzchnia strony (stopka, nagłówek) na menu panelu; bez niej kolor tekstu, a na końcu grafit.
 		var ink = null;

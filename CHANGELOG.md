@@ -1,5 +1,16 @@
 # Historia zmian
 
+## 2.2.3
+
+- **Dopasowanie do strony bierze prawdziwe kolory strony.** Akcent to kolor nasycony, którego na stronie widać
+  najwięcej, a nie pierwszy przycisk z brzegu. Baner cookies, pasek administratora i okienka czatu są pomijane
+  (wcześniej przycisk "Akceptuję" z banera cookies dawał akcent w kolorze tła).
+- **Naprawione: zielony zamiast kolorów strony.** Własna paleta witryny była liczona z pustej palety osoby
+  (domyślna limonka). Teraz osoba bez własnego wyglądu dostaje paletę witryny.
+- **Dopasowanie nie przełącza trybu.** Kto pracował w jasnym, zostaje w jasnym.
+- **Stały panel "Dopasowanie do strony"** pod nagłówkiem, z kolorami, czcionką i rogami, które są teraz w panelu.
+- **Dostrojenie w jednym niskim pasku** zamiast pół ekranu.
+
 ## 2.2.2
 
 - **Ustawienia, Colorify: jeden ekran zamiast trzech kart.** U góry "Kolory panelu" z przełącznikiem

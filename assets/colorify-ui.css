@@ -1793,3 +1793,96 @@
 #colorify-tune-mode {
 	display: none !important;
 }
+
+/* 2.2.3: panel dopasowania do strony. */
+.colorify-site {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 24px;
+	margin: 0 0 20px;
+	padding: 16px 20px;
+	border: 1px solid var(--cu-field);
+	border-radius: var(--colorify-skin-radius, 0);
+	background: var(--colorify-ui-surface-2, transparent);
+}
+
+.colorify-site__text {
+	flex: 1 1 320px;
+	min-width: 0;
+}
+
+.colorify-ui .colorify-site__title {
+	margin: 0 0 2px;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.colorify-ui .colorify-site__hint {
+	margin: 0;
+	font-size: 13px;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-ui .colorify-site__now {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 8px 0 0;
+	font-size: 13px;
+}
+
+.colorify-site .colorify-match__result {
+	flex: 1 1 100%;
+}
+
+/* 2.2.3: dostrojenie w jednym niskim pasku. */
+.colorify-main .colorify-tuning {
+	padding: 14px 20px;
+}
+
+.colorify-main .colorify-tuning > summary {
+	font-size: 15px;
+}
+
+.colorify-main .colorify-tuning__head {
+	display: none;
+}
+
+.colorify-main .colorify-sliders {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 4px 24px;
+	margin: 8px 0 0;
+}
+
+.colorify-main .colorify-slider {
+	margin: 0;
+	padding: 0;
+}
+
+.colorify-main .colorify-slider__warn {
+	display: none;
+}
+
+.colorify-main .colorify-tuning__foot {
+	margin: 6px 0 0;
+}
+
+.colorify-ui .colorify-main #colorify-tune-reset {
+	min-height: 32px;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-size: 13px;
+	text-decoration: underline;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+@media (max-width: 900px) {
+	.colorify-main .colorify-sliders {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}

@@ -1200,8 +1200,10 @@ function colorify_admin_get_resolved_scheme( string $key, int $user_id = 0 ): ar
 	$defs = colorify_admin_scheme_definitions();
 
 	if ( COLORIFY_ADMIN_CUSTOM_SCHEME_KEY === $key ) {
-		$custom = colorify_admin_get_custom_colors( $user_id );
-		$tuning = colorify_admin_get_custom_tuning( $user_id );
+		// Paleta osoby tylko, gdy ma własny wygląd; inaczej paleta witryny. Wcześniej brało puste meta osoby,
+		// czyli domyślną limonkę, zamiast kolorów zapisanych dla witryny ("Dopasuj do strony" dawało zieleń).
+		$custom = function_exists( 'colorify_get_effective_custom_colors' ) ? colorify_get_effective_custom_colors( $user_id ) : colorify_admin_get_custom_colors( $user_id );
+		$tuning = function_exists( 'colorify_get_effective_custom_tuning' ) ? colorify_get_effective_custom_tuning( $user_id ) : colorify_admin_get_custom_tuning( $user_id );
 		$dark   = colorify_admin_apply_custom_tuning_colors( $custom, 'dark', $tuning );
 		$light  = colorify_admin_apply_custom_tuning_colors( $custom, 'light', $tuning );
 		$base   = $defs[ COLORIFY_ADMIN_CUSTOM_SCHEME_KEY ];

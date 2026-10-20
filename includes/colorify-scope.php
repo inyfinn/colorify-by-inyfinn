@@ -645,7 +645,11 @@ function colorify_ajax_apply_site_look(): void {
 		// Kolory strony bez przesunięć: stare dostrojenie przefarbowywało je (np. granat na zielony).
 		update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_tuning', colorify_admin_sanitize_custom_tuning( array() ) );
 		// Osoba, która dopasowuje wygląd, ma go od razu zobaczyć: jej własny wygląd nie może go przykrywać.
-		colorify_clear_user_appearance( get_current_user_id() );
+		// Tryb (jasny/ciemny), który teraz widzi, zostaje: dopasowanie zmienia kolory, nie tryb.
+		$user_id = get_current_user_id();
+		$mode    = colorify_get_effective_appearance_mode( $user_id );
+		colorify_clear_user_appearance( $user_id );
+		colorify_set_global_appearance_mode( $mode );
 	}
 
 	wp_send_json_success( array( 'faces' => count( $skin['faces'] ) ) );
