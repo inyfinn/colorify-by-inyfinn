@@ -459,8 +459,8 @@ body.colorify-style-modern #adminmenu li.opensub {
 body.colorify-style-modern #adminmenu li.menu-top:hover > a.menu-top,
 body.colorify-style-modern #adminmenu li.opensub > a.menu-top,
 body.colorify-style-modern #adminmenu li > a.menu-top:focus {
-	background: color-mix(in srgb, var(--colorify-menu-text, #f0f0f1) 10%, transparent) !important;
-	color: var(--colorify-menu-text, #f0f0f1) !important;
+	background: var(--colorify-menu-highlight-background, #2271b1) !important;
+	color: var(--colorify-menu-highlight-text, #fff) !important;
 	box-shadow: none !important;
 	outline: 0;
 }
@@ -518,4 +518,27 @@ body.colorify-style-modern #adminmenu .wp-not-current-submenu .wp-submenu {
 	border-radius: var(--cm-r-ctl) !important;
 	padding: 6px !important;
 	box-shadow: 0 8px 24px rgba(16, 24, 40, .18);
+}
+
+/* 2.5.1: żadnych trójkątów ani teł na całym wierszu menu w żadnym stanie (najechanie, otwarte podmenu, fokus). */
+body.colorify-style-modern #adminmenu li.menu-top::after,
+body.colorify-style-modern #adminmenu li.menu-top > a::after,
+body.colorify-style-modern #adminmenu li.wp-has-submenu:hover::after,
+body.colorify-style-modern #adminmenu li.wp-has-submenu:focus-within::after {
+	display: none !important;
+	content: none !important;
+}
+body.colorify-style-modern #adminmenu li.menu-top,
+body.colorify-style-modern #adminmenu li.menu-top:hover,
+body.colorify-style-modern #adminmenu li.menu-top:focus-within,
+body.colorify-style-modern #adminmenu li.menu-top.opensub {
+	background: transparent !important;
+	box-shadow: none !important;
+}
+body.colorify-style-modern #adminmenu li.menu-top > a.menu-top {
+	transition: background-color .15s ease, color .15s ease;
+}
+body.colorify-style-modern #adminmenu li.menu-top:hover > a.menu-top div.wp-menu-image::before,
+body.colorify-style-modern #adminmenu li.opensub > a.menu-top div.wp-menu-image::before {
+	color: var(--colorify-menu-highlight-icon, currentColor) !important;
 }

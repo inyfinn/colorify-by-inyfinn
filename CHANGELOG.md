@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.5.1
+
+- Styl Nowoczesny: najechanie na pozycję menu pokazuje kolor schematu tylko na zaokrąglonym polu, bez trójkątów i teł całego wiersza w żadnym stanie (sprawdzone na stronie z ciemnym motywem i wtyczkami z własnymi pozycjami menu).
+
 ## 2.5.0
 
 - **Styl kokpitu** (Ustawienia, Colorify): Klasyczny albo jeden z czterech motywów zamiast widżetów WordPressa.
