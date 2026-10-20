@@ -90,7 +90,7 @@ function colorify_modern_head(): void {
 		echo '<style id="colorify-style-tokens">:root{--colorify-radius-card:20px;--colorify-radius-control:12px;--colorify-radius-pill:999px;'
 			. '--colorify-shadow-card:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.03);'
 			. '--colorify-tag-ok-bg:#e2f4ea;--colorify-tag-ok-fg:#167443;--colorify-tag-info-bg:#e3eefc;--colorify-tag-info-fg:#1c5bb8;'
-			. '--colorify-tag-warn-bg:#fdf1d8;--colorify-tag-warn-fg:#8a5a00;--colorify-tag-bad-bg:#fde7e9;--colorify-tag-bad-fg:#b42335}</style>' . "\n";
+			. '--colorify-tag-warn-bg:#fdf1d8;--colorify-tag-warn-fg:#8a5a00;--colorify-tag-bad-bg:#fde7e9;--colorify-tag-bad-fg:#b42335;--colorify-tag-neutral-bg:color-mix(in srgb,var(--colorify-ui-text,#1d2327) 8%,transparent);--colorify-tag-neutral-fg:var(--colorify-ui-text-muted,#646970)}</style>' . "\n";
 	}
 	// Krzyżyk na komunikatach działa w obu stylach.
 	echo '<style id="colorify-notice-close">.colorify-closable{position:relative;padding-right:48px!important}'

@@ -1,5 +1,21 @@
 # Historia zmian
 
+## 2.5.0
+
+- **Styl kokpitu** (Ustawienia, Colorify): Klasyczny albo jeden z czterech motywów zamiast widżetów WordPressa.
+  Sprzedaż (sklep: przychód, zamówienia do realizacji, płatności do sprawdzenia, magazyn, ostatnie zamówienia),
+  Zapytania (usługi: wiadomości z formularzy Fluent Forms, WPForms, MetForm, Flamingo, popularne podstrony),
+  Redakcja (blog: komentarze, zaplanowane i nieopublikowane o czasie wpisy, szkice, najczęściej czytane),
+  Firma (wizytówka: Kondycja witryny, aktualizacje, brakujące tłumaczenia Polylang). Każdy ma pasek 4 skrótów
+  i jedną kartę "do zrobienia". Brak danych: kafelek mówi to wprost, nie udaje zera.
+- Własny licznik wejść bez ciasteczek (przejmuje historię z kokpitu ETA), także najczęściej oglądane strony.
+
+## 2.4.1
+
+- Styl Nowoczesny: menu boczne bez "czarnego skoku" pod zaokrągloną pozycją przy najechaniu, bez trójkąta przy aktywnej pozycji, spokojne najechanie podmenu.
+- Widżety kokpitu, które same są układem kart (kokpit ETA), nie są owijane w drugą białą kartę (tekst nie dotyka krawędzi).
+- Dodana zmienna `--colorify-tag-neutral-{bg,fg}`.
+
 ## 2.4.0
 
 - **Styl panelu: Klasyczny albo Nowoczesny** (Ustawienia, Colorify). Nowoczesny zmienia cały wp-admin: zaokrąglone

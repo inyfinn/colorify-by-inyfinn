@@ -448,3 +448,74 @@ body.colorify-style-modern .plugin-update-tr.active td {
 body.colorify-style-modern .plugins .active td.plugin-title strong {
 	color: var(--cm-text);
 }
+
+/* 2.4.1: menu boczne. Tło najechania i aktywne tylko na zaokrąglonym linku, nigdy na całym prostokątnym
+   wierszu (to dawało "czarny skok" pod pigułką); bez trójkąta WordPressa; spokojne najechanie podmenu. */
+body.colorify-style-modern #adminmenu li.menu-top,
+body.colorify-style-modern #adminmenu li.menu-top:hover,
+body.colorify-style-modern #adminmenu li.opensub {
+	background: transparent !important;
+}
+body.colorify-style-modern #adminmenu li.menu-top:hover > a.menu-top,
+body.colorify-style-modern #adminmenu li.opensub > a.menu-top,
+body.colorify-style-modern #adminmenu li > a.menu-top:focus {
+	background: color-mix(in srgb, var(--colorify-menu-text, #f0f0f1) 10%, transparent) !important;
+	color: var(--colorify-menu-text, #f0f0f1) !important;
+	box-shadow: none !important;
+	outline: 0;
+}
+body.colorify-style-modern #adminmenu li.current > a.menu-top,
+body.colorify-style-modern #adminmenu li.wp-has-current-submenu > a.wp-has-current-submenu,
+body.colorify-style-modern #adminmenu li.current:hover > a.menu-top,
+body.colorify-style-modern #adminmenu li.wp-has-current-submenu:hover > a.wp-has-current-submenu {
+	background: var(--colorify-menu-current-background, #2271b1) !important;
+	color: var(--colorify-menu-current-text, #fff) !important;
+}
+body.colorify-style-modern #adminmenu li > a.menu-top:focus-visible {
+	box-shadow: 0 0 0 2px var(--colorify-menu-current-background, #2271b1) !important;
+}
+body.colorify-style-modern ul#adminmenu a.wp-has-current-submenu:after,
+body.colorify-style-modern ul#adminmenu > li.current > a.current:after,
+body.colorify-style-modern #adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:hover:after,
+body.colorify-style-modern #adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
+	display: none !important;
+}
+body.colorify-style-modern #adminmenu .wp-submenu a {
+	box-shadow: none !important;
+	border: 0 !important;
+}
+body.colorify-style-modern #adminmenu .wp-submenu a:hover,
+body.colorify-style-modern #adminmenu .wp-submenu a:focus,
+body.colorify-style-modern #adminmenu .wp-has-current-submenu .wp-submenu a:hover,
+body.colorify-style-modern #adminmenu .wp-has-current-submenu .wp-submenu a:focus {
+	background: color-mix(in srgb, var(--colorify-menu-text, #f0f0f1) 10%, transparent) !important;
+	color: var(--colorify-menu-text, #f0f0f1) !important;
+	outline: 0;
+}
+body.colorify-style-modern #adminmenu .wp-submenu li.current a,
+body.colorify-style-modern #adminmenu .wp-submenu li.current a:hover {
+	background: transparent !important;
+	color: var(--colorify-menu-submenu-current-text, #fff) !important;
+	font-weight: 600;
+}
+
+/* Widżety kokpitu, które same są układem kart (np. kokpit ETA): Colorify nie owija ich w drugą kartę. */
+body.colorify-style-modern #dashboard-widgets .postbox:has(> .inside > .eta-dash),
+body.colorify-style-modern #dashboard-widgets .postbox[data-colorify-bare] {
+	background: transparent !important;
+	box-shadow: none !important;
+	border-radius: 0 !important;
+	overflow: visible;
+}
+body.colorify-style-modern #dashboard-widgets .postbox:has(> .inside > .eta-dash) > .inside,
+body.colorify-style-modern #dashboard-widgets .postbox[data-colorify-bare] > .inside {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* Wysuwane podmenu (najechanie na pozycję bez aktywnego podmenu): zaokrąglone pudełko. */
+body.colorify-style-modern #adminmenu .wp-not-current-submenu .wp-submenu {
+	border-radius: var(--cm-r-ctl) !important;
+	padding: 6px !important;
+	box-shadow: 0 8px 24px rgba(16, 24, 40, .18);
+}

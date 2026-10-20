@@ -71,6 +71,7 @@ final class Colorify_Settings {
 			update_option( COLORIFY_SKIN_OPTION, colorify_skin_sanitize( $skin ) );
 		}
 		colorify_save_admin_style_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		Colorify_Dashboard::save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 		if ( 'global' === $scope ) {
 			colorify_clear_user_appearance( get_current_user_id() );
@@ -200,6 +201,25 @@ final class Colorify_Settings {
 				esc_html( $label ),
 				$style === $value ? 'true' : 'false',
 				checked( $style, $value, false )
+			);
+		}
+		echo '</div></div>';
+
+		// Styl kokpitu: Klasyczny albo jeden z czterech motywów.
+		$dstyle = Colorify_Dashboard::style();
+		$dl     = Colorify_Dashboard::labels();
+		echo '<div class="colorify-site colorify-style-row">';
+		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<p class="colorify-site__hint" id="colorify-dash-hint">' . esc_html( $dl[ $dstyle ][1] ) . '</p></div>';
+		echo '<div class="colorify-seg colorify-scope-seg colorify-style-seg colorify-dash-seg" role="radiogroup" aria-label="' . esc_attr__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '">';
+		foreach ( array( 'sales', 'leads', 'editorial', 'company', 'classic' ) as $value ) {
+			printf(
+				'<label class="colorify-seg__opt" aria-checked="%3$s" title="%5$s"><input type="radio" class="screen-reader-text" name="colorify_dashboard_style" value="%1$s" %4$s>%2$s</label>',
+				esc_attr( $value ),
+				esc_html( $dl[ $value ][0] ),
+				$dstyle === $value ? 'true' : 'false',
+				checked( $dstyle, $value, false ),
+				esc_attr( $dl[ $value ][1] )
 			);
 		}
 		echo '</div></div>';

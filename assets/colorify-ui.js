@@ -1383,10 +1383,10 @@
 
 	/* Styl panelu (Ustawienia, Colorify): zapis od razu i przeładowanie, bo zmienia arkusz całego panelu. */
 	function initStyleSwitch() {
-		$$( 'input[name="colorify_admin_style"]' ).forEach( function ( input ) {
+		$$( 'input[name="colorify_admin_style"], input[name="colorify_dashboard_style"]' ).forEach( function ( input ) {
 			input.addEventListener( 'change', function () {
 				var form = input.closest( 'form' );
-				$$( '.colorify-style-seg .colorify-seg__opt' ).forEach( function ( opt ) {
+				$$( '.colorify-style-seg .colorify-seg__opt', input.closest( '.colorify-style-seg' ) ).forEach( function ( opt ) {
 					var r = $( 'input', opt );
 					opt.setAttribute( 'aria-checked', r && r.checked ? 'true' : 'false' );
 				} );
