@@ -1886,3 +1886,437 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* ==========================================================================
+   2.3.0: Ustawienia, Colorify. Spokojny, zwarty ekran ustawień:
+   jednolite tło, jasne zaokrąglone karty bez ramek, zwykłe (nie WERSALIKI) etykiety,
+   kontrolki 36-40 px, jeden promień 12 px dla kart i 10 px dla kontrolek.
+   ========================================================================== */
+.colorify-wrap {
+	--cs-r: 14px;
+	--cs-rc: 10px;
+	--cs-soft: color-mix(in srgb, var(--colorify-ui-text) 5%, var(--colorify-ui-surface));
+	--cs-line: color-mix(in srgb, var(--colorify-ui-text) 10%, transparent);
+	max-width: 1120px;
+	margin: 0;
+	padding: 12px 28px 48px 24px;
+	box-sizing: border-box;
+}
+
+.colorify-wrap .colorify-screen-head {
+	margin: 8px 0 16px;
+}
+
+.colorify-wrap .colorify-h1,
+.colorify-wrap .colorify-ui .colorify-h1 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	font-family: inherit;
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+}
+
+.colorify-wrap .colorify-h1__logo {
+	width: 28px;
+	height: 28px;
+}
+
+/* Karta główna: bez ramki, miękki cień. */
+.colorify-wrap .colorify-card.colorify-main {
+	padding: 24px 28px 28px;
+	border: 0;
+	border-radius: var(--cs-r);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.colorify-wrap .colorify-main__head {
+	align-items: center;
+	margin-bottom: 18px;
+}
+
+.colorify-wrap .colorify-main__title h2 {
+	margin: 0 0 2px;
+	font-family: inherit;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.colorify-wrap .colorify-main__title .colorify-desc {
+	font-size: 13px;
+}
+
+/* Przełączniki segmentowe: pigułki jak w aplikacjach, bez wersalików. */
+.colorify-wrap .colorify-seg {
+	gap: 2px;
+	padding: 3px;
+	border: 0;
+	border-radius: var(--cs-rc);
+	background: var(--cs-soft);
+}
+
+.colorify-wrap .colorify-ui .colorify-seg__opt,
+.colorify-wrap .colorify-ui .colorify-scope-seg .colorify-seg__opt {
+	min-height: 34px;
+	padding: 0 14px;
+	gap: 6px;
+	border: 0 !important;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-wrap .colorify-ui .colorify-seg__opt:hover {
+	background: transparent;
+	color: var(--colorify-ui-text);
+}
+
+.colorify-wrap .colorify-ui .colorify-seg__opt[aria-checked="true"] {
+	background: var(--colorify-ui-surface);
+	color: var(--colorify-ui-text);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
+}
+
+/* Dopasowanie do strony: jedna miękka belka. */
+.colorify-wrap .colorify-site {
+	margin: 0 0 16px;
+	padding: 14px 16px 14px 20px;
+	border: 0;
+	border-radius: var(--cs-r);
+	background: var(--cs-soft);
+}
+
+.colorify-wrap .colorify-ui .colorify-site__title {
+	font-size: 14px;
+}
+
+.colorify-wrap .colorify-site .colorify-match__swatch {
+	width: 18px;
+	height: 18px;
+	border-radius: 5px;
+}
+
+.colorify-wrap .colorify-ui .colorify-match-btn,
+.colorify-wrap .colorify-ui .colorify-match__actions .button {
+	min-height: 38px;
+	padding: 0 16px;
+	border-radius: var(--cs-rc);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+/* Wybrany schemat: bez lewej kreski i ramki. */
+.colorify-wrap .colorify-current {
+	padding: 14px 16px;
+	border: 0;
+	border-radius: var(--cs-r);
+	background: var(--cs-soft);
+}
+
+.colorify-wrap .colorify-current::before,
+.colorify-wrap .colorify-scheme::before,
+.colorify-wrap .colorify-tuning[open]::before {
+	display: none !important;
+}
+
+.colorify-wrap .colorify-current > .colorify-preview {
+	width: 96px;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.colorify-wrap .colorify-ui .colorify-current__label {
+	font-size: 12px;
+}
+
+.colorify-wrap .colorify-ui .colorify-current__name {
+	font-family: inherit;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.colorify-wrap .colorify-ui .colorify-current__meta {
+	font-size: 12px;
+}
+
+/* Zakładki grup: mniejsze, bez wielkich odstępów. */
+.colorify-wrap .colorify-tabs {
+	gap: 4px 20px;
+	margin: 16px 0 12px;
+	padding: 0;
+	border-bottom: 1px solid var(--cs-line);
+}
+
+.colorify-wrap .colorify-ui .colorify-tab {
+	min-height: 40px;
+	padding: 0 2px;
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0;
+}
+
+/* Kafle schematów: zaokrąglone, bez ramek, zaznaczenie obwódką akcentu. */
+.colorify-wrap .colorify-grid {
+	gap: 12px;
+}
+
+.colorify-wrap .colorify-scheme {
+	padding: 6px;
+	border: 0 !important;
+	border-radius: 12px;
+	background: var(--colorify-ui-surface);
+	box-shadow: 0 0 0 1px var(--cs-line);
+}
+
+.colorify-wrap .colorify-scheme .colorify-preview {
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.colorify-wrap .colorify-scheme:has(input:checked) {
+	box-shadow: 0 0 0 2px var(--colorify-ui-accent);
+}
+
+.colorify-wrap .colorify-ui .colorify-scheme__name {
+	padding: 8px 4px 2px;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+/* Własna paleta: 4 pola w jednym rzędzie, podgląd obok. */
+.colorify-wrap .colorify-palette-panel > .colorify-desc {
+	margin: 8px 0 12px;
+	font-size: 13px;
+}
+
+.colorify-wrap .colorify-scheme--custom {
+	display: inline-flex;
+	padding: 8px 14px;
+	box-shadow: none;
+	background: var(--cs-soft);
+}
+
+.colorify-wrap .colorify-palette {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 200px;
+	gap: 20px;
+	align-items: start;
+}
+
+.colorify-wrap .colorify-palette__fields {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.colorify-wrap .colorify-field label {
+	display: block;
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-wrap .colorify-field__row {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	height: 40px;
+	padding: 0 4px;
+	border-radius: var(--cs-rc);
+	background: var(--cs-soft);
+}
+
+.colorify-wrap .colorify-ui .colorify-swatch {
+	flex: none;
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	border: 0;
+	border-radius: 7px;
+	background: none;
+}
+
+.colorify-wrap .colorify-ui .colorify-input,
+.colorify-wrap .colorify-ui .colorify-hex {
+	flex: 1;
+	min-width: 0;
+	height: 36px;
+	min-height: 0;
+	padding: 0 8px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 13px;
+	box-shadow: none;
+}
+
+.colorify-wrap .colorify-palette__preview {
+	margin: 0;
+}
+
+.colorify-wrap .colorify-palette__preview .colorify-preview {
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.colorify-wrap .colorify-palette__preview figcaption {
+	margin-top: 6px;
+	font-size: 12px;
+}
+
+/* Dostrojenie: lekki pasek. */
+.colorify-wrap .colorify-main .colorify-tuning {
+	margin-top: 16px;
+	padding: 14px 20px 10px;
+	border: 0;
+	border-radius: var(--cs-r);
+	background: var(--cs-soft);
+	box-shadow: none;
+}
+
+.colorify-wrap .colorify-tuning summary {
+	min-height: 0;
+	padding: 0;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0;
+}
+
+.colorify-wrap .colorify-tuning__state {
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-wrap .colorify-main .colorify-sliders {
+	gap: 4px 28px;
+	margin-top: 10px;
+}
+
+.colorify-wrap .colorify-slider label,
+.colorify-wrap .colorify-slider output {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--colorify-ui-text-muted);
+}
+
+.colorify-wrap .colorify-slider input[type="range"] {
+	height: 20px;
+	accent-color: var(--colorify-ui-accent);
+}
+
+.colorify-wrap .colorify-main .colorify-tuning__foot {
+	margin: 2px 0 0;
+}
+
+.colorify-wrap .colorify-ui .colorify-main #colorify-tune-reset {
+	min-height: 28px;
+	font-size: 12px;
+	color: var(--colorify-ui-text-muted);
+}
+
+/* Aktualizacja i stopka: ciszej. */
+.colorify-wrap .colorify-update {
+	margin-top: 20px;
+	padding: 14px 4px 0;
+	font-size: 13px;
+}
+
+.colorify-wrap .colorify-ui .colorify-update .button {
+	min-height: 34px;
+	border-radius: var(--cs-rc);
+	font-size: 12px;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+@media (max-width: 960px) {
+	.colorify-wrap .colorify-palette {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.colorify-wrap .colorify-palette__fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.colorify-wrap .colorify-palette__preview {
+		max-width: 240px;
+	}
+}
+
+@media (max-width: 600px) {
+	.colorify-wrap {
+		padding: 8px 12px 32px;
+	}
+	.colorify-wrap .colorify-card.colorify-main {
+		padding: 18px 16px 20px;
+	}
+}
+
+/* Pole "Używaj własnej palety" niewidoczne: włącza ją zakładka i edycja koloru. */
+.colorify-ui .colorify-scheme--custom {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+/* 2.3.0: wybór schematu bez własnego tła (karta główna już je daje). */
+.colorify-wrap .colorify-main .colorify-picker {
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+
+.colorify-wrap .colorify-ui .colorify-hex {
+	font-family: inherit;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+}
+
+.colorify-wrap .colorify-palette {
+	grid-template-columns: minmax(0, 1fr) 150px;
+	align-items: end;
+}
+
+.colorify-wrap .colorify-palette__preview figcaption {
+	display: none;
+}
+
+.colorify-wrap .colorify-grid {
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 12px;
+}
+
+.colorify-wrap .colorify-scheme .colorify-preview {
+	aspect-ratio: 16 / 9;
+	height: auto;
+}
+
+.colorify-wrap .colorify-tuning__body {
+	padding: 0;
+}
+
+@media (max-width: 960px) {
+	.colorify-wrap .colorify-palette {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.colorify-wrap .colorify-palette__preview {
+		display: none;
+	}
+}

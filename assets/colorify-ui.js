@@ -775,6 +775,14 @@
 			var b = e.target.closest( '[role="tab"]' );
 			if ( b ) {
 				showGroup( b.getAttribute( 'data-group' ) );
+				// Zakładka "Własna paleta" sama ją włącza: bez osobnego pola "Używaj własnej palety".
+				if ( b.getAttribute( 'data-group' ) === 'custom' && P.scheme !== data.customKey ) {
+					var own = $( 'input[name="admin_color"][value="' + data.customKey + '"]', root );
+					if ( own ) {
+						own.checked = true;
+						own.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+					}
+				}
 			}
 		} );
 

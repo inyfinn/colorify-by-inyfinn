@@ -1,5 +1,13 @@
 # Historia zmian
 
+## 2.3.0
+
+- **Nowy wygląd ekranu Ustawienia, Colorify.** Jednolite tło, jasne zaokrąglone karty bez ramek i bocznych kresek,
+  przełączniki jako pigułki bez wersalików, mniejsze nagłówki, odsunięcie od lewej krawędzi.
+- **Własna paleta: cztery pola w jednym rzędzie** (próbnik i kod koloru w jednym polu), podgląd obok.
+- **Bez pola "Używaj własnej palety".** Zakładka "Własna paleta" i każda zmiana koloru same ją włączają.
+- **Dostrojenie jako lekki pasek** z suwakami w kolorze akcentu.
+
 ## 2.2.3
 
 - **Dopasowanie do strony bierze prawdziwe kolory strony.** Akcent to kolor nasycony, którego na stronie widać

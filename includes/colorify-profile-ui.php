@@ -300,7 +300,7 @@ function colorify_ui_render_picker( array $args ): void {
 		checked( $scheme, $custom_key, false ),
 		esc_html__( 'Używaj własnej palety', 'colorify-by-inyfinn' )
 	);
-	echo '<p class="colorify-desc">' . esc_html__( 'Wpisz cztery kolory. Tekst, menu i&nbsp;przyciski dobierzemy automatycznie, żeby wszystko było czytelne.', 'colorify-by-inyfinn' ) . '</p>';
+	echo '<p class="colorify-desc">' . esc_html__( 'Cztery kolory. Tekst i&nbsp;przyciski dobieramy tak, żeby były czytelne.', 'colorify-by-inyfinn' ) . '</p>';
 	echo '<div class="colorify-palette"><div class="colorify-palette__fields">';
 	foreach ( colorify_ui_palette_labels() as $key => $label ) {
 		$value = (string) $custom[ $key ];
