@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.6.1
+
+- Styl Nowoczesny: zebra w tabelach list (co drugi wiersz lekko ciemniejszy) jako nakładka zamiast koloru, więc działa też w trybie ciemnym. Wcześniej tryb ciemny przeliczał kolor i paski znikały (kancelaria).
+
 ## 2.6.0
 
 - Nowość: "Widok kafli" na klasycznych ekranach edycji (produkty, wpisy, strony). Skrzynki stają się zwijanymi kaflami w stylu panelu Usług; zwinięty kafel pokazuje pierwsze wypełnione pole. Włącza i wyłącza się pigułką przy tytule ekranu, osobno dla każdego rodzaju ekranu (tylko administrator). Domyślnie wszędzie wyłączony; edytor bloków i ekran usług kw-uslugi bez zmian (filtr `colorify_tiles_excluded_post_types`).

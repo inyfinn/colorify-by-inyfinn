@@ -244,9 +244,19 @@ body.colorify-style-modern .wp-list-table > tbody > tr,
 body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(odd) {
 	background: var(--cm-surface);
 }
+/* Zebra: co drugi wiersz lekko przyciemniony nakładką, nie kolorem. Tryb ciemny (Dark Reader) przelicza kolory
+   na inne odcienie i różnica znikała (kancelaria), a nakładka zachowuje ten sam odcień w obu trybach. */
 body.colorify-style-modern .wp-list-table > tbody > tr:nth-child(even),
 body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(even) {
-	background: var(--cm-soft);
+	background: var(--cm-surface);
+}
+body.colorify-style-modern .wp-list-table > tbody > tr:nth-child(even) > *,
+body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(even) > * {
+	background-image: linear-gradient(rgba(0, 0, 0, .035), rgba(0, 0, 0, .035));
+}
+html[data-darkreader-scheme="dark"] body.colorify-style-modern .wp-list-table > tbody > tr:nth-child(even) > *,
+html[data-darkreader-scheme="dark"] body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(even) > * {
+	background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, .3));
 }
 body.colorify-style-modern .wp-list-table > tbody > tr:hover {
 	background: color-mix(in srgb, var(--cm-accent) 6%, var(--cm-surface));
