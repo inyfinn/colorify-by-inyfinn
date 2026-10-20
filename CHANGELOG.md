@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.5.2
+
+- Tryb ciemny: karty i kafelki o krok jaśniejsze od tła (lepiej widoczne na kokpicie i ekranach Colorify); kafel skrótu kokpitu jaśnieje przy najechaniu. Tło, karta akcentowa i tryb jasny bez zmian.
+
 ## 2.5.1
 
 - Styl Nowoczesny: najechanie na pozycję menu pokazuje kolor schematu tylko na zaokrąglonym polu, bez trójkątów i teł całego wiersza w żadnym stanie (sprawdzone na stronie z ciemnym motywem i wtyczkami z własnymi pozycjami menu).

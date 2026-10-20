@@ -542,3 +542,8 @@ body.colorify-style-modern #adminmenu li.menu-top:hover > a.menu-top div.wp-menu
 body.colorify-style-modern #adminmenu li.opensub > a.menu-top div.wp-menu-image::before {
 	color: var(--colorify-menu-highlight-icon, currentColor) !important;
 }
+
+/* 2.5.2: kafel skrótu kokpitu przy najechaniu o krok jaśniejszy niż karta (tryb ciemny). */
+body.colorify-dark .cfd-quick__a:hover {
+	background: color-mix(in srgb, #fff 5%, var(--colorify-ui-surface, #2a2a2a));
+}

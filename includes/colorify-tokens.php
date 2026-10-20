@@ -123,7 +123,7 @@ function colorify_build_tokens( array $def, string $mode ): array {
 	if ( $is_dark ) {
 		$src_lch      = colorify_cm_to_oklch( $dark_canvas_src );
 		$canvas       = colorify_cm_from_oklch( min( $src_lch[0], 0.22 ), colorify_tokens_chroma( $src_lch[1], $dark_canvas_src ), $src_lch[2] );
-		$surface      = colorify_cm_shift_l( $canvas, 0.035 );
+		$surface      = colorify_cm_shift_l( $canvas, 0.07 ); // 2.5.2: wyraźniej odcięte karty w trybie ciemnym (user: "panele lekko za mało widoczne")
 		$surface2     = colorify_cm_shift_l( $surface, 0.03 );
 		$surface_high = colorify_cm_shift_l( $surface, 0.07 );
 		$text         = colorify_cm_from_oklch( 0.93, colorify_tokens_chroma( 0.01, $accent ), $h_acc );

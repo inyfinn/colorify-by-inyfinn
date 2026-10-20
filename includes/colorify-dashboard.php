@@ -849,6 +849,7 @@ body.index-php #wpbody-content .notice,body.index-php #wpbody-content .update-na
 .cfd-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .cfd-quick__a{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 18px;border-radius:16px;background:var(--s);color:var(--t);text-decoration:none;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .15s ease,box-shadow .15s ease,color .15s ease}
 .cfd-quick__a:hover{color:var(--a);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,24,40,.08)}
+body.colorify-dark .cfd-quick__a:hover{background:color-mix(in srgb,#fff 5%,var(--s))}
 .cfd-quick__a.is-main{background:color-mix(in srgb,var(--a) 10%,var(--s));color:var(--a)}
 .cfd-card{background:var(--s);border-radius:var(--r);padding:24px 28px;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04));min-width:0}
 .cfd-card__label,.cfd-card__title{margin:0;font-size:15px;font-weight:600;color:var(--t)}
