@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.3.1
+
+- Karta "Twoje kolory" (zakres "Każdy osobno") i przyciski w kartach wyglądają jak reszta ekranu: zaokrąglone, bez ramki, zwykłe litery.
+
 ## 2.3.0
 
 - **Nowy wygląd ekranu Ustawienia, Colorify.** Jednolite tło, jasne zaokrąglone karty bez ramek i bocznych kresek,

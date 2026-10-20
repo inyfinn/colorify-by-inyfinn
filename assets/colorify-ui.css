@@ -2320,3 +2320,34 @@
 		display: none;
 	}
 }
+
+/* 2.3.1: wszystkie karty ekranu ustawień jak karta główna (też "Twoje kolory" przy zakresie "Każdy osobno"). */
+.colorify-wrap .colorify-card {
+	padding: 24px 28px;
+	border: 0;
+	border-radius: var(--colorify-radius-card, 20px);
+	box-shadow: var(--colorify-shadow-card, 0 1px 2px rgba(16, 24, 40, 0.04));
+}
+
+.colorify-wrap .colorify-card > h2 {
+	margin: 0 0 4px;
+	font-family: inherit;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.colorify-wrap .colorify-card > .colorify-desc {
+	margin: 0 0 14px;
+	font-size: 13px;
+}
+
+.colorify-wrap .colorify-ui .button,
+.colorify-wrap .colorify-card .button {
+	min-height: 38px;
+	padding: 0 16px;
+	border-radius: var(--colorify-radius-control, 12px);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0;
+	text-transform: none;
+}
