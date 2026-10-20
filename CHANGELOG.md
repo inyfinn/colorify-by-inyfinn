@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.3.2
+
+- Własna paleta: rząd pól kolorów i podgląd odsunięte 70 px od opisu nad nimi.
+- Próbniki kolorów zaokrąglone (także wnętrze natywnego pola koloru w Chrome, Edge i Firefox).
+
 ## 2.3.1
 
 - Karta "Twoje kolory" (zakres "Każdy osobno") i przyciski w kartach wyglądają jak reszta ekranu: zaokrąglone, bez ramki, zwykłe litery.

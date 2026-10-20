@@ -2351,3 +2351,32 @@
 	letter-spacing: 0;
 	text-transform: none;
 }
+
+/* 2.3.2: własna paleta: rząd kolorów 70 px pod opisem, próbniki zaokrąglone (także wnętrze natywnego pola koloru). */
+.colorify-wrap .colorify-palette-panel > .colorify-desc {
+	margin-bottom: 0;
+}
+
+.colorify-wrap .colorify-palette {
+	margin-top: 70px;
+}
+
+.colorify-wrap .colorify-ui .colorify-swatch {
+	border-radius: var(--colorify-radius-control, 8px);
+	overflow: hidden;
+	cursor: pointer;
+}
+
+.colorify-wrap .colorify-swatch::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+.colorify-wrap .colorify-swatch::-webkit-color-swatch {
+	border: 0;
+	border-radius: var(--colorify-radius-control, 8px);
+}
+
+.colorify-wrap .colorify-swatch::-moz-color-swatch {
+	border: 0;
+	border-radius: var(--colorify-radius-control, 8px);
+}
