@@ -41,6 +41,47 @@
 		s.textContent = text;
 		return s;
 	}
+	// Znane skrzynki: skrót jak w panelu Usług (najważniejsza liczba duża, reszta jako plakietki).
+	function val( box, sel ) {
+		var el = box.querySelector( sel );
+		if ( ! el ) { return ''; }
+		if ( el.tagName === 'SELECT' ) { var o = el.options[ el.selectedIndex ]; return o ? clean( o.textContent, 40 ) : ''; }
+		return clean( el.value, 200 );
+	}
+	var cur = function () {
+		var c = document.querySelector( '#woocommerce-product-data label[for="_regular_price"]' );
+		var m = c && /\(([^)]+)\)/.exec( c.textContent );
+		return m ? ' ' + m[1] : '';
+	};
+	var adapters = {
+		'woocommerce-product-data': function ( box ) {
+			var reg = val( box, '#_regular_price' ), sale = val( box, '#_sale_price' );
+			var tags = [];
+			// typ produktu stoi już w nagłówku skrzynki (lista WooCommerce), więc bez plakietki
+			var stock = box.querySelector( '#_stock_status' );
+			if ( stock ) { tags.push( [ val( box, '#_stock_status' ), stock.value === 'instock' ? 'ok' : 'bad' ] ); }
+			if ( box.querySelector( '#_virtual:checked' ) ) { tags.push( [ 'Wirtualny', '' ] ); }
+			var sku = val( box, '#_sku' );
+			return {
+				big: sale ? sale + cur() : ( reg ? reg + cur() : 'Bez ceny' ),
+				muted: ( sale && reg ? 'Cena regularna ' + reg + cur() + '. ' : '' ) + ( sku ? 'SKU ' + sku : '' ),
+				tags: tags
+			};
+		},
+		'postexcerpt': function ( box ) {
+			var t = clean( val( box, 'textarea' ), 160 );
+			return t ? { text: t } : { muted: 'Brak skrótu: WordPress weźmie początek treści.' };
+		},
+		'commentsdiv': function ( box ) {
+			var n = box.querySelectorAll( '#the-comment-list tr:not(.no-items)' ).length;
+			return n ? { big: String( n ), muted: n === 1 ? 'komentarz' : 'komentarzy i opinii' } : { muted: 'Brak komentarzy' };
+		},
+		'postcustom': function ( box ) {
+			var n = box.querySelectorAll( '#the-list tr[id^="meta-"]' ).length;
+			return { big: String( n ), muted: 'pól własnych' };
+		}
+	};
+
 	function summarize( box ) {
 		var sum = box.querySelector( ':scope > .cft-sum' );
 		if ( ! sum ) {
@@ -49,8 +90,20 @@
 			var head = box.querySelector( ':scope > .postbox-header' );
 			if ( head ) { head.insertAdjacentElement( 'afterend', sum ); } else { box.prepend( sum ); }
 		}
-		var f = fields( box );
 		sum.textContent = '';
+		var known = adapters[ box.id ] && adapters[ box.id ]( box );
+		if ( known ) {
+			if ( known.big ) { sum.appendChild( span( 'cft-sum__big', known.big ) ); }
+			if ( known.text ) { sum.appendChild( span( 'cft-sum__text', known.text ) ); }
+			if ( known.tags && known.tags.length ) {
+				var row = span( 'cft-sum__tags', '' );
+				known.tags.forEach( function ( t ) { row.appendChild( span( 'cft-tag' + ( t[1] ? ' cft-tag--' + t[1] : '' ), t[0] ) ); } );
+				sum.appendChild( row );
+			}
+			if ( known.muted ) { sum.appendChild( span( 'cft-sum__muted', known.muted ) ); }
+			return;
+		}
+		var f = fields( box );
 		if ( ! f.length ) {
 			sum.appendChild( span( 'cft-sum__muted', 'Puste' ) );
 			return;

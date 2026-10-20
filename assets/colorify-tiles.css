@@ -44,3 +44,15 @@ body.colorify-tiles .postbox.closed > .cft-sum {
 @media (max-width: 960px) {
 	body.colorify-tiles :is(#normal-sortables, #advanced-sortables) { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* skróty znanych skrzynek (produkt, skrót, komentarze): jak kafle panelu Usług */
+.cft-sum__big { font-size: 20px; font-weight: 600; line-height: 28px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.cft-sum__text { font-size: 14px; line-height: 21px; }
+.cft-sum__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+.cft-tag {
+	display: inline-flex; align-items: center; height: 22px; padding: 0 9px;
+	font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; border-radius: var(--colorify-radius-pill, 999px);
+	color: var(--colorify-tag-neutral-fg, #50575e); background: var(--colorify-tag-neutral-bg, #f0f0f1);
+}
+.cft-tag--ok { color: var(--colorify-tag-ok-fg, #1b5e3a); background: var(--colorify-tag-ok-bg, #ddf3e4); }
+.cft-tag--bad { color: var(--colorify-tag-bad-fg, #8a2a24); background: var(--colorify-tag-bad-bg, #fbe4e1); }

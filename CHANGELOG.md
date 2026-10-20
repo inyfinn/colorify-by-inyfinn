@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.7.1
+
+- Widok kafli: znane skrzynki mają skrót jak w panelu Usług. Dane produktu WooCommerce: cena duża (promocyjna z ceną regularną obok), stan magazynu i "Wirtualny" jako plakietki, SKU. Krótki opis: początek tekstu. Komentarze i opinie: liczba. Pola własne: liczba. Pozostałe skrzynki: pierwsze wypełnione pole jak dotąd.
+
 ## 2.7.0
 
 - Styl Nowoczesny: tabele list (wpisy, strony, media, użytkownicy, wtyczki, komentarze, zamówienia) w stylu listy usług. Nagłówek kolumn to osobna zaokrąglona belka, wiersze to karta pod nią z cienką linią między wierszami; najechanie lekko przyciemnia ten sam odcień, zebra zostaje. Od 783 px; na telefonie karty wierszy WordPressa bez zmian. Lista usług kancelarii (kw_usluga) ma własny układ.
