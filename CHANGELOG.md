@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.7.2
+
+- Widok kafli (po przeglądzie projektowym): kliknięcie w skrót zwiniętego kafla otwiera go; kafle zwinięte od startu także dla kont, które nigdy nie zwijały skrzynek; wymagane pole w zwiniętym kaflu otwiera kafel zamiast cicho blokować zapis; przeciąganie skrzynek wyłączone przy kaflach (kolejność strzałkami, także z klawiatury); po otwarciu kafla cudze skrypty dostają `resize`; skrót podpięty pod przycisk zwijania (`aria-describedby`); grupy pól ACF mają skrót (pierwsze pole i "wypełnione X z Y"); pusty kafel mówi, co zrobić; ostatni nieparzysty kafel na całą szerokość.
+
 ## 2.7.1
 
 - Widok kafli: znane skrzynki mają skrót jak w panelu Usług. Dane produktu WooCommerce: cena duża (promocyjna z ceną regularną obok), stan magazynu i "Wirtualny" jako plakietki, SKU. Krótki opis: początek tekstu. Komentarze i opinie: liczba. Pola własne: liczba. Pozostałe skrzynki: pierwsze wypełnione pole jak dotąd.

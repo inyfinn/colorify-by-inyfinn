@@ -56,3 +56,6 @@ body.colorify-tiles .postbox.closed > .cft-sum {
 }
 .cft-tag--ok { color: var(--colorify-tag-ok-fg, #1b5e3a); background: var(--colorify-tag-ok-bg, #ddf3e4); }
 .cft-tag--bad { color: var(--colorify-tag-bad-fg, #8a2a24); background: var(--colorify-tag-bad-bg, #fbe4e1); }
+body.colorify-tiles .postbox.closed > .cft-sum { cursor: pointer; }
+/* ostatni nieparzysty kafel na całą szerokość, bez dziury obok */
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox.closed:last-child:nth-child(odd) { grid-column: 1 / -1; }

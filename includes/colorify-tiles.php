@@ -84,6 +84,35 @@ add_action(
 	111
 );
 
+/*
+ * Kafle zwinięte od startu także dla kont, które nigdy nie zwijały skrzynek (np. redaktor po włączeniu przez admina).
+ * Pierwsze kliknięcie zapisuje własny stan konta i od tej pory decyduje WordPress.
+ */
+add_action(
+	'add_meta_boxes',
+	static function () {
+		$id = colorify_tiles_screen_id();
+		if ( ! colorify_tiles_is_on( $id ) || false !== get_user_option( 'closedpostboxes_' . $id ) ) {
+			return;
+		}
+		global $wp_meta_boxes;
+		foreach ( array( 'normal', 'advanced' ) as $context ) {
+			foreach ( (array) ( $wp_meta_boxes[ $id ][ $context ] ?? array() ) as $boxes ) {
+				foreach ( array_keys( (array) $boxes ) as $box_id ) {
+					add_filter(
+						"postbox_classes_{$id}_{$box_id}",
+						static function ( $classes ) {
+							$classes[] = 'closed';
+							return $classes;
+						}
+					);
+				}
+			}
+		}
+	},
+	999
+);
+
 add_action(
 	'wp_ajax_colorify_tiles_toggle',
 	static function () {

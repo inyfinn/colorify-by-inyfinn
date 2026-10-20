@@ -79,6 +79,16 @@
 		'postcustom': function ( box ) {
 			var n = box.querySelectorAll( '#the-list tr[id^="meta-"]' ).length;
 			return { big: String( n ), muted: 'pól własnych' };
+		},
+		'_acf': function ( box ) {
+			var all = box.querySelectorAll( '.acf-field:not(.acf-field-tab):not(.acf-field-message):not(.acf-field-accordion)' ), filled = 0, first = null;
+			all.forEach( function ( f ) {
+				var el = f.querySelector( 'input:not([type=hidden]), select, textarea' );
+				var v = el ? clean( valueOf( el ), 80 ) : '';
+				if ( v ) { filled++; if ( ! first ) { var l = f.querySelector( '.acf-label label' ); first = { l: l ? clean( l.textContent, 40 ) : '', v: v }; } }
+			} );
+			if ( ! first ) { return { muted: all.length ? 'Nic nie wpisano. Pól do uzupełnienia: ' + all.length + '.' : 'Brak pól.' }; }
+			return { big: first.v, muted: ( first.l ? first.l + ', ' : '' ) + 'wypełnione ' + filled + ' z ' + all.length };
 		}
 	};
 
@@ -87,11 +97,15 @@
 		if ( ! sum ) {
 			sum = document.createElement( 'div' );
 			sum.className = 'cft-sum';
+			sum.id = 'cft-sum-' + box.id;
+			var hd = box.querySelector( '.handlediv' );
+			if ( hd ) { hd.setAttribute( 'aria-describedby', sum.id ); }
 			var head = box.querySelector( ':scope > .postbox-header' );
 			if ( head ) { head.insertAdjacentElement( 'afterend', sum ); } else { box.prepend( sum ); }
 		}
 		sum.textContent = '';
-		var known = adapters[ box.id ] && adapters[ box.id ]( box );
+		var ad = adapters[ box.id ] || ( /^acf-group_/.test( box.id ) ? adapters._acf : null );
+		var known = ad && ad( box );
 		if ( known ) {
 			if ( known.big ) { sum.appendChild( span( 'cft-sum__big', known.big ) ); }
 			if ( known.text ) { sum.appendChild( span( 'cft-sum__text', known.text ) ); }
@@ -105,7 +119,7 @@
 		}
 		var f = fields( box );
 		if ( ! f.length ) {
-			sum.appendChild( span( 'cft-sum__muted', 'Puste' ) );
+			sum.appendChild( span( 'cft-sum__muted', 'Nic nie wpisano. Kliknij, żeby uzupełnić.' ) );
 			return;
 		}
 		if ( f[0].l ) { sum.appendChild( span( 'cft-sum__label', f[0].l ) ); }
@@ -116,10 +130,28 @@
 		if ( body.classList.contains( 'colorify-tiles' ) ) { document.querySelectorAll( cols ).forEach( summarize ); }
 	}
 
+	// Po otwarciu kafla cudze skrypty (edytor, mapy, kolory) mierzą się od nowa.
+	function afterToggle() {
+		refresh();
+		window.dispatchEvent( new Event( 'resize' ) );
+	}
+	// Przeciąganie skrzynek w siatce skacze; kolejność zostaje na strzałkach w nagłówku (działają też z klawiatury).
+	function sortable( on ) {
+		var $ = window.jQuery;
+		if ( $ && $.fn.sortable ) { try { $( '.meta-box-sortables' ).sortable( on ? 'disable' : 'enable' ); } catch ( err ) {} }
+	}
+	// Wymagane pole w zwiniętym kaflu: otwórz kafel, żeby przeglądarka mogła pokazać komunikat.
+	document.addEventListener( 'invalid', function ( e ) {
+		var box = e.target.closest && e.target.closest( '.postbox.closed' );
+		if ( box && body.classList.contains( 'colorify-tiles' ) ) { var hb = box.querySelector( '.handlediv' ); if ( hb ) { hb.click(); } }
+	}, true );
+
 	// Kliknięcie w nagłówek kafla zwija i rozwija (WordPress sam zapamiętuje stan dla konta).
 	document.addEventListener( 'click', function ( e ) {
 		if ( ! body.classList.contains( 'colorify-tiles' ) ) { return; }
-		if ( e.target.closest( '.postbox .handlediv' ) ) { setTimeout( refresh, 0 ); return; }
+		if ( e.target.closest( '.postbox .handlediv' ) ) { setTimeout( afterToggle, 0 ); return; }
+		var sumClick = e.target.closest( '.postbox.closed > .cft-sum' );
+		if ( sumClick ) { var hb = sumClick.parentNode.querySelector( '.handlediv' ); if ( hb ) { hb.click(); } return; }
 		var head = e.target.closest( '.postbox-header' );
 		if ( ! head || e.target.closest( 'button, a, input, select, label' ) || ! head.closest( '#normal-sortables, #advanced-sortables' ) ) { return; }
 		var btn = head.querySelector( '.handlediv' );
@@ -159,6 +191,7 @@
 				}
 				paint();
 				refresh();
+				sortable( on );
 				var fd = new FormData();
 				fd.append( 'action', 'colorify_tiles_toggle' );
 				fd.append( 'nonce', C.nonce );
@@ -172,4 +205,5 @@
 	}
 
 	refresh();
+	if ( body.classList.contains( 'colorify-tiles' ) ) { window.addEventListener( 'load', function () { sortable( true ); } ); }
 }() );
