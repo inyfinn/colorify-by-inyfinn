@@ -124,3 +124,7 @@ Czego nie robić przy wydaniach:
 - Dark Reader (`assets/vendor/darkreader.js`): MIT, patrz `assets/vendor/darkreader.LICENSE.txt`.
 - EB Garamond i IBM Plex Sans (`assets/fonts/`): SIL Open Font License 1.1, patrz `assets/fonts/EBGaramond-OFL.txt`
   i `assets/fonts/IBMPlexSans-OFL.txt`.
+
+## Wtyczki stron klientów
+
+Folder `site-plugins/` trzyma wtyczki pojedynczych stron w stylu Colorify (np. `kw-uslugi` dla Kancelarii Wieczorek). Nie wchodzą do paczki Colorify; każde wydanie dołącza je jako osobne pliki ZIP. Szczegóły: `site-plugins/README.md`.

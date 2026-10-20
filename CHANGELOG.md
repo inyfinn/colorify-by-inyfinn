@@ -1,5 +1,11 @@
 # Historia zmian
 
+## 2.7.0
+
+- Styl Nowoczesny: tabele list (wpisy, strony, media, użytkownicy, wtyczki, komentarze, zamówienia) w stylu listy usług. Nagłówek kolumn to osobna zaokrąglona belka, wiersze to karta pod nią z cienką linią między wierszami; najechanie lekko przyciemnia ten sam odcień, zebra zostaje. Od 783 px; na telefonie karty wierszy WordPressa bez zmian. Lista usług kancelarii (kw_usluga) ma własny układ.
+- Przełączniki WooCommerce w kolorze marki z jasną gałką.
+- Repozytorium: folder `site-plugins/` na wtyczki stron klientów (na razie `kw-uslugi` 2.0.4, Kancelaria Wieczorek). Colorify ich nie ładuje; każde wydanie dołącza `kw-uslugi.zip` jako osobny plik.
+
 ## 2.6.1
 
 - Styl Nowoczesny: zebra w tabelach list (co drugi wiersz lekko ciemniejszy) jako nakładka zamiast koloru, więc działa też w trybie ciemnym. Wcześniej tryb ciemny przeliczał kolor i paski znikały (kancelaria).

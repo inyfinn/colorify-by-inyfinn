@@ -102,7 +102,17 @@ fi
 
 node tools/build-zip.mjs "$version"
 
-cmd=(gh release create "$tag" "dist/colorify-by-inyfinn.zip"
+# Wtyczki stron klientow (site-plugins/<slug>) jada jako osobne assety tego samego wydania.
+# Colorify ich nie laduje; leza w repo, zeby wszystko bylo w jednym miejscu.
+extra=()
+for d in site-plugins/*/; do
+	[[ -d "$d" ]] || continue
+	slug="$(basename "$d")"
+	git archive --format=zip --prefix="$slug/" -o "dist/$slug.zip" "HEAD:site-plugins/$slug"
+	extra+=("dist/$slug.zip")
+done
+
+cmd=(gh release create "$tag" "dist/colorify-by-inyfinn.zip" "${extra[@]}"
 	--repo "$repo" --title "$tag" --notes-file "$notes"
 	--target "$sha")
 if [[ $pre -eq 1 ]]; then

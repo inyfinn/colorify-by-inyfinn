@@ -281,6 +281,47 @@ body.colorify-style-modern .subsubsub {
 	margin: 10px 0 6px;
 }
 
+/* ---------- 2.7.0: tabele list w stylu listy usług (kw-uslugi 2.0.4) ----------
+   Nagłówek kolumn to osobna zaokrąglona belka, wiersze to jedna karta pod nią. Tło karty siedzi na komórkach
+   (background-clip: padding-box), więc przezroczysta ramka daje odstęp między belką a kartą. Tylko od 783 px:
+   węższe ekrany mają karty wierszy WordPressa. Lista usług kancelarii ma własny układ z sekcjami. */
+@media (min-width: 783px) {
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table {
+		border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible;
+		border-collapse: separate; border-spacing: 0;
+	}
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tbody, tfoot) > tr > * {
+		background-color: var(--cm-surface); background-clip: padding-box; border: 0;
+	}
+	/* belka nagłówka (i stopki) */
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > * {
+		padding-top: 14px; padding-bottom: 14px; border-bottom: 0;
+	}
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :first-child { border-radius: 20px 0 0 20px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :last-child { border-radius: 0 20px 20px 0; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > * { border-top: 8px solid transparent; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :first-child { border-radius: 28px 0 0 20px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :last-child { border-radius: 0 28px 20px 0; }
+	/* karta wierszy: odstęp od belki, cienka linia między wierszami, zaokrąglone rogi */
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr > * { border-top: 1px solid var(--cm-line); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > * { border-top: 8px solid transparent; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :first-child { border-top-left-radius: 28px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :last-child { border-top-right-radius: 28px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :first-child { border-bottom-left-radius: 20px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :last-child { border-bottom-right-radius: 20px; }
+	/* najechanie: lekki odcień tej samej powierzchni (nakładka, jak zebra) */
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:hover > * {
+		background-image: linear-gradient(rgba(0, 0, 0, .06), rgba(0, 0, 0, .06));
+	}
+	html[data-darkreader-scheme="dark"] body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:hover > * {
+		background-image: linear-gradient(rgba(255, 255, 255, .06), rgba(255, 255, 255, .06));
+	}
+}
+/* przełączniki WooCommerce (np. metody płatności): kolor marki, gałka zawsze jasna */
+body.colorify-style-modern .woocommerce-input-toggle--enabled { background-color: var(--cm-accent); border-color: var(--cm-accent); }
+body.colorify-style-modern .woocommerce-input-toggle::after { background-color: #fff; }
+body.colorify-style-modern .woocommerce-input-toggle--disabled { background-color: var(--cm-field); border-color: transparent; }
+
 /* ---------- Zakładki ---------- */
 body.colorify-style-modern .nav-tab-wrapper,
 body.colorify-style-modern .wrap h2.nav-tab-wrapper {

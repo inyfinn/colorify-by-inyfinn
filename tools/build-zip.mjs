@@ -8,7 +8,7 @@
 //               (domyslnie wszystkie tagi v1.*; 'none' pomija sprawdzenie).
 //
 // Zasady: katalog glowny colorify-by-inyfinn/, zwykle ukosniki, konce linii LF w plikach tekstowych,
-// bez tools/, docs/, .ralph/, .git*, dist/, node_modules. Bez zaleznosci npm (zlib + wlasny zapis ZIP).
+// bez site-plugins/ (osobne paczki), tools/, docs/, .ralph/, .git*, dist/, node_modules. Bez zaleznosci npm (zlib + wlasny zapis ZIP).
 // Przed zapisem sprawdza wersje (naglowek i stala = argument), pliki-kotwice i brak "\" w nazwach.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 const SLUG = 'colorify-by-inyfinn';
 const ANCHORS = ['colorify-by-inyfinn.php', 'includes/colorify-scope.php', 'includes/colorify-toolbar-actions.php'];
 const REQUIRED = [...ANCHORS, 'includes/class-colorify-github-updater.php', 'assets/vendor/darkreader.js'];
-const EXCLUDE = [/^tools\//, /^docs\//, /^\.ralph\//, /^dist\//, /^node_modules\//, /(^|\/)\.git[^/]*$/];
+const EXCLUDE = [/^site-plugins\//, /^tools\//, /^docs\//, /^\.ralph\//, /^dist\//, /^node_modules\//, /(^|\/)\.git[^/]*$/];
 const TEXT_EXT = /\.(php|css|js|mjs|json|md|po|pot|txt|svg|html|sh)$/i;
 
 function fail(msg) {

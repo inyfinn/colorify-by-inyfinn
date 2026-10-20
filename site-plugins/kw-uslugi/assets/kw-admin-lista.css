@@ -1,0 +1,404 @@
+/* Kancelaria Wieczorek: lista uslug i kategorie (zakladki cennika).
+ * Laduje sie po kw-admin.css (zmienne --kwa-*, znacznik .kwa-znak) tylko na liscie uslug, liscie kategorii i edycji kategorii.
+ * Telefon: do 782 px wiersz tabeli to karta (nazwa, cena, widocznosc bez rozwijania), cele dotykowe min. 44 px. */
+
+.kw-lista-wstep {
+	max-width: 760px;
+	margin: 8px 0 14px;
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--kwa-tekst-2);
+}
+
+/* Wstep: na telefonie krotsza wersja; przycisk szukania i filtrow tylko na telefonie */
+.kw-wstep-krotki { display: none; }
+.post-type-kw_usluga .button.kw-filtry-przycisk { display: none; }
+
+/* ---------- kafle kategorii nad lista (zakladki cennika) ---------- */
+.kw-kafle { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+.kw-kafel {
+	display: flex; flex-direction: column; gap: 2px;
+	flex: 0 1 190px; min-width: 150px; min-height: 64px; box-sizing: border-box;
+	padding: 10px 14px;
+	color: var(--kwa-tekst); text-decoration: none;
+	background: var(--kwa-tlo); border: 2px solid var(--kwa-linia); border-radius: var(--kwa-r);
+}
+.kw-kafel:hover { border-color: var(--kwa-ramka); }
+.kw-kafel:focus-visible { outline: 2px solid var(--kwa-fokus); outline-offset: 2px; box-shadow: none; }
+.kw-kafel[aria-current="true"] { background: var(--kwa-zloto-tlo); border-color: var(--kwa-zloto); box-shadow: 0 0 0 1px var(--kwa-zloto); }
+.kw-kafel__wybrana { align-self: flex-start; margin-top: 3px; padding: 0 8px; font-size: 13px; font-weight: 600; line-height: 1.5; color: var(--kwa-zloto-ciemne); background: #fff; border: 1px solid var(--kwa-zloto); border-radius: 999px; }
+.kw-kafle-opis { margin: 6px 0 0; font-size: 14px; line-height: 1.4; color: var(--kwa-tekst-2); }
+.kw-kafel__nazwa { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.kw-kafel__ile { font-size: 13px; line-height: 1.3; color: var(--kwa-tekst-2); }
+.kw-kafel__cena { font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--kwa-zloto-ciemne); }
+
+/* ---------- znaczniki jako przelaczniki (odnosniki) ---------- */
+a.kw-przelacznik {
+	min-height: 40px;
+	padding: 4px 14px;
+	font-size: 14px;
+	text-decoration: none;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+a.kw-przelacznik.kwa-znak--ok { color: var(--kwa-ok); background: var(--kwa-ok-tlo); box-shadow: inset 0 0 0 1px #9ed3ae; }
+a.kw-przelacznik.kwa-znak--bez-kropki { color: var(--kwa-tekst-2); background: var(--kwa-tlo-2); box-shadow: inset 0 0 0 1px var(--kwa-ramka); }
+a.kw-przelacznik:hover { filter: brightness(.96); text-decoration: underline; }
+a.kw-przelacznik:focus-visible,
+.kw-lista-znaczniki a:focus-visible,
+.wp-list-table.posts .row-actions a:focus-visible,
+.wp-list-table.tags .row-actions a:focus-visible {
+	outline: 2px solid var(--kwa-fokus);
+	outline-offset: 2px;
+	box-shadow: none;
+}
+.kw-lista-znaczniki { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* ---------- lista uslug: komputer ---------- */
+.post-type-kw_usluga .wp-list-table.posts .column-title { width: 21%; }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_kategoria { width: 10%; }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_cena { width: 15%; }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_w_cenniku,
+.post-type-kw_usluga .wp-list-table.posts .column-kw_w_formularzu { width: 18%; }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_kolejnosc { width: 14%; }
+.post-type-kw_usluga .wp-list-table.posts thead th .kwa-dymek,
+.post-type-kw_usluga .wp-list-table.posts tfoot th .kwa-dymek { margin-left: 4px; }
+.post-type-kw_usluga .wp-list-table.posts tbody td,
+.post-type-kw_usluga .wp-list-table.posts tbody th { padding-top: 8px; padding-bottom: 8px; vertical-align: middle; font-size: 14px; line-height: 1.5; }
+.post-type-kw_usluga .wp-list-table.posts tbody th.check-column { padding-top: 8px; }
+.post-type-kw_usluga .wp-list-table.posts .row-title { font-size: 15px; }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_cena strong { font-weight: 600; color: var(--kwa-tekst); }
+.post-type-kw_usluga .wp-list-table.posts .row-actions { position: static; left: auto; margin: 2px 0 0; font-size: 13px; } /* zawsze widoczne: wiersz ma stala wysokosc */
+.post-type-kw_usluga .wp-list-table.posts .row-actions a { padding: 4px 0; }
+.post-type-kw_usluga .wp-list-table.posts .locked-info { display: none; }
+
+/* Przelacznik widocznosci: tor i galka (w prawo = wlaczone) i stan slowem; to przycisk (role="switch") z dymkiem */
+.kw-sw-etykieta { display: none; }
+.kw-sw-komorka { min-width: 0; }
+.kw-sw {
+	display: inline-flex; align-items: center; gap: 8px;
+	min-height: 40px; margin: 0; padding: 0 6px 0 0;
+	font: inherit; font-size: 14px; font-weight: 600; line-height: 1.2;
+	color: var(--kwa-tekst); background: none; border: 0; border-radius: 999px;
+	cursor: pointer;
+}
+.kw-sw__tor { position: relative; flex: none; width: 44px; height: 24px; background: var(--kwa-ramka); border-radius: 999px; transition: background-color .15s; }
+.kw-sw__galka { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); transition: transform .15s; }
+.kw-sw--wl .kw-sw__tor { background: var(--kwa-ok); }
+.kw-sw--wl .kw-sw__galka { transform: translateX(20px); }
+.kw-sw__stan { min-width: 3.6em; text-align: left; }
+.kw-sw--wyl .kw-sw__stan { color: var(--kwa-tekst-2); }
+.kw-sw:hover .kw-sw__tor { filter: brightness(.92); }
+.kw-sw:focus-visible { outline: 2px solid var(--kwa-fokus); outline-offset: 2px; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+	.kw-sw__tor, .kw-sw__galka { transition: none; }
+}
+
+/* Kolejnosc: strzalki "wyzej" i "nizej" i liczba drobnym tekstem */
+.kw-kolejnosc { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.kw-strzalki { display: inline-flex; gap: 8px; }
+.kw-strzalka {
+	display: inline-grid; place-items: center; width: 40px; height: 40px; margin: 0; padding: 0;
+	font-size: 13px; line-height: 1; color: var(--kwa-tekst);
+	background: var(--kwa-tlo); border: 1px solid var(--kwa-ramka); border-radius: var(--kwa-r);
+	cursor: pointer;
+}
+.kw-strzalka:hover:not(:disabled) { background: var(--kwa-tlo-2); border-color: var(--kwa-tekst); }
+.kw-strzalka:focus-visible { outline: 2px solid var(--kwa-fokus); outline-offset: 2px; }
+.kw-strzalka:disabled { opacity: .35; cursor: not-allowed; }
+.kw-kolejnosc-liczba { font-size: 13px; color: var(--kwa-tekst-2); }
+.post-type-kw_usluga .wp-list-table.posts .column-kw_cena .kwa-znak { display: flex; width: max-content; margin-top: 4px; }
+
+/* Komunikat po akcji: przycisk "Cofnij" wyglada jak odnosnik */
+.notice .kw-cofnij { min-height: 32px; margin-left: 6px; padding: 0 4px; font-size: 14px; font-weight: 600; text-decoration: underline; }
+.notice .kw-cofnij:focus-visible { outline: 2px solid var(--kwa-fokus); outline-offset: 2px; box-shadow: none; }
+
+/* Poczatek kolejnej zakladki cennika: kreska nad pierwszym wierszem grupy (tylko w widoku ulozonym jak na stronie) */
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-grupa-start > td,
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-grupa-start > th { border-top: 3px solid var(--kwa-ramka); }
+
+/* ---------- kategorie: formularz ---------- */
+/* Pola rdzenia zostaja w HTML (WordPress ich oczekuje), tylko sa schowane: "Uproszczona nazwa", "Kategoria nadrzedna", "Opis". */
+.taxonomy-kw_grupa .term-slug-wrap,
+.taxonomy-kw_grupa .term-parent-wrap,
+.taxonomy-kw_grupa .term-description-wrap { display: none; }
+.taxonomy-kw_grupa .form-field label { font-size: 14px; font-weight: 600; }
+.taxonomy-kw_grupa .form-field .description,
+.taxonomy-kw_grupa .form-table .description { font-size: 13px; color: var(--kwa-tekst-2); }
+.taxonomy-kw_grupa .form-field label.kw-kat-wybor,
+.taxonomy-kw_grupa .kw-kat-wybor { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: 0; font-weight: 400; }
+.taxonomy-kw_grupa .form-field input[type="number"] { width: 6em; }
+.taxonomy-kw_grupa .form-field input[type="checkbox"] { flex: none; margin: 0; }
+.taxonomy-kw_grupa .form-table code { font-size: 14px; }
+
+/* ---------- kategorie: tabela ---------- */
+.taxonomy-kw_grupa .wp-list-table.tags tbody td,
+.taxonomy-kw_grupa .wp-list-table.tags tbody th { vertical-align: middle; font-size: 14px; }
+.taxonomy-kw_grupa .wp-list-table.tags .row-title { font-size: 15px; }
+.taxonomy-kw_grupa .wp-list-table.tags .column-posts,
+.taxonomy-kw_grupa .wp-list-table.tags .column-kw_kolejnosc { text-align: left; }
+.taxonomy-kw_grupa .wp-list-table.tags .column-name { width: 28%; }
+.taxonomy-kw_grupa .wp-list-table.tags .column-posts { width: 13%; }
+.taxonomy-kw_grupa .wp-list-table.tags .column-kw_kolejnosc { width: 19%; }
+.taxonomy-kw_grupa .wp-list-table.tags .column-kw_stan .kwa-znak { white-space: normal; }
+.taxonomy-kw_grupa .wp-list-table.tags .row-actions { position: static; left: auto; margin: 2px 0 0; } /* zawsze widoczne */
+.taxonomy-kw_grupa .wp-list-table.tags .row-actions a { display: inline-block; padding: 4px 0; }
+
+/* Malo kategorii (mniej niz 10): wyszukiwarka nad tabela jest zbedna */
+.kw-kat-malo.taxonomy-kw_grupa .search-box { display: none; }
+
+/* ---------- telefon i tablet (do 782 px): wiersz = karta ---------- */
+/* Rdzen chowa komorki obok kolumny glownej regulami o duzej swoistosci, stad dlugie selektory (P = wiersz listy uslug, K = kategorii). */
+@media (max-width: 782px) {
+	.kw-lista-wstep { margin: 4px 0 6px; font-size: 14px; line-height: 1.4; }
+	.kw-wstep-dlugi { display: none; }
+	.kw-wstep-krotki { display: inline; }
+	.kw-kafle-opis { margin: 2px 0 0; }
+
+	/* Kafle: jeden rzad przewijany w poziomie we wlasnym kontenerze (strona nie dostaje poziomego scrolla) */
+	.kw-kafle { flex-wrap: nowrap; overflow-x: auto; margin: 4px 0 8px; padding-bottom: 6px; scroll-snap-type: x proximity; }
+	.kw-kafel { flex: 0 0 150px; scroll-snap-align: start; }
+
+	/* Szukanie i dzialania masowe pod jednym przyciskiem (JS dopisuje przycisk i klase kw-filtry-zwiniete; bez JS wszystko widac) */
+	.post-type-kw_usluga .button.kw-filtry-przycisk { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; margin: 0 0 8px; }
+	.post-type-kw_usluga .kw-filtry-zwiniete .search-box,
+	.post-type-kw_usluga form.kw-filtry-zwiniete .tablenav.top .actions { display: none; }
+	.post-type-kw_usluga .kw-filtry-zwiniete .tablenav.top { margin: 0; }
+
+	/* Nad tabela: widoki, szukanie, filtr i dzialania masowe (rdzen chowa je na telefonie) */
+	.post-type-kw_usluga .subsubsub { display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 0; margin: 0 0 4px; overflow-x: auto; float: none; }
+	.post-type-kw_usluga .subsubsub li { display: inline-flex; flex: none; align-items: center; white-space: nowrap; font-size: 14px; }
+	.post-type-kw_usluga .subsubsub a { display: inline-flex; align-items: center; gap: 3px; min-height: 44px; padding: 0 6px; }
+	.post-type-kw_usluga .search-box { display: flex; gap: 8px; float: none; margin: 0 0 8px; }
+	.post-type-kw_usluga .search-box input[type="search"] { flex: 1 1 auto; min-width: 0; min-height: 44px; margin: 0; }
+	.post-type-kw_usluga .search-box .button { flex: none; min-height: 44px; margin: 0; }
+	.post-type-kw_usluga .tablenav.top { margin: 8px 0; }
+	.post-type-kw_usluga .tablenav.top .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; float: none; width: 100%; margin: 0 0 8px; padding: 0; }
+	.post-type-kw_usluga .tablenav .actions select { flex: 1 1 140px; min-width: 0; min-height: 44px; margin: 0; }
+	.post-type-kw_usluga .tablenav .actions .button { flex: none; min-height: 44px; margin: 0; }
+
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items),
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) {
+		display: grid;
+		grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr);
+		column-gap: 8px;
+		align-items: center;
+		padding: 12px 12px 12px 0;
+		border-bottom: 1px solid var(--kwa-linia);
+	}
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding-left: 12px; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td:not(.check-column),
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > th,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > th {
+		display: block !important;
+		position: static;
+		width: auto;
+		min-width: 0;
+		margin: 0;
+		padding: 4px 0 !important;
+		overflow: visible !important;
+		font-size: 14px;
+	}
+	/* Podpisy komorek: tylko tam, gdzie sama wartosc nie wyjasnia (kategoria, kolejnosc, liczba uslug) */
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td::before,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td::before {
+		content: none;
+	}
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_kategoria::before,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-posts::before,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_kolejnosc::before {
+		content: attr(data-colname);
+		display: block;
+		position: static;
+		width: auto;
+		margin: 0 0 2px;
+		font-size: 13px;
+		line-height: 1.4;
+		color: var(--kwa-tekst-2);
+		white-space: normal;
+	}
+	body .wp-list-table .column-primary .toggle-row { display: none; }
+
+	/* Wiersz uslugi: nazwa, cena, widocznosc, na dole kategoria i kolejnosc */
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.check-column { grid-column: 1; grid-row: 1 / span 5; position: relative; align-self: stretch; padding: 0; width: auto; }
+	body .wp-list-table.posts tbody td.check-column input { position: absolute; top: 14px; left: 10px; margin: 0; }
+	body .wp-list-table.posts tbody td.check-column label { position: absolute; inset: 0; }
+	body .wp-list-table.posts tbody td.check-column .locked-indicator { display: none; }
+	/* Komorka z nazwa "znika": nazwa idzie do wiersza 1, akcje wiersza na sam dol karty */
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > th.column-title { display: contents !important; }
+	body .wp-list-table.posts tbody th.column-title > strong { grid-column: 2 / -1; grid-row: 1; display: block; }
+	body .wp-list-table.posts tbody th.column-title > .row-actions { grid-column: 2 / -1; grid-row: 5; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_cena { grid-column: 2 / -1; grid-row: 2; font-size: 15px; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_w_cenniku { grid-column: 2; grid-row: 3; align-self: start; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_w_formularzu { grid-column: 3; grid-row: 3; align-self: start; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_kategoria { grid-column: 2; grid-row: 4; align-self: start; }
+	body .wp-list-table.posts tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_kolejnosc { grid-column: 3; grid-row: 4; align-self: start; }
+	/* Etykiety przelacznikow i kolejnosci (naglowkow tabeli na telefonie nie ma): nazwa i dymek "?" w samym wierszu */
+	.kw-sw-etykieta { display: block; margin: 0 0 12px; font-size: 13px; line-height: 1.35; color: var(--kwa-tekst-2); } /* 12 px: pole trafienia "?" nie wchodzi na przelacznik ani strzalki */
+	.kw-sw-etykieta .kwa-dymek { margin-left: 2px; }
+	.kw-sw { min-height: 44px; }
+	.kw-sw-komorka .kwa-dymek__tresc { display: none !important; } /* dotyk: dymek przelacznika nie ma sensu, jest "?" przy etykiecie */
+	.kw-strzalka { width: 44px; height: 44px; }
+	.notice .kw-cofnij { min-height: 44px; }
+	body .wp-list-table.posts .row-title,
+	body .wp-list-table.tags .row-title { font-size: 16px !important; line-height: 1.4; }
+	body .wp-list-table.posts tbody tr > td.column-kw_kategoria a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+
+	/* Akcje wiersza zawsze widoczne, duze cele (separatory z rdzenia sa tekstem o rozmiarze 0) */
+	.post-type-kw_usluga .wp-list-table.posts .row-actions { margin-top: 8px; } /* odstep od strzalek kolejnosci */
+	body .wp-list-table.posts .row-actions,
+	body .wp-list-table.tags .row-actions { position: static; left: auto; display: flex; flex-wrap: wrap; gap: 0 8px; margin: 8px 0 0; padding: 0; font-size: 0; }
+	body .wp-list-table.posts .row-actions span,
+	body .wp-list-table.tags .row-actions span { font-size: 0; }
+	body .wp-list-table.posts .row-actions a,
+	body .wp-list-table.tags .row-actions a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 10px 0 0; font-size: 14px; line-height: 1.2; }
+
+	/* Wiersz kategorii: nazwa, potem liczba uslug i kolejnosc obok siebie, stan na dole */
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-name,
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > th.column-name { grid-column: 1 / -1; grid-row: 1; }
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-posts { grid-column: 1; grid-row: 2; }
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_kolejnosc { grid-column: 2; grid-row: 2; }
+	body .wp-list-table.tags tbody tr:not(.inline-edit-row):not(.no-items) > td.column-kw_stan { grid-column: 1 / -1; grid-row: 3; padding: 6px 0 !important; }
+
+	body .wp-list-table.tags tbody td.column-posts a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+
+ 	/* Poczatek zakladki: kreska nad karta */
+	body .wp-list-table.posts tbody tr.kw-grupa-start:not(.inline-edit-row):not(.no-items) { border-top: 3px solid var(--kwa-ramka); }
+	body .wp-list-table.posts tbody tr.kw-grupa-start:not(.inline-edit-row):not(.no-items) > td,
+	body .wp-list-table.posts tbody tr.kw-grupa-start:not(.inline-edit-row):not(.no-items) > th { border-top: 0; }
+
+	/* Naglowek tabeli: zostaje "zaznacz wszystko" i Nazwa, reszta kolumn jest w kartach */
+	body .wp-list-table.posts thead th:not(.column-title),
+	body .wp-list-table.posts tfoot th:not(.column-title) { display: none; }
+	body .wp-list-table.tags thead,
+	body .wp-list-table.tags tfoot { display: none; }
+
+
+	/* Tytul wiersza i naglowek kolumny jako duze cele; zaznaczanie calej komorki z polem wyboru */
+	body .wp-list-table.posts .row-title,
+	body .wp-list-table.tags .row-title { display: inline-block; min-width: 44px; padding: 11px 0; }
+	body .wp-list-table.posts thead th.column-title a,
+	body .wp-list-table.posts tfoot th.column-title a { display: flex; align-items: center; min-height: 44px; }
+	body .wp-list-table.posts thead td.check-column,
+	body .wp-list-table.posts tfoot td.check-column { position: relative; width: 44px; flex: 0 0 44px; }
+	body .wp-list-table.posts thead td.check-column label,
+	body .wp-list-table.posts tfoot td.check-column label { position: absolute; inset: 0; }
+	.taxonomy-kw_grupa .search-box { display: flex; gap: 8px; float: none; }
+	.taxonomy-kw_grupa .search-box input[type="search"] { flex: 1 1 auto; min-width: 0; min-height: 44px; margin: 0; }
+	.taxonomy-kw_grupa .search-box .button { flex: none; margin: 0; }
+	.taxonomy-kw_grupa .form-field input[type="text"],
+	.taxonomy-kw_grupa .form-table input[type="text"],
+	.taxonomy-kw_grupa .form-table input[type="number"] { min-height: 44px; }
+
+	/* Ekran kategorii: najpierw tabela, potem formularz dodawania */
+	.taxonomy-kw_grupa #col-container { display: flex; flex-direction: column; }
+	.taxonomy-kw_grupa #col-right { order: -1; float: none; width: auto; padding: 0; }
+	.taxonomy-kw_grupa #col-left { float: none; width: auto; }
+	.taxonomy-kw_grupa .form-field input[type="number"] { width: 8em; min-height: 44px; }
+	.taxonomy-kw_grupa .kw-kat-wybor { min-height: 44px; }
+	.taxonomy-kw_grupa .button { min-height: 44px; }
+}
+
+/* Przeciaganie wierszy (lista ulozona jak na stronie): uchwyt z szescioma kropkami */
+.kw-kolejnosc .kw-uchwyt {
+	display: inline-block; flex: none; width: 24px; height: 40px; cursor: grab; touch-action: none;
+	background-image: radial-gradient(circle, var(--kwa-tekst-2) 0 2px, transparent 2.5px);
+	background-size: 8px 8px; background-position: 4px 8px; background-repeat: repeat;
+	-webkit-mask: linear-gradient(#000 0 0) 4px 8px / 16px 24px no-repeat; mask: linear-gradient(#000 0 0) 4px 8px / 16px 24px no-repeat;
+}
+.kw-kolejnosc .kw-uchwyt:hover { filter: brightness(.4); }
+.post-type-kw_usluga #the-list tr.ui-sortable-helper { display: table; background: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+.post-type-kw_usluga #the-list tr.kw-miejsce > td { height: 56px; background: var(--kwa-zloto-tlo); border-top: 2px dashed var(--kwa-zloto); border-bottom: 2px dashed var(--kwa-zloto); }
+.post-type-kw_usluga #the-list tr.kw-zapisano > td, .post-type-kw_usluga #the-list tr.kw-zapisano > th { background: var(--kwa-ok-tlo); }
+@media (max-width: 782px) { .kw-kolejnosc .kw-uchwyt { display: none; } }
+
+/* ===== 2.0.3: lista uslug w stylu kokpitu (karty bez ramek na tle, sekcje zakladek z odstepem) =====
+   Kolory jasne; tryb ciemny Colorify przelicza je sam, wiec roznica tlo/karta przenosi sie na ciemny. */
+.post-type-kw_usluga.edit-php #wpbody-content { --kwl-karta: #fff; --kwl-tlo: #ECE7DF; --kwl-linia: #EFEBE4; --kwl-r: 20px; }
+
+/* kafle kategorii jak kafle kokpitu */
+.kw-kafle { gap: 12px; margin: 8px 0 20px; }
+.kw-kafel { flex: 0 1 200px; min-height: 84px; padding: 16px 18px; gap: 3px; background: var(--kwl-karta, #fff); border: 1px solid transparent; border-radius: var(--kwl-r, 20px); box-shadow: 0 1px 2px rgba(60, 45, 20, .05); transition: border-color .15s; }
+.kw-kafel:hover { border-color: #cbbfa9; }
+.kw-kafel[aria-current="true"] { background: #fbf8f3; border-color: color-mix(in srgb, var(--kwa-zloto) 55%, #fff); box-shadow: 0 1px 3px rgba(60, 45, 20, .06); }
+.kw-kafel__wybrana { display: none; } /* zaznaczenie widac po tle i ramce; plakietka dublowala */
+.kw-kafel__nazwa { font-size: 15px; }
+.kw-kafel__cena { margin-top: auto; }
+
+@media (min-width: 783px) {
+	/* tabela jako jedna karta; zakladki rozdzielone pasem tla (sekcje) */
+	/* tlo karty na komorkach (background-clip), tabela przezroczysta: przezroczysta ramka nad zakladka pokazuje tlo strony */
+	.post-type-kw_usluga .wp-list-table.posts { border: 0; border-radius: var(--kwl-r, 20px); background: transparent; box-shadow: none; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+	.post-type-kw_usluga .wp-list-table.posts > * > tr > * { background-color: var(--kwl-karta, #fff); background-clip: padding-box; }
+	.post-type-kw_usluga .wp-list-table.posts thead th,
+	.post-type-kw_usluga .wp-list-table.posts thead td { padding-top: 16px; padding-bottom: 12px; font-size: 13px; font-weight: 500; color: var(--kwa-tekst-2); background: var(--kwl-karta, #fff); border-bottom: 1px solid var(--kwl-linia, #EFEBE4); }
+	.post-type-kw_usluga .wp-list-table.posts tfoot { display: none; }
+	.post-type-kw_usluga .wp-list-table.posts tbody tr,
+	.post-type-kw_usluga .wp-list-table.posts.striped > tbody > :nth-child(odd) { background: transparent; }
+	.post-type-kw_usluga .wp-list-table.posts tbody th,
+	.post-type-kw_usluga .wp-list-table.posts tbody td { padding-top: 12px; padding-bottom: 12px; border-top: 1px solid var(--kwl-linia, #EFEBE4); }
+	.post-type-kw_usluga .wp-list-table.posts tbody tr:first-child > * { border-top: 0; }
+	.post-type-kw_usluga .wp-list-table.posts tbody tr:hover > * { background-color: #fbf8f3; }
+	/* nowa zakladka: 16 px pasa tla, czyli osobna sekcja */
+	body.post-type-kw_usluga table.wp-list-table.posts tbody tr.kw-grupa-start > td,
+	body.post-type-kw_usluga table.wp-list-table.posts tbody tr.kw-grupa-start > th { border-top: 16px solid transparent; }
+	.post-type-kw_usluga .wp-list-table.posts .column-title,
+	.post-type-kw_usluga .wp-list-table.posts .check-column { padding-left: 20px; }
+}
+
+/* przelaczniki: wyrazny tor, jasna galka; wylaczony szary, wlaczony zielony */
+.kw-sw__tor { width: 44px; height: 24px; background: #c9c3b8; }
+.kw-sw__galka { background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+.kw-sw--wl .kw-sw__tor { background: #1f8a4c; }
+.kw-sw--wl .kw-sw__stan { color: #14653a; }
+
+/* strzalki kolejnosci: miekkie przyciski bez ramek */
+.kw-strzalka { width: 36px; height: 36px; background: #F4F0EA; border: 0; border-radius: 12px; }
+.kw-strzalka:hover:not(:disabled) { background: #EAE3D8; border: 0; }
+.kw-strzalka:disabled { opacity: .3; }
+@media (min-width: 783px) {
+	/* akcje wiersza w jednej linii: kolumna nazwy szersza */
+	.post-type-kw_usluga .wp-list-table.posts .column-title { width: 26%; }
+	.post-type-kw_usluga .wp-list-table.posts .column-kw_kategoria { width: 9%; }
+}
+
+/* 2.0.3b: podpisane sekcje zakladek, pasy wierszy, przelaczniki w kolorze marki (bez zieleni) */
+@media (min-width: 783px) {
+	body.post-type-kw_usluga table.wp-list-table.posts tbody tr.kw-grupa-start > td,
+	body.post-type-kw_usluga table.wp-list-table.posts tbody tr.kw-grupa-start > th { border-top: 0; }
+	.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-pas > * { background-image: linear-gradient(rgba(0, 0, 0, .035), rgba(0, 0, 0, .035)); } /* filtr, nie kolor: tryb ciemny przelicza kolory na inne odcienie */
+}
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja,
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja:hover { display: table-row; background: transparent; }
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja > td,
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja:hover > td { display: table-cell; padding: 75px 4px 16px; background: var(--kwl-tlo-sekcji, transparent) !important; border: 0 !important; }
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja--pierwsza > td { padding-top: 28px; }
+.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja + tr > * { border-top: 0; }
+.kw-sekcja__tytul { margin: 0; padding: 0; font-size: 35px; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; color: var(--kwa-tekst); }
+@media (max-width: 782px) {
+	.post-type-kw_usluga .wp-list-table.posts tbody tr.kw-sekcja > td { display: block; padding: 40px 4px 10px; }
+	.kw-sekcja__tytul { font-size: 26px; }
+}
+.kw-sw--wl .kw-sw__tor { background: #8a7347; }
+.kw-sw--wl .kw-sw__stan { color: var(--kwa-zloto-ciemne); }
+body.post-type-kw_usluga #the-list tr.kw-sekcja h2.kw-sekcja__tytul { margin: 0; padding: 0; font-size: 35px; font-weight: 600; line-height: 1.15; }
+@media (max-width: 782px) { body.post-type-kw_usluga #the-list tr.kw-sekcja h2.kw-sekcja__tytul { font-size: 26px; } }
+/* tryb ciemny Colorify: ten sam pas, mocniejszy filtr (ciemne tlo slabiej reaguje na jasnosc) */
+html[data-darkreader-scheme="dark"] body.post-type-kw_usluga #the-list tr.kw-pas > * { background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, .3)); }
+/* kazda sekcja to osobna zaokraglona karta; naglowek kolumn to zaokraglona belka */
+@media (min-width: 783px) {
+	body.post-type-kw_usluga table.wp-list-table.posts { overflow: visible; border-radius: 0; }
+	body.post-type-kw_usluga table.wp-list-table.posts thead tr > :first-child { border-radius: 20px 0 0 20px; }
+	body.post-type-kw_usluga table.wp-list-table.posts thead tr > :last-child { border-radius: 0 20px 20px 0; }
+	body.post-type-kw_usluga table.wp-list-table.posts thead tr > * { border-bottom: 0; }
+	body.post-type-kw_usluga #the-list tr.kw-pierwszy > :first-child { border-top-left-radius: 20px; }
+	body.post-type-kw_usluga #the-list tr.kw-pierwszy > :last-child { border-top-right-radius: 20px; }
+	body.post-type-kw_usluga #the-list tr.kw-ostatni > :first-child { border-bottom-left-radius: 20px; }
+	body.post-type-kw_usluga #the-list tr.kw-ostatni > :last-child { border-bottom-right-radius: 20px; }
+	body.post-type-kw_usluga #the-list tr.kw-sekcja--pierwsza > td { padding-top: 40px; }
+}
+/* Colorify 2.6.1 dodaje wlasne pasy (co drugie dziecko tabeli); tu pasy liczy JS w obrebie sekcji, wiec pasy Colorify wylaczone */
+body.post-type-kw_usluga #the-list tr:not(.kw-pas) > * { background-image: none !important; }
+body.post-type-kw_usluga #the-list tr.kw-pas > * { background-image: linear-gradient(rgba(0, 0, 0, .035), rgba(0, 0, 0, .035)) !important; }
+html[data-darkreader-scheme="dark"] body.post-type-kw_usluga #the-list tr.kw-pas > * { background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, .3)) !important; }

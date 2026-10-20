@@ -1,0 +1,605 @@
+/* Kancelaria Wieczorek: uslugi (siatka kart, pelna lista) i formularz kontaktowy.
+   Kolory everhise: zloto #B1976B, grafit #1A1A1A, tekst #5A5A5A, linie #E6E6E6, tlo #F5F5F5; pola jak w dotychczasowym formularzu.
+   Czcionki dziedziczone z motywu. Selektory dwuklasowe tam, gdzie motyw styluje znaczniki (h3, p, a, input, button). */
+
+.kw-uslugi,
+.kw-lista,
+.kw-cennik,
+.kw-f {
+	--kw-zloto: #B1976B;
+	--kw-grafit: #1A1A1A;
+	--kw-tekst: #5A5A5A;
+	--kw-tekst-akapit: var(--kw-color-text, #4A4A4A); /* akapity w kartach cennika i w formularzu (kanon strony) */
+	--kw-zloto-tekst: var(--kw-gold-ink, #7D6740); /* tekst i ikony w zlocie na jasnym tle: zloto #B1976B ma tam kontrast 2,8:1 */
+	--kw-linia: var(--kw-line, #E6E6E6); /* linia kart i tabel z kanonu strony; motyw moze ja podac tokenem --kw-line */
+	--kw-linia-2: #DDD;
+	--kw-jasne: #F5F5F5;
+	--kw-blad: #B32D2E;
+	box-sizing: border-box;
+	width: 100%;
+	color: var(--kw-tekst);
+}
+.kw-uslugi *, .kw-uslugi *::before, .kw-uslugi *::after,
+.kw-lista *, .kw-lista *::before, .kw-lista *::after,
+.kw-cennik *, .kw-cennik *::before, .kw-cennik *::after,
+.kw-f *, .kw-f *::before, .kw-f *::after { box-sizing: border-box; }
+
+.kw-sr {
+	position: absolute;
+	width: 1px; height: 1px;
+	margin: -1px; padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.kw-ikona { display: block; height: 1em; }
+.kw-pusto { margin: 0; padding: 16px; border: 1px dashed #B1976B; color: #1A1A1A; }
+
+/* ---------- siatka kart [kw_uslugi] ---------- */
+.kw-uslugi {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 1px;
+	padding: 1px;
+}
+@media (min-width: 768px) {
+	.kw-uslugi--k2, .kw-uslugi--k3, .kw-uslugi--k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1025px) {
+	.kw-uslugi--k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.kw-uslugi--k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.kw-usluga {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	min-width: 0;
+	padding: 30px;
+	/* linia 1 px wokol kazdej karty; sasiednie linie nakladaja sie w odstepie 1 px, wiec niepelny rzad tez jest domkniety */
+	box-shadow: 0 0 0 1px var(--kw-linia);
+	transition: background-color .3s ease;
+}
+.kw-usluga:hover { background-color: #fff; }
+/* karta z odnosnikiem: odnosnik jest w tytule, a jego pole klikniecia zajmuje cala karte */
+.kw-usluga--link { position: relative; }
+.kw-uslugi .kw-usluga__link,
+.kw-uslugi .kw-usluga__link:hover,
+.kw-uslugi .kw-usluga__link:focus {
+	/* motyw nadaje odnosnikom w naglowkach wlasny rozmiar (h3 a): tu odnosnik ma wygladac jak tytul */
+	display: inline-block;
+	margin: -12px 0; padding: 12px 0;
+	font: inherit; letter-spacing: inherit; text-transform: inherit;
+	color: inherit; text-decoration: none; outline: 0;
+}
+.kw-uslugi .kw-usluga__link::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+.kw-uslugi .kw-usluga__link:focus-visible::after { outline: 2px solid var(--kw-grafit); outline-offset: -4px; }
+.kw-usluga__ikona { display: block; font-size: 32px; line-height: 1; color: var(--kw-zloto); }
+.kw-usluga__tresc { min-width: 0; }
+.kw-uslugi .kw-usluga__tytul {
+	margin: 0 0 8px; padding: 0;
+	font-size: 19px; line-height: 1.2;
+	color: var(--kw-grafit);
+	text-wrap: balance;
+	overflow-wrap: break-word;
+}
+.kw-uslugi .kw-usluga__opis {
+	margin: 0;
+	font-size: 16px; line-height: 1.5;
+	color: var(--kw-tekst);
+	text-wrap: pretty;
+}
+.kw-uslugi .kw-usluga__cena { margin: 10px 0 0; font-weight: 600; line-height: 1.5; color: var(--kw-grafit); white-space: nowrap; }
+.kw-uslugi .kw-usluga__akcja { position: relative; z-index: 1; margin: 8px 0 0; }
+
+.kw-usluga--wiecej { padding: 0; }
+/* telefon: osobne biale kafle z odstepem, jak w sekcji "Nasza oferta" na stronie glownej */
+@media (max-width: 767px) {
+	.kw-uslugi { gap: 12px; padding: 0; }
+	.kw-usluga { padding: 24px 20px; background-color: #fff; border: 1px solid var(--kw-linia); box-shadow: none; }
+	.kw-usluga--wiecej { padding: 0; }
+}
+.kw-uslugi .kw-usluga__wiecej {
+	display: flex; flex: 1 1 auto;
+	align-items: center; justify-content: center;
+	gap: 8px;
+	min-height: 104px;
+	padding: 30px;
+	font-size: 14px; font-weight: 600; line-height: 1.3;
+	letter-spacing: .4px; text-transform: uppercase; text-decoration: none;
+	color: var(--kw-grafit);
+	transition: color .3s ease;
+}
+.kw-uslugi .kw-usluga__wiecej:hover,
+.kw-uslugi .kw-usluga__wiecej:focus-visible { color: var(--kw-zloto); }
+.kw-uslugi .kw-usluga__wiecej:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: -6px; }
+.kw-usluga__wiecej .kw-ikona { flex: none; }
+@media (max-width: 767px) {
+	.kw-uslugi .kw-usluga__wiecej { justify-content: flex-start; min-height: 72px; padding: 24px 20px; }
+}
+
+.kw-uslugi .kw-link,
+.kw-lista .kw-link {
+	display: inline-flex; align-items: center;
+	min-height: 44px;
+	font-weight: 600;
+	color: var(--kw-grafit);
+	text-decoration: underline; text-decoration-color: var(--kw-zloto);
+	text-decoration-thickness: 1px; text-underline-offset: 5px;
+}
+.kw-uslugi .kw-link:hover, .kw-uslugi .kw-link:focus-visible,
+.kw-lista .kw-link:hover, .kw-lista .kw-link:focus-visible { color: var(--kw-grafit); text-decoration-thickness: 2px; }
+.kw-uslugi .kw-link:focus-visible,
+.kw-lista .kw-link:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 2px; }
+
+/* ---------- pelna lista [kw_uslugi_lista] ---------- */
+.kw-lista { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.kw-lista__grupa { min-width: 0; scroll-margin-top: 100px; }
+.kw-lista .kw-lista__naglowek {
+	position: relative;
+	margin: 0 0 6px; padding: 0 0 16px;
+	font-size: 28px; line-height: 1.25;
+	color: var(--kw-grafit);
+}
+.kw-lista__naglowek::after {
+	content: "";
+	position: absolute; left: 0; bottom: 0;
+	width: 48px; height: 2px;
+	background: var(--kw-zloto);
+}
+.kw-lista__pozycje { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 56px; }
+@media (min-width: 768px) {
+	.kw-lista__pozycje { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.kw-lista__pozycja {
+	display: grid;
+	grid-template-columns: 32px minmax(0, 1fr);
+	column-gap: 18px;
+	align-items: start;
+	padding: 22px 0;
+	border-bottom: 1px solid var(--kw-linia);
+	scroll-margin-top: 100px;
+}
+.kw-usluga { scroll-margin-top: 100px; }
+.kw-lista__ikona { display: flex; justify-content: center; padding-top: 2px; font-size: 22px; line-height: 1; color: var(--kw-zloto); }
+.kw-lista__tresc { min-width: 0; }
+.kw-lista .kw-lista__tytul { margin: 0; padding: 0; font-size: 19px; line-height: 1.25; color: var(--kw-grafit); overflow-wrap: break-word; }
+.kw-lista .kw-lista__cena { margin: 4px 0 0; font-weight: 600; line-height: 1.5; color: var(--kw-grafit); white-space: nowrap; }
+.kw-lista .kw-lista__opis { margin: 6px 0 0; font-size: 16px; line-height: 1.5; color: var(--kw-tekst); text-wrap: pretty; }
+.kw-lista .kw-lista__akcja { margin: 4px 0 0; }
+.kw-lista__wiecej { margin: 4px 0 0; }
+.kw-lista__wiecej > summary { padding: 10px 0; font-weight: 600; color: var(--kw-grafit); cursor: pointer; }
+.kw-lista__wiecej > summary:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 2px; }
+.kw-lista__dlugi { padding: 4px 0 6px; line-height: 1.6; }
+.kw-lista__dlugi > :first-child { margin-top: 0; }
+.kw-lista__dlugi > :last-child { margin-bottom: 0; }
+
+/* ---------- cennik [kw_cennik] ----------
+   Zakladki: na telefonie siatka 2 kolumn (wszystkie kategorie widac od razu, nic nie chowa sie za krawedzia ekranu
+   i nie trzeba przewijac w bok), od 640 px jeden rzad rownych kolumn. Aktywna zakladka: zlote podkreslenie.
+   Karta uslugi: na telefonie kolumna (nazwa, cena, zakres, szczegoly, przycisk), od 900 px wiersz z cena w prawej kolumnie,
+   dzieki czemu ceny kolejnych uslug stoja jedna pod druga i da sie je porownac. */
+.kw-cennik { --kw-szeryf: "EB Garamond", Georgia, serif; }
+.kw-cennik [hidden] { display: none !important; }
+
+.kw-c__taby {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px; /* cele dotyku nie przylegaja do siebie */
+	margin: 0 0 24px;
+}
+.kw-c__taby > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+	.kw-c__taby { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-bottom: 32px; }
+	.kw-c__taby > :last-child:nth-child(odd) { grid-column: auto; }
+}
+.kw-cennik .kw-c__tab,
+.kw-cennik .kw-c__tab:hover,
+.kw-cennik .kw-c__tab:focus {
+	display: flex; align-items: center; justify-content: center;
+	min-height: 52px;
+	padding: 12px 8px;
+	font-size: 16px; font-weight: 600; line-height: 1.3;
+	text-align: center; text-decoration: none;
+	color: var(--kw-tekst);
+	border-bottom: 1px solid var(--kw-linia-2);
+	outline: 0;
+	transition: color .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.kw-cennik .kw-c__tab:hover { color: var(--kw-grafit); }
+.kw-cennik .kw-c__tab.is-aktywna {
+	color: var(--kw-grafit);
+	border-bottom-color: var(--kw-zloto);
+	box-shadow: inset 0 -2px 0 var(--kw-zloto);
+}
+.kw-cennik .kw-c__tab:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: -3px; }
+
+.kw-c__panel { display: none; scroll-margin-top: 100px; }
+.kw-c__panel.is-aktywna { display: block; }
+.kw-c__panel:focus { outline: 0; }
+.kw-c__panel:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 6px; }
+.kw-cennik.is-js .kw-c__panel.is-aktywna { animation: kw-pojaw .25s ease-out both; }
+.kw-cennik .kw-c__kategoria {
+	position: absolute;
+	width: 1px; height: 1px;
+	margin: -1px; padding: 0;
+	font-size: var(--kw-h3, 24px); /* jawnie w px (token motywu), takze gdy naglowek jest tylko dla czytnikow */
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+/* bez JavaScriptu: kategorie wskazana kotwica (#cennik-<slug>) pokazuje CSS; wtedy widac tez jej nazwe */
+.kw-cennik:not(.is-js) .kw-c__panel:target { display: block; }
+.kw-cennik:not(.is-js):has(.kw-c__panel:target) .kw-c__panel.is-aktywna:not(:target) { display: none; }
+.kw-cennik:not(.is-js):has(.kw-c__panel:target) .kw-c__tab.is-aktywna { color: var(--kw-tekst); border-bottom-color: var(--kw-linia-2); box-shadow: none; }
+.kw-cennik:not(.is-js):has(.kw-c__panel:target) .kw-c__kategoria {
+	position: static;
+	width: auto; height: auto;
+	margin: 0 0 16px;
+	clip: auto;
+	white-space: normal;
+	font-size: var(--kw-h3, 24px); line-height: 1.25;
+	color: var(--kw-grafit);
+}
+
+.kw-c__lista { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.kw-c__karta {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 18px;
+	min-width: 0;
+	padding: 26px 20px 22px;
+	background-color: #fff;
+	border: 1px solid var(--kw-linia);
+}
+.kw-c__karta--wyrozniona { border-top: 2px solid var(--kw-zloto); }
+.kw-c__glowa { min-width: 0; }
+.kw-cennik .kw-c__znak {
+	display: flex; align-items: center; gap: 10px;
+	margin: 0 0 10px;
+	font-size: var(--kw-label, 14px); font-weight: 600; line-height: 1.4;
+	letter-spacing: .08em; text-transform: uppercase;
+	color: var(--kw-zloto-tekst);
+}
+.kw-c__znak::before { content: ""; flex: none; width: 24px; height: 1px; background: var(--kw-zloto); }
+.kw-cennik .kw-c__tytul {
+	margin: 0; padding: 0;
+	font-size: 24px; line-height: 1.2;
+	color: var(--kw-grafit);
+	text-wrap: balance;
+	overflow-wrap: break-word;
+}
+.kw-cennik .kw-c__zajawka {
+	max-width: 60ch;
+	margin: 8px 0 0;
+	font-size: 16px; line-height: 1.55;
+	color: var(--kw-tekst-akapit);
+	text-wrap: pretty;
+}
+.kw-cennik .kw-c__cena {
+	display: flex; flex-wrap: wrap; align-items: baseline;
+	gap: 0 8px;
+	margin: 0;
+	font-size: 16px; line-height: 1.3;
+	color: var(--kw-tekst-akapit);
+}
+.kw-c__kwota {
+	font-family: var(--kw-szeryf);
+	font-size: 32px; font-weight: 600; line-height: 1.1;
+	color: var(--kw-grafit);
+	white-space: nowrap;
+}
+.kw-c__cena--tekst .kw-c__kwota,
+.kw-c__cena--opis .kw-c__kwota { font-size: 24px; line-height: 1.2; white-space: normal; text-wrap: balance; }
+/* wlasne zdanie zamiast kwoty: ta sama czcionka co "Wycena indywidualna", o stopien mniejsza, bo tekst bywa dluzszy */
+.kw-c__cena--opis .kw-c__kwota { font-size: 21px; line-height: 1.25; }
+
+.kw-cennik .kw-c__blok-h {
+	margin: 0 0 10px; padding: 0;
+	font-family: inherit;
+	font-size: var(--kw-label, 14px); font-weight: 600; line-height: 1.4;
+	letter-spacing: .08em; text-transform: uppercase;
+	color: var(--kw-zloto-tekst);
+}
+.kw-cennik .kw-c__punkty { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.kw-cennik .kw-c__punkty li {
+	position: relative;
+	margin: 0; padding: 0 0 0 28px;
+	font-size: 16px; line-height: 1.5;
+	color: var(--kw-grafit);
+	list-style: none;
+}
+.kw-c__punkty li::before {
+	content: "";
+	position: absolute; left: 0; top: .25em;
+	width: 16px; height: 16px;
+	background: no-repeat center / contain;
+}
+.kw-c__punkty--tak li::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%237D6740' stroke-width='1.8' d='M2.5 8.5l3.6 3.6 7.4-8.1'/%3E%3C/svg%3E"); }
+.kw-c__punkty--plus li::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%237D6740' stroke-width='1.8' d='M8 3v10M3 8h10'/%3E%3C/svg%3E"); }
+.kw-c__punkty--nie li::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%235A5A5A' stroke-width='1.8' d='M3 8h10'/%3E%3C/svg%3E"); }
+.kw-c__punkty--kropka li::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%237D6740'/%3E%3C/svg%3E"); }
+
+.kw-c__wiecej { min-width: 0; border-top: 1px solid var(--kw-linia); }
+.kw-cennik .kw-c__wiecej > summary {
+	display: flex; align-items: center; gap: 10px;
+	min-height: 48px;
+	padding: 6px 0 0;
+	font-size: 16px; font-weight: 600; line-height: 1.3;
+	color: var(--kw-grafit);
+	list-style: none;
+	cursor: pointer;
+}
+.kw-c__wiecej > summary::-webkit-details-marker { display: none; }
+.kw-c__wiecej > summary > span { text-decoration: underline; text-decoration-color: var(--kw-zloto); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+.kw-c__wiecej > summary:hover > span { text-decoration-thickness: 2px; }
+.kw-c__wiecej > summary::after {
+	content: "";
+	flex: none;
+	width: 12px; height: 8px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%231A1A1A' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E") no-repeat center / contain;
+	transition: transform .2s ease;
+}
+.kw-c__wiecej[open] > summary::after { transform: rotate(180deg); }
+.kw-cennik .kw-c__wiecej > summary:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 2px; }
+.kw-c__szczegoly {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 28px 40px;
+	padding: 14px 0 8px;
+}
+.kw-c__wiecej[open] > .kw-c__szczegoly { animation: kw-pojaw .25s ease-out both; }
+@media (min-width: 640px) {
+	.kw-c__szczegoly { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
+.kw-c__blok { min-width: 0; }
+.kw-c__blok--opis { line-height: 1.6; color: var(--kw-tekst-akapit); }
+.kw-c__blok--opis > :first-child { margin-top: 0; }
+.kw-c__blok--opis > :last-child { margin-bottom: 0; }
+/* progi: zawsze dwie kolumny (prog, cena), wiec mieszcza sie takze na telefonie */
+.kw-cennik .kw-c__progi { width: 100%; margin: 0; border: 0; border-collapse: collapse; font-size: 16px; }
+.kw-cennik .kw-c__progi th,
+.kw-cennik .kw-c__progi td {
+	padding: 9px 0;
+	font-weight: 400; line-height: 1.4; text-align: left;
+	color: var(--kw-grafit);
+	background: none;
+	border: 0; border-bottom: 1px solid var(--kw-linia);
+}
+.kw-cennik .kw-c__progi td { padding-left: 16px; font-weight: 600; text-align: right; white-space: nowrap; }
+.kw-cennik .kw-c__progi thead th { padding-top: 0; font-size: 14px; color: var(--kw-tekst); }
+.kw-cennik .kw-c__progi thead th + th { padding-left: 16px; text-align: right; }
+
+.kw-cennik .kw-c__akcja { margin: 0; }
+.kw-cennik .kw-c__btn { width: 100%; }
+/* przycisk na karcie: obrys, zeby najmocniejsza po nazwie byla cena (kilka zlotych przyciskow jeden pod drugim ja zagluszalo);
+   karta wyrozniona dostaje przycisk pelny */
+.kw-cennik .kw-c__karta .kw-c__btn { color: var(--kw-grafit); background-color: transparent; border-color: var(--kw-zloto); }
+.kw-cennik .kw-c__karta--wyrozniona .kw-c__btn { color: #fff; background-color: var(--kw-zloto); }
+
+/* od 720 px: wiersz. Lewa kolumna: nazwa, zajawka, zakres. Prawa: cena u gory, przycisk u dolu. Szczegoly na cala szerokosc. */
+@media (min-width: 720px) {
+	.kw-c__karta { grid-template-columns: minmax(0, 1fr) 224px; column-gap: 48px; row-gap: 18px; padding: 28px 28px 24px; }
+	.kw-c__glowa, .kw-c__skrot { grid-column: 1; }
+	.kw-cennik .kw-c__cena { grid-column: 2; grid-row: 1; align-self: start; }
+	.kw-cennik .kw-c__akcja { grid-column: 2; grid-row: 2; align-self: end; }
+	.kw-cennik .kw-c__karta--bezceny .kw-c__akcja,
+	.kw-c__karta.kw-c__karta--bezceny::before { grid-row: 1; }
+	.kw-c__wiecej { grid-column: 1 / -1; }
+	/* cienka linia miedzy opisem a kolumna ceny */
+	.kw-c__karta::before { content: ""; grid-column: 2; grid-row: 1 / span 2; margin-left: -24px; border-left: 1px solid var(--kw-linia); pointer-events: none; }
+}
+@media (min-width: 1024px) {
+	.kw-c__karta { grid-template-columns: minmax(0, 1fr) 264px; column-gap: 64px; row-gap: 20px; padding: 34px 40px 28px; }
+	.kw-c__karta::before { margin-left: -32px; }
+	.kw-cennik .kw-c__tytul { font-size: 26px; }
+}
+
+/* ---------- formularz [kw_formularz] ---------- */
+.kw-f { position: relative; }
+.kw-f [hidden] { display: none !important; }
+.kw-f__form { transition: opacity .2s ease, transform .2s ease; }
+.kw-f__form.is-znika { opacity: 0; transform: translateY(8px); }
+
+.kw-f .kw-f__pola {
+	display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px;
+	min-width: 0;
+	margin: 0; padding: 0; border: 0;
+	transition: opacity .2s ease;
+}
+.kw-f .kw-f__pola:disabled { opacity: .55; }
+.kw-f .kw-f__legenda { margin: 0; font-size: 14px; line-height: 1.5; color: var(--kw-tekst); }
+.kw-f__pole { min-width: 0; }
+/* dwa pola wyceny obok siebie, gdy kazde ma co najmniej 240 px; inaczej jedno pod drugim */
+.kw-f__rzad { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 20px; min-width: 0; }
+.kw-f .kw-f__etykieta {
+	display: block;
+	margin: 0 0 6px;
+	/* waga 500, nie 600: strona laduje kroj tylko w wadze 400, wiec 600 bylo sztucznym pogrubieniem przegladarki */
+	font-size: 16px; font-weight: 500; line-height: 1.5;
+	color: var(--kw-grafit);
+}
+.kw-f__gw { font-weight: 600; color: var(--kw-blad); } /* gwiazdka pola wymaganego zostaje wyrazna */
+
+.kw-f .kw-f__kontrolka {
+	display: block;
+	width: 100%; max-width: 100%; min-height: 50px;
+	margin: 0; padding: 12px;
+	font: inherit; font-size: 16px; line-height: 1.5;
+	color: var(--kw-grafit);
+	background-color: #FAFAFA;
+	border: 1px solid #DDD; border-radius: 2px;
+	box-shadow: none;
+	outline: 2px solid transparent; outline-offset: 0;
+	-webkit-appearance: none; appearance: none;
+}
+.kw-f .kw-f__kontrolka::placeholder { color: var(--kw-tekst); opacity: .85; }
+.kw-f .kw-f__kontrolka:focus {
+	border-color: var(--kw-grafit);
+	box-shadow: 0 0 0 1px var(--kw-grafit);
+	outline: 2px solid transparent;
+	background-color: #fff;
+}
+.kw-f .kw-f__kontrolka[aria-invalid="true"] { border-color: var(--kw-blad); box-shadow: 0 0 0 1px var(--kw-blad); }
+.kw-f .kw-f__tekst { min-height: 190px; resize: vertical; }
+.kw-f .kw-f__wybor {
+	padding-right: 44px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%231A1A1A' stroke-width='1.6' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 16px center;
+	background-size: 12px 8px;
+	cursor: pointer;
+	text-overflow: ellipsis;
+}
+.kw-f .kw-f__blad {
+	margin: 6px 0 0;
+	font-size: 14px; font-weight: 600; line-height: 1.45;
+	color: var(--kw-blad);
+	animation: kw-blad .2s ease-out both;
+}
+.kw-f .kw-f__pomoc { margin: 0; font-size: 14px; line-height: 1.6; color: var(--kw-tekst-akapit); }
+.kw-f .kw-f__pomoc a,
+.kw-f .kw-f__awaria-p a,
+.kw-f .kw-f__rodo a,
+.kw-f .kw-f__noscript a {
+	/* pole dotyku 44 px bez zmiany wysokosci wiersza */
+	margin: -15px 0; padding: 15px 0;
+	font-weight: 600;
+	color: var(--kw-grafit);
+	text-decoration: underline; text-decoration-color: var(--kw-zloto);
+	text-decoration-thickness: 1px; text-underline-offset: 3px;
+	overflow-wrap: anywhere;
+}
+.kw-f .kw-f__pomoc a:hover, .kw-f .kw-f__pomoc a:focus-visible,
+.kw-f .kw-f__awaria-p a:hover, .kw-f .kw-f__awaria-p a:focus-visible,
+.kw-f .kw-f__rodo a:hover, .kw-f .kw-f__rodo a:focus-visible { color: var(--kw-grafit); text-decoration-thickness: 2px; }
+.kw-f .kw-f__pomoc a:focus-visible,
+.kw-f .kw-f__awaria-p a:focus-visible,
+.kw-f .kw-f__rodo a:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 2px; }
+/* tekst pomocniczy: jeden zwarty akapit, adres e-mail i telefon nie lamia sie w srodku */
+/* adres i telefon pod polem "Wiadomosc": kazdy odnosnik ma pole dotyku wysokie na 44 px i nie lamie sie w srodku;
+   "albo" trzyma sie telefonu, wiec na telefonie odnosniki staja jeden pod drugim bez nachodzenia pol dotyku */
+.kw-f .kw-f__pomoc a,
+.kw-f .kw-f__noscript a { display: inline-block; margin: 0; padding: 0; line-height: 44px; white-space: nowrap; overflow-wrap: normal; }
+.kw-f .kw-f__pomoc a { font-weight: 500; } /* adres i telefon pod polem: bez pogrubienia, z podkresleniem */
+.kw-f__lub { white-space: nowrap; }
+
+/* pulapka na boty: poza ekranem, niewidoczna dla ludzi i czytnikow */
+.kw-f__x { position: absolute !important; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.kw-f__stopka { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin: 24px 0 0; }
+.kw-f .kw-f__rodo { flex: 1 1 260px; margin: 0; font-size: var(--kw-small, 14px); line-height: 1.55; color: var(--kw-tekst-akapit); }
+.kw-f .kw-f__noscript { margin: 16px 0 0; }
+
+.kw-f .kw-f__btn,
+.kw-cennik .kw-c__btn {
+	display: inline-flex; align-items: center; justify-content: center;
+	gap: 10px;
+	min-height: 52px;
+	margin: 0; padding: 14px 32px;
+	font: inherit; font-size: 14px; font-weight: 600; line-height: 1.3;
+	letter-spacing: .06em; text-transform: uppercase; text-decoration: none; text-align: center; /* kanon przyciskow strony: wersaliki, 0,06 em */
+	white-space: normal;
+	color: #fff;
+	background-color: var(--kw-zloto);
+	border: 1px solid var(--kw-zloto); border-radius: 0;
+	box-shadow: none;
+	cursor: pointer;
+	-webkit-appearance: none; appearance: none;
+	transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+.kw-f .kw-f__btn:hover,
+.kw-f .kw-f__btn:focus-visible,
+.kw-cennik .kw-c__btn:hover,
+.kw-cennik .kw-c__btn:focus-visible { color: #fff; background-color: var(--kw-grafit); border-color: var(--kw-grafit); }
+.kw-f .kw-f__btn:focus-visible,
+.kw-cennik .kw-c__btn:focus-visible { outline: 2px solid var(--kw-grafit); outline-offset: 3px; }
+.kw-f .kw-f__btn--obrys { color: var(--kw-grafit); background-color: transparent; border-color: var(--kw-grafit); }
+.kw-f .kw-f__btn[aria-disabled="true"] { cursor: progress; }
+.kw-f .kw-f__btn[aria-disabled="true"]:hover { background-color: var(--kw-zloto); border-color: var(--kw-zloto); }
+
+/* telefon: glowny przycisk formularza na cala szerokosc (kanon strony: 52 px, pelna szerokosc do 599 px) */
+@media (max-width: 599px) {
+	.kw-f .kw-f__wyslij { width: 100%; }
+}
+/* do 767 px karta z danymi kontaktowymi stoi tuz pod formularzem: ta sama informacja pod polem "Wiadomosc" bylaby powtorzeniem */
+@media (max-width: 767px) {
+	.kw-f .kw-f__pomoc { display: none; }
+}
+
+.kw-f__krecik {
+	display: none;
+	flex: none;
+	width: 16px; height: 16px;
+	border: 2px solid rgba(255, 255, 255, .45); border-top-color: #fff; border-radius: 50%;
+	animation: kw-obrot .8s linear infinite;
+}
+.kw-f__wyslij.is-wysylanie .kw-f__krecik { display: block; }
+
+/* panel awaryjny: wsuwa sie nad formularz, pola pod nim zostaja */
+.kw-f__awaria {
+	margin: 0 0 32px; padding: 28px;
+	background: #fff;
+	border: 1px solid var(--kw-linia); border-top: 3px solid var(--kw-zloto);
+	box-shadow: 0 8px 30px rgba(26, 26, 26, .08);
+}
+.kw-f__awaria.is-widoczny { animation: kw-wsun .28s cubic-bezier(.2, .7, .3, 1) both; }
+.kw-f__awaria-glowa { display: flex; align-items: flex-start; gap: 14px; margin: 0 0 14px; }
+.kw-f__znak { flex: none; width: 36px; height: 36px; color: var(--kw-zloto-tekst); }
+.kw-f__znak-a, .kw-f__znak-b { fill: var(--kw-grafit); }
+/* naglowek panelu awaryjnego i podziekowanie to akapity (konspekt naglowkow strony): kroj i grubosc jak naglowki motywu */
+.kw-f .kw-f__awaria-h {
+	margin: 0; padding: 2px 0 0;
+	font-family: "EB Garamond", serif; font-weight: 600;
+	font-size: 24px; line-height: 1.25;
+	color: var(--kw-grafit);
+	text-wrap: balance;
+}
+.kw-f .kw-f__awaria-h:focus,
+.kw-f .kw-f__sukces-h:focus { outline: 0; }
+.kw-f .kw-f__awaria-p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: var(--kw-tekst-akapit); }
+.kw-f .kw-f__awaria-p--maly { font-size: 14px; }
+.kw-f .kw-f__awaria-akcja { margin: 0 0 14px; }
+.kw-f__awaria-przyciski { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 6px; }
+.kw-f .kw-f__awaria-info { min-height: 1.5em; margin: 0 0 12px; font-size: 14px; font-weight: 600; line-height: 1.5; color: var(--kw-grafit); }
+.kw-f .kw-f__kopia { min-height: 0; font-size: 16px; resize: vertical; }
+@media (max-width: 600px) {
+	.kw-f__awaria { padding: 22px 18px; }
+	.kw-f__awaria .kw-f__btn { width: 100%; padding-left: 16px; padding-right: 16px; }
+	.kw-f .kw-f__awaria-h { font-size: 22px; }
+}
+
+/* panel sukcesu: zajmuje miejsce formularza (min-height ustawia skrypt) */
+.kw-f__sukces {
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	min-height: inherit;
+	padding: 40px 20px;
+	text-align: center;
+}
+.kw-f__sukces.is-widoczny { animation: kw-pojaw .28s ease-out both; }
+.kw-f__ok { width: 64px; height: 64px; margin: 0 0 20px; color: var(--kw-zloto-tekst); }
+.kw-f__ok-a, .kw-f__ok-b { fill: var(--kw-grafit); transform-box: fill-box; transform-origin: 0 50%; }
+.kw-f__ok-kolo { transform-box: fill-box; transform-origin: 50% 50%; }
+.kw-f__sukces.is-widoczny .kw-f__ok-kolo { animation: kw-kolo .3s ease-out both; }
+.kw-f__sukces.is-widoczny .kw-f__ok-a { animation: kw-kreska .12s ease-out .22s both; }
+.kw-f__sukces.is-widoczny .kw-f__ok-b { animation: kw-kreska .2s ease-out .34s both; }
+.kw-f .kw-f__sukces-h { margin: 0 0 8px; padding: 0; font-family: "EB Garamond", serif; font-weight: 600; font-size: 28px; line-height: 1.25; color: var(--kw-grafit); text-wrap: balance; }
+.kw-f .kw-f__sukces-p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--kw-tekst-akapit); }
+
+/* animacje: tylko opacity i transform, 200-300 ms */
+@keyframes kw-wsun { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@keyframes kw-pojaw { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes kw-blad { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes kw-kolo { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes kw-kreska { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes kw-obrot { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+	.kw-f *, .kw-f *::before, .kw-f *::after,
+	.kw-cennik *, .kw-cennik *::before, .kw-cennik *::after,
+	.kw-f__form, .kw-usluga, .kw-uslugi .kw-usluga__wiecej {
+		animation: none !important;
+		transition: none !important;
+	}
+	.kw-f__wyslij.is-wysylanie .kw-f__krecik { display: none; }
+}
