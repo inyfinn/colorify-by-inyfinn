@@ -1,0 +1,450 @@
+/*
+ * Colorify: styl panelu "Nowoczesny" (body.colorify-style-modern).
+ * Jasne tło, zaokrąglone karty bez ramek z ledwo widocznym cieniem, miękkie pola, przyciski-pigułki,
+ * spokojne tabele z pasami, jednolite komunikaty. Kolory zawsze ze schematu Colorify (--colorify-ui-*).
+ * Wzorce od usera (20.10.2026): dashboardy SaaS z jasnymi, obłymi kafelkami.
+ */
+
+body.colorify-style-modern {
+	--cm-surface: var(--colorify-ui-surface, #fff);
+	--cm-soft: color-mix(in srgb, var(--colorify-ui-text, #1d2327) 4%, var(--colorify-ui-surface, #fff));
+	--cm-line: color-mix(in srgb, var(--colorify-ui-text, #1d2327) 9%, transparent);
+	--cm-field: color-mix(in srgb, var(--colorify-ui-text, #1d2327) 16%, transparent);
+	--cm-text: var(--colorify-ui-text, #1d2327);
+	--cm-muted: var(--colorify-ui-text-muted, #646970);
+	--cm-accent: var(--colorify-ui-accent, #2271b1);
+	--cm-on-accent: var(--colorify-ui-on-accent, #fff);
+	--cm-r-card: var(--colorify-radius-card, 20px);
+	--cm-r-ctl: var(--colorify-radius-control, 12px);
+	--cm-r-pill: var(--colorify-radius-pill, 999px);
+	--cm-shadow: var(--colorify-shadow-card, 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .03));
+}
+
+/* ---------- Układ: oddech od menu ---------- */
+body.colorify-style-modern #wpbody-content {
+	padding-bottom: 48px;
+}
+body.colorify-style-modern #wpbody-content > .wrap {
+	margin: 18px 28px 0 24px;
+}
+body.colorify-style-modern .wrap h1.wp-heading-inline,
+body.colorify-style-modern .wrap > h1 {
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -.01em;
+}
+body.colorify-style-modern .wrap h2 {
+	font-size: 17px;
+	font-weight: 600;
+}
+
+/* ---------- Karty: postboxy, karty, panele ---------- */
+body.colorify-style-modern .postbox,
+body.colorify-style-modern .card,
+body.colorify-style-modern .welcome-panel,
+body.colorify-style-modern .stuffbox,
+body.colorify-style-modern .health-check-body .health-check-accordion,
+body.colorify-style-modern .site-health-progress-wrapper,
+body.colorify-style-modern #dashboard-widgets .postbox {
+	border: 0;
+	border-radius: var(--cm-r-card);
+	background: var(--cm-surface);
+	box-shadow: var(--cm-shadow);
+	overflow: hidden;
+}
+body.colorify-style-modern .card {
+	max-width: none;
+	padding: 20px 24px;
+}
+body.colorify-style-modern .postbox .postbox-header {
+	border-bottom: 1px solid var(--cm-line);
+}
+body.colorify-style-modern .postbox .postbox-header .hndle {
+	font-size: 14px;
+	font-weight: 600;
+	padding: 14px 18px;
+}
+body.colorify-style-modern .postbox .inside {
+	padding: 6px 18px 16px;
+}
+body.colorify-style-modern .meta-box-sortables.empty-container,
+body.colorify-style-modern .postbox-container .empty-container {
+	border: 1px dashed var(--cm-field);
+	border-radius: var(--cm-r-card);
+}
+
+/* ---------- Formularze ustawień: tabela jako karta ---------- */
+body.colorify-style-modern .wrap .form-table {
+	border-collapse: separate;
+	border-spacing: 0;
+	margin: 12px 0 20px;
+	background: var(--cm-surface);
+	border-radius: var(--cm-r-card);
+	box-shadow: var(--cm-shadow);
+}
+body.colorify-style-modern .wrap .form-table th,
+body.colorify-style-modern .wrap .form-table td {
+	padding: 18px 24px;
+	border-top: 1px solid var(--cm-line);
+}
+body.colorify-style-modern .wrap .form-table tr:first-child > th,
+body.colorify-style-modern .wrap .form-table tr:first-child > td {
+	border-top: 0;
+}
+body.colorify-style-modern .wrap .form-table th {
+	width: 220px;
+	color: var(--cm-text);
+	font-weight: 600;
+}
+body.colorify-style-modern .wrap .form-table td fieldset label,
+body.colorify-style-modern .wrap .form-table td .description,
+body.colorify-style-modern .wrap p.description {
+	color: var(--cm-muted);
+}
+body.colorify-style-modern .wrap .form-table td fieldset label {
+	color: var(--cm-text);
+}
+body.colorify-style-modern .wrap .form-table td fieldset p {
+	margin: 8px 0;
+}
+
+/* ---------- Pola ---------- */
+body.colorify-style-modern input[type="text"],
+body.colorify-style-modern input[type="search"],
+body.colorify-style-modern input[type="email"],
+body.colorify-style-modern input[type="url"],
+body.colorify-style-modern input[type="password"],
+body.colorify-style-modern input[type="number"],
+body.colorify-style-modern input[type="tel"],
+body.colorify-style-modern input[type="date"],
+body.colorify-style-modern input[type="time"],
+body.colorify-style-modern input[type="datetime-local"],
+body.colorify-style-modern select,
+body.colorify-style-modern textarea {
+	min-height: 38px;
+	padding: 6px 12px;
+	border: 1px solid var(--cm-field);
+	border-radius: var(--cm-r-ctl);
+	background-color: var(--cm-surface);
+	color: var(--cm-text);
+	box-shadow: none;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+body.colorify-style-modern select {
+	padding-right: 32px;
+}
+body.colorify-style-modern textarea {
+	padding: 10px 12px;
+}
+body.colorify-style-modern input[type="text"]:focus,
+body.colorify-style-modern input[type="search"]:focus,
+body.colorify-style-modern input[type="email"]:focus,
+body.colorify-style-modern input[type="url"]:focus,
+body.colorify-style-modern input[type="password"]:focus,
+body.colorify-style-modern input[type="number"]:focus,
+body.colorify-style-modern input[type="tel"]:focus,
+body.colorify-style-modern input[type="date"]:focus,
+body.colorify-style-modern input[type="time"]:focus,
+body.colorify-style-modern select:focus,
+body.colorify-style-modern textarea:focus {
+	border-color: var(--cm-accent);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--cm-accent) 18%, transparent);
+	outline: 0;
+}
+body.colorify-style-modern input[type="checkbox"],
+body.colorify-style-modern input[type="radio"] {
+	border-color: var(--cm-field);
+}
+body.colorify-style-modern input[type="checkbox"] {
+	border-radius: 6px;
+}
+
+/* ---------- Przyciski: pigułki ---------- */
+body.colorify-style-modern .wrap .button,
+body.colorify-style-modern .wrap .button-secondary,
+body.colorify-style-modern .wrap .page-title-action,
+body.colorify-style-modern .wrap .add-new-h2,
+body.colorify-style-modern #wpbody-content .button,
+body.colorify-style-modern #wpbody-content .button-primary {
+	min-height: 36px;
+	padding: 0 16px;
+	border-radius: var(--cm-r-pill);
+	line-height: 34px;
+	font-weight: 500;
+	box-shadow: none;
+}
+body.colorify-style-modern #wpbody-content .button:not(.button-primary),
+body.colorify-style-modern .wrap .page-title-action {
+	border: 1px solid var(--cm-field);
+	background: var(--cm-surface);
+	color: var(--cm-text);
+}
+body.colorify-style-modern #wpbody-content .button:not(.button-primary):hover,
+body.colorify-style-modern .wrap .page-title-action:hover {
+	border-color: var(--cm-accent);
+	color: var(--cm-accent);
+	background: color-mix(in srgb, var(--cm-accent) 6%, var(--cm-surface));
+}
+body.colorify-style-modern #wpbody-content .button-primary {
+	border: 0;
+	background: var(--cm-accent);
+	color: var(--cm-on-accent);
+}
+body.colorify-style-modern #wpbody-content .button-primary:hover,
+body.colorify-style-modern #wpbody-content .button-primary:focus {
+	filter: brightness(1.08);
+	color: var(--cm-on-accent);
+}
+body.colorify-style-modern #wpbody-content .button.button-small {
+	min-height: 30px;
+	line-height: 28px;
+	padding: 0 12px;
+}
+body.colorify-style-modern #wpbody-content .button.button-large,
+body.colorify-style-modern #wpbody-content .button-hero {
+	min-height: 44px;
+	line-height: 42px;
+	padding: 0 22px;
+}
+
+/* ---------- Tabele list (wpisy, strony, wtyczki, użytkownicy, zamówienia) ---------- */
+body.colorify-style-modern .wp-list-table,
+body.colorify-style-modern table.widefat {
+	border: 0;
+	border-radius: var(--cm-r-card);
+	background: var(--cm-surface);
+	box-shadow: var(--cm-shadow);
+	overflow: hidden;
+}
+body.colorify-style-modern .wp-list-table thead th,
+body.colorify-style-modern .wp-list-table thead td,
+body.colorify-style-modern .wp-list-table tfoot th,
+body.colorify-style-modern .wp-list-table tfoot td,
+body.colorify-style-modern table.widefat thead th,
+body.colorify-style-modern table.widefat tfoot th {
+	border-color: var(--cm-line);
+	color: var(--cm-muted);
+	font-size: 12px;
+	font-weight: 500;
+	background: var(--cm-surface);
+}
+body.colorify-style-modern .wp-list-table thead th,
+body.colorify-style-modern .wp-list-table thead td {
+	padding-top: 14px;
+	padding-bottom: 12px;
+}
+body.colorify-style-modern .wp-list-table > tbody > tr > td,
+body.colorify-style-modern .wp-list-table > tbody > tr > th {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	border: 0;
+	box-shadow: none;
+}
+body.colorify-style-modern .wp-list-table > tbody > tr,
+body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(odd) {
+	background: var(--cm-surface);
+}
+body.colorify-style-modern .wp-list-table > tbody > tr:nth-child(even),
+body.colorify-style-modern .wp-list-table.striped > tbody > :nth-child(even) {
+	background: var(--cm-soft);
+}
+body.colorify-style-modern .wp-list-table > tbody > tr:hover {
+	background: color-mix(in srgb, var(--cm-accent) 6%, var(--cm-surface));
+}
+body.colorify-style-modern .wp-list-table .row-actions {
+	color: var(--cm-muted);
+}
+body.colorify-style-modern .wp-list-table .plugin-update-tr .update-message {
+	border-radius: var(--cm-r-ctl);
+}
+body.colorify-style-modern .tablenav {
+	margin: 12px 0;
+}
+body.colorify-style-modern .tablenav .tablenav-pages a,
+body.colorify-style-modern .tablenav .tablenav-pages span.tablenav-pages-navspan {
+	min-width: 32px;
+	min-height: 32px;
+	border-radius: var(--cm-r-pill);
+	line-height: 30px;
+}
+body.colorify-style-modern .subsubsub {
+	margin: 10px 0 6px;
+}
+
+/* ---------- Zakładki ---------- */
+body.colorify-style-modern .nav-tab-wrapper,
+body.colorify-style-modern .wrap h2.nav-tab-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 4px;
+	border: 0;
+	border-radius: var(--cm-r-pill);
+	background: var(--cm-soft);
+	width: fit-content;
+	margin: 12px 0 18px;
+}
+body.colorify-style-modern .nav-tab {
+	margin: 0;
+	padding: 6px 16px;
+	border: 0;
+	border-radius: var(--cm-r-pill);
+	background: transparent;
+	color: var(--cm-muted);
+	font-size: 13px;
+	font-weight: 500;
+}
+body.colorify-style-modern .nav-tab:hover {
+	color: var(--cm-text);
+	background: transparent;
+}
+body.colorify-style-modern .nav-tab-active,
+body.colorify-style-modern .nav-tab-active:hover,
+body.colorify-style-modern .nav-tab-active:focus {
+	background: var(--cm-surface);
+	color: var(--cm-text);
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .1);
+}
+
+/* ---------- Komunikaty: jednolite, zaokrąglone, bez bocznej kreski, zawsze z krzyżykiem ---------- */
+body.colorify-style-modern #wpbody-content .notice,
+body.colorify-style-modern #wpbody-content div.updated,
+body.colorify-style-modern #wpbody-content div.error,
+body.colorify-style-modern #wpbody-content .update-nag {
+	position: relative;
+	margin: 12px 0 16px;
+	padding: 12px 48px 12px 18px;
+	border: 0;
+	border-radius: var(--cm-r-ctl);
+	background: var(--colorify-tag-info-bg, #e3eefc);
+	color: var(--cm-text);
+	box-shadow: none;
+}
+body.colorify-style-modern #wpbody-content .notice-success,
+body.colorify-style-modern #wpbody-content div.updated {
+	background: var(--colorify-tag-ok-bg, #e2f4ea);
+}
+body.colorify-style-modern #wpbody-content .notice-warning,
+body.colorify-style-modern #wpbody-content .update-nag {
+	background: var(--colorify-tag-warn-bg, #fdf1d8);
+}
+body.colorify-style-modern #wpbody-content .notice-error,
+body.colorify-style-modern #wpbody-content div.error {
+	background: var(--colorify-tag-bad-bg, #fde7e9);
+}
+body.colorify-style-modern #wpbody-content .notice p,
+body.colorify-style-modern #wpbody-content div.updated p,
+body.colorify-style-modern #wpbody-content div.error p {
+	margin: 4px 0;
+	font-size: 13px;
+	line-height: 1.55;
+}
+body.colorify-style-modern #wpbody-content .notice a:not(.button) {
+	color: inherit;
+	font-weight: 600;
+}
+/* Banery reklamowe wtyczek w komunikatach: bez własnych ramek i teł w środku. */
+body.colorify-style-modern #wpbody-content .notice > div,
+body.colorify-style-modern #wpbody-content .notice > .notice-container {
+	border: 0;
+	background: transparent;
+}
+body.colorify-style-modern #wpbody-content .notice .notice-dismiss {
+	top: 50%;
+	right: 10px;
+	transform: translateY(-50%);
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border-radius: var(--cm-r-pill);
+}
+body.colorify-style-modern #wpbody-content .notice .notice-dismiss:hover {
+	background: color-mix(in srgb, var(--cm-text) 8%, transparent);
+}
+
+/* ---------- Menu boczne: aktywna pozycja jako pigułka ---------- */
+body.colorify-style-modern #adminmenu {
+	padding-top: 8px;
+}
+body.colorify-style-modern #adminmenu > li > a {
+	margin: 1px 8px;
+	border-radius: var(--cm-r-ctl);
+}
+body.colorify-style-modern #adminmenu > li.current > a.current,
+body.colorify-style-modern #adminmenu > li.wp-has-current-submenu > a.wp-has-current-submenu {
+	border-radius: var(--cm-r-ctl);
+}
+body.colorify-style-modern #adminmenu .wp-submenu {
+	border-radius: 0 0 var(--cm-r-ctl) var(--cm-r-ctl);
+}
+body.colorify-style-modern #adminmenu li.wp-has-current-submenu .wp-submenu {
+	margin: 0;
+	padding: 6px 0 8px;
+	border-radius: 0;
+}
+body.colorify-style-modern #adminmenu li.wp-has-current-submenu .wp-submenu a {
+	margin: 0 8px;
+	padding-left: 12px;
+}
+body.colorify-style-modern #adminmenu .wp-submenu a {
+	border-radius: 8px;
+}
+body.colorify-style-modern #adminmenu div.wp-menu-image {
+	opacity: .9;
+}
+body.colorify-style-modern.folded #adminmenu > li > a {
+	margin: 1px 4px;
+}
+
+/* ---------- Drobne ---------- */
+body.colorify-style-modern .wp-filter,
+body.colorify-style-modern .media-toolbar.wp-filter {
+	border: 0;
+	border-radius: var(--cm-r-card);
+	box-shadow: var(--cm-shadow);
+}
+body.colorify-style-modern .attachments-browser .attachments .attachment-preview,
+body.colorify-style-modern .theme-browser .theme {
+	border-radius: var(--cm-r-ctl);
+	overflow: hidden;
+}
+body.colorify-style-modern #screen-meta,
+body.colorify-style-modern #screen-meta-links .show-settings {
+	border: 0;
+	border-radius: var(--cm-r-ctl);
+	box-shadow: var(--cm-shadow);
+}
+
+@media (max-width: 782px) {
+	body.colorify-style-modern #wpbody-content > .wrap {
+		margin: 12px 12px 0;
+	}
+	body.colorify-style-modern .wrap .form-table th,
+	body.colorify-style-modern .wrap .form-table td {
+		padding: 12px 16px;
+	}
+	body.colorify-style-modern .wrap .form-table th {
+		width: auto;
+		padding-bottom: 0;
+		border-top: 1px solid var(--cm-line);
+	}
+	body.colorify-style-modern .wrap .form-table td {
+		border-top: 0;
+	}
+	body.colorify-style-modern #adminmenu > li > a {
+		margin: 0;
+		border-radius: 0;
+	}
+}
+
+/* Wtyczki: bez niebieskiej kreski z lewej przy włączonych (stan widać po "Wyłącz"). */
+body.colorify-style-modern .plugins .active th.check-column,
+body.colorify-style-modern .plugins .active td,
+body.colorify-style-modern .plugins .active th,
+body.colorify-style-modern .plugin-update-tr.active td {
+	border-left: 0;
+	box-shadow: none;
+}
+body.colorify-style-modern .plugins .active td.plugin-title strong {
+	color: var(--cm-text);
+}

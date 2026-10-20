@@ -70,6 +70,7 @@ final class Colorify_Settings {
 			$skin['preset'] = sanitize_key( wp_unslash( $_POST['colorify_skin_preset'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_option( COLORIFY_SKIN_OPTION, colorify_skin_sanitize( $skin ) );
 		}
+		colorify_save_admin_style_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 		if ( 'global' === $scope ) {
 			colorify_clear_user_appearance( get_current_user_id() );
@@ -178,6 +179,29 @@ final class Colorify_Settings {
 			);
 		}
 		echo '</div>';
+		echo '</div></div>';
+
+		// Styl panelu (Klasyczny / Nowoczesny) i komunikaty.
+		$style  = colorify_get_admin_style();
+		$hidden = count( colorify_get_dismissed_notices( get_current_user_id() ) );
+		echo '<div class="colorify-site colorify-style-row">';
+		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Styl panelu', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<p class="colorify-site__hint">' . esc_html__( 'Nowoczesny: zaokrąglone karty bez ramek, miękkie pola i przyciski, spokojne tabele i jednolite komunikaty w całym panelu. Klasyczny: wygląd WordPressa.', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<p class="colorify-site__now">';
+		/* translators: %d: liczba ukrytych komunikatów */
+		echo esc_html( sprintf( _n( 'Ukryty komunikat: %d.', 'Ukryte komunikaty: %d.', $hidden, 'colorify-by-inyfinn' ), $hidden ) ) . ' ';
+		echo '<button type="button" class="button-link" id="colorify-notices-reset"' . ( $hidden ? '' : ' disabled' ) . '>' . esc_html__( 'Pokaż je z powrotem', 'colorify-by-inyfinn' ) . '</button></p>';
+		echo '</div>';
+		echo '<div class="colorify-seg colorify-scope-seg colorify-style-seg" role="radiogroup" aria-label="' . esc_attr__( 'Styl panelu', 'colorify-by-inyfinn' ) . '">';
+		foreach ( array( 'modern' => __( 'Nowoczesny', 'colorify-by-inyfinn' ), 'classic' => __( 'Klasyczny', 'colorify-by-inyfinn' ) ) as $value => $label ) {
+			printf(
+				'<label class="colorify-seg__opt" aria-checked="%3$s"><input type="radio" class="screen-reader-text" name="colorify_admin_style" value="%1$s" %4$s>%2$s</label>',
+				esc_attr( $value ),
+				esc_html( $label ),
+				$style === $value ? 'true' : 'false',
+				checked( $style, $value, false )
+			);
+		}
 		echo '</div></div>';
 
 		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.

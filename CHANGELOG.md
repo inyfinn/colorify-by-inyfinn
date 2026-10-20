@@ -1,5 +1,16 @@
 # Historia zmian
 
+## 2.4.0
+
+- **Styl panelu: Klasyczny albo Nowoczesny** (Ustawienia, Colorify). Nowoczesny zmienia cały wp-admin: zaokrąglone
+  karty bez ramek z lekkim cieniem, ustawienia jako karta, miękkie pola, przyciski-pigułki, tabele z pasami,
+  zakładki-pigułki, aktywne menu w zaokrąglonym polu, jednolite komunikaty bez bocznej kreski. Kolory ze schematu.
+  Edytor bloków i Customizer zostają bez zmian. Domyślnie Klasyczny (aktualizacja niczego nie przestawia).
+- **Każdy komunikat w panelu da się zamknąć**, także te bez krzyżyka (np. reklamy wtyczek). Zamknięcie zapamiętuje
+  się dla konta, więc ten sam komunikat nie wraca. "Pokaż je z powrotem" w Ustawienia, Colorify.
+- **Wspólne zmienne stylu** (`--colorify-radius-card/-control/-pill`, `--colorify-shadow-card`,
+  `--colorify-tag-{ok,info,warn,bad}-{bg,fg}`) dla innych wtyczek, gdy styl jest Nowoczesny.
+
 ## 2.3.2
 
 - Własna paleta: rząd pól kolorów i podgląd odsunięte 70 px od opisu nad nimi.

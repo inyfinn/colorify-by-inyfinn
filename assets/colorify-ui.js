@@ -1381,7 +1381,31 @@
 
 	/* ---------- Start ---------- */
 
+	/* Styl panelu (Ustawienia, Colorify): zapis od razu i przeładowanie, bo zmienia arkusz całego panelu. */
+	function initStyleSwitch() {
+		$$( 'input[name="colorify_admin_style"]' ).forEach( function ( input ) {
+			input.addEventListener( 'change', function () {
+				var form = input.closest( 'form' );
+				$$( '.colorify-style-seg .colorify-seg__opt' ).forEach( function ( opt ) {
+					var r = $( 'input', opt );
+					opt.setAttribute( 'aria-checked', r && r.checked ? 'true' : 'false' );
+				} );
+				if ( ! form ) {
+					return;
+				}
+				fetch( form.getAttribute( 'action' ) || w.location.href, {
+					method: 'POST',
+					credentials: 'same-origin',
+					body: new FormData( form ),
+				} ).then( function () {
+					w.location.reload();
+				} );
+			} );
+		} );
+	}
+
 	function init() {
+		initStyleSwitch();
 		initBarMenu();
 		initPicker();
 		initSiteMatch();
