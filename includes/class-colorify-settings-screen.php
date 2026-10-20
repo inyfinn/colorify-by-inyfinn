@@ -71,6 +71,9 @@ final class Colorify_Settings {
 			update_option( COLORIFY_SKIN_OPTION, colorify_skin_sanitize( $skin ) );
 		}
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
+		if ( 'global' === $scope ) {
+			colorify_clear_user_appearance( get_current_user_id() );
+		}
 
 		wp_safe_redirect( self::page_url( array( 'colorify_saved' => '1' ) ) );
 		exit;

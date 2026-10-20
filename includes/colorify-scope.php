@@ -117,6 +117,28 @@ function colorify_get_raw_user_admin_color( int $user_id ): string {
 }
 
 /**
+ * Usuwa własny wygląd użytkownika: od teraz widzi wygląd witryny.
+ * Administrator, który przy zakresie "jeden wygląd" zmienia wygląd witryny, musi widzieć to, co ustawia.
+ * Bez tego stary własny wygląd przykrywał każdą zmianę i "kolory się nie przełączały".
+ */
+function colorify_clear_user_appearance( int $user_id ): void {
+	if ( $user_id <= 0 ) {
+		return;
+	}
+	global $wpdb;
+	foreach ( array(
+		COLORIFY_ADMIN_CUSTOMIZED_META,
+		COLORIFY_ADMIN_APPEARANCE_META,
+		COLORIFY_ADMIN_CUSTOM_COLORS_META,
+		COLORIFY_ADMIN_CUSTOM_TUNING_META,
+		$wpdb->get_blog_prefix() . 'admin_color',
+		'admin_color',
+	) as $key ) {
+		delete_user_meta( $user_id, $key );
+	}
+}
+
+/**
  * Czy użytkownik ma własną personalizację Colorify (profil / zapis własny).
  */
 function colorify_user_has_personal_appearance( int $user_id ): bool {

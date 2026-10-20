@@ -569,13 +569,12 @@
 			if ( ! cfg.active || ! w.colorify ) {
 				return false;
 			}
+			// Zapis wyglądu witryny przy zakresie "jeden wygląd" zdejmuje własny wygląd administratora,
+			// więc podgląd od razu idzie na panel.
 			if ( settings ) {
-				return ! data.hasPersonal && scopeValue() === 'global';
+				return scopeValue() === 'global' || ! data.hasPersonal;
 			}
-			if ( ! data.own ) {
-				return false;
-			}
-			return ! data.canScope || scopeValue() === 'user' || ! data.hasPersonal;
+			return !! data.own;
 		}
 
 		function restorePanel() {
@@ -681,7 +680,61 @@
 
 		function touch() {
 			dirty = true;
+			scheduleAutosave();
 		}
+
+		/* --- zapis automatyczny: każda zmiana zapisuje się sama, bez przycisku --- */
+
+		function hexAllValid() {
+			return $$( '.colorify-hex', root ).every( function ( input ) {
+				var v = input.value;
+				return HEX.test( v && v.charAt( 0 ) !== '#' ? '#' + v : v );
+			} );
+		}
+
+		function autosave() {
+			if ( ! dirty || ! hexAllValid() ) {
+				return;
+			}
+			if ( ! settings ) {
+				saveAjax();
+				return;
+			}
+			// Ustawienia → Colorify: ten sam POST co przycisk, tylko w tle (handle_save odsyła przekierowanie, fetch je śledzi).
+			writeTuningFields();
+			if ( modeField ) {
+				modeField.value = P.mode;
+			}
+			var mine = ++saveSeq;
+			setStatus( 'saving' );
+			fetch( form.getAttribute( 'action' ) || w.location.href, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body: new FormData( form ),
+			} )
+				.then( function ( r ) {
+					if ( ! r.ok ) {
+						throw new Error( 'colorify: autosave failed' );
+					}
+					if ( mine === saveSeq ) {
+						dirty = false;
+						last = readSnapshot();
+						if ( scopeValue() === 'global' ) {
+							data.hasPersonal = false;
+						}
+						setStatus( 'saved' );
+					}
+				} )
+				.catch( function () {
+					if ( mine === saveSeq ) {
+						setStatus( 'error' );
+						speak( cfg.i18n.saveError );
+					}
+				} );
+		}
+
+		var saveSeq = 0;
+		var scheduleAutosave = debounce( autosave, 700 );
 
 		/* --- zdarzenia: schemat --- */
 
@@ -963,6 +1016,11 @@
 		}
 
 		/* --- start --- */
+
+		// Zapis jest automatyczny; przycisk zostaje tylko dla przeglądarki bez skryptów.
+		if ( saveBtn ) {
+			saveBtn.hidden = true;
+		}
 
 		loadState( readState() );
 		P.tuneMode = P.mode;

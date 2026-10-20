@@ -22,6 +22,7 @@ function colorify_save_appearance_for_user( int $user_id, array $input ): void {
 
 	if ( colorify_saves_appearance_to_global( $user_id, $input ) ) {
 		colorify_save_global_appearance( $input );
+		colorify_clear_user_appearance( $user_id ); // tylko własny zapis administratora (warunek w colorify_saves_appearance_to_global).
 		return;
 	}
 

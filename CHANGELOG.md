@@ -1,5 +1,13 @@
 # Historia zmian
 
+## 2.1.3
+
+- **Kolory przełączają się od razu i zapisują się same.** Wybór schematu, trybu, palety i dostrojenia zapisuje się
+  automatycznie chwilę po zmianie, bez przycisku "Zapisz ustawienia" (przycisk zostaje tylko bez JavaScriptu).
+- **Zmiana wyglądu witryny jest widoczna dla administratora, który ją robi.** Przy zakresie "jeden wygląd" własny
+  wygląd administratora przykrywał każdą zmianę w Ustawienia, Colorify. Zapis wyglądu witryny zdejmuje teraz własny
+  wygląd tej osoby, a podgląd na żywo idzie od razu na panel.
+
 ## 2.1.2
 
 - **Kolor schematu także na stronie publicznej, dla zalogowanych.** Narzędzia pokazywane tam osobom z panelu
