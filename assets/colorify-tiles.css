@@ -1,0 +1,46 @@
+/* Colorify: widok kafli (schemat panelu Usług kw-uslugi 2.0). Wszystko pod body.colorify-tiles; bez tej klasy nic się nie zmienia poza pigułką. */
+.cft-toggle {
+	display: inline-flex; align-items: center; height: 32px; margin: 0 0 0 8px; padding: 0 14px;
+	font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1; vertical-align: middle; cursor: pointer;
+	color: var(--colorify-ui-text, #1d2327); background: var(--colorify-ui-surface-2, #f0f0f1);
+	border: 0; border-radius: var(--colorify-radius-pill, 999px);
+}
+.cft-toggle:hover { filter: brightness(.96); }
+.cft-toggle[aria-pressed="true"] { color: var(--colorify-ui-on-accent, #fff); background: var(--colorify-ui-accent, #2271b1); }
+.cft-toggle:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px color-mix(in srgb, var(--colorify-ui-accent, #2271b1) 35%, transparent); }
+
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) {
+	display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start;
+}
+body.colorify-tiles #advanced-sortables:not(:empty) { margin-top: 16px; }
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > :is(.postbox:not(.closed), .sortable-placeholder) { grid-column: 1 / -1; }
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox {
+	min-width: 0; margin: 0;
+	background: var(--colorify-ui-surface, #fff); border: 0;
+	border-radius: var(--colorify-radius-card, 20px);
+	box-shadow: var(--colorify-shadow-card, 0 1px 2px rgba(16, 24, 40, .04), 0 6px 20px rgba(16, 24, 40, .05));
+	transition: box-shadow .15s;
+}
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox:hover { box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 24px rgba(16, 24, 40, .09); }
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox > .postbox-header {
+	min-height: 0; padding: 14px 12px 0 20px; border: 0; cursor: pointer;
+}
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox > .postbox-header .hndle {
+	padding: 0; font-size: 13px; font-weight: 500; line-height: 18px; color: var(--colorify-ui-text-muted, #646970); cursor: pointer;
+}
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox:not(.closed) > .postbox-header { padding-bottom: 8px; }
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox > .inside { padding: 4px 20px 20px; }
+body.colorify-tiles :is(#normal-sortables, #advanced-sortables) > .postbox .handle-actions button { border-radius: var(--colorify-radius-pill, 999px); }
+
+.cft-sum { display: none; }
+body.colorify-tiles .postbox.closed > .cft-sum {
+	display: grid; gap: 0; padding: 4px 20px 18px;
+	font-size: 15px; line-height: 22px; color: var(--colorify-ui-text, #1d2327); overflow-wrap: anywhere;
+}
+.cft-sum__label { font-size: 12px; line-height: 18px; color: var(--colorify-ui-text-muted, #646970); }
+.cft-sum__value { font-size: 16px; font-weight: 600; line-height: 24px; }
+.cft-sum__muted { font-size: 13px; line-height: 20px; color: var(--colorify-ui-text-muted, #646970); }
+
+@media (max-width: 960px) {
+	body.colorify-tiles :is(#normal-sortables, #advanced-sortables) { grid-template-columns: minmax(0, 1fr); }
+}

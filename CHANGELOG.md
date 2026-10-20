@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.6.0
+
+- Nowość: "Widok kafli" na klasycznych ekranach edycji (produkty, wpisy, strony). Skrzynki stają się zwijanymi kaflami w stylu panelu Usług; zwinięty kafel pokazuje pierwsze wypełnione pole. Włącza i wyłącza się pigułką przy tytule ekranu, osobno dla każdego rodzaju ekranu (tylko administrator). Domyślnie wszędzie wyłączony; edytor bloków i ekran usług kw-uslugi bez zmian (filtr `colorify_tiles_excluded_post_types`).
+- Kokpit: tekst w pasku statystyk (np. "Najczęściej oglądana") ma mniejsze pismo i mieści się w dwóch liniach zamiast rozpychać kafel; poprawna odmiana "wyświetlenie / wyświetlenia / wyświetleń".
+
 ## 2.5.2
 
 - Tryb ciemny: karty i kafelki o krok jaśniejsze od tła (lepiej widoczne na kokpicie i ekranach Colorify); kafel skrótu kokpitu jaśnieje przy najechaniu. Tło, karta akcentowa i tryb jasny bez zmian.

@@ -216,10 +216,22 @@ final class Colorify_Dashboard {
 		return '<span class="cfd-ico cfd-ico--' . esc_attr( $name ) . '" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . ( $paths[ $name ] ?? '' ) . '</svg></span>';
 	}
 
+	/** "1 wyświetlenie", "3 wyświetlenia", "12 wyświetleń" (polska odmiana bez pliku tłumaczeń). */
+	private static function views_label( int $n ): string {
+		$f = ( 1 === $n ) ? 'wyświetlenie' : ( ( $n % 10 >= 2 && $n % 10 <= 4 && ( $n % 100 < 12 || $n % 100 > 14 ) ) ? 'wyświetlenia' : 'wyświetleń' );
+		return self::num( (float) $n ) . ' ' . $f;
+	}
+
+	/** Wartość to tekst (np. tytuł strony), a nie liczba lub kwota: dostaje mniejsze pismo w dwóch liniach. */
+	private static function is_text_value( string $value ): bool {
+		$v = trim( wp_strip_all_tags( $value ) );
+		return ! preg_match( '/^[-+]?\d/u', $v ) && (bool) preg_match( '/\p{L}{2}/u', $v );
+	}
+
 	/** Jedna liczba w pasku statystyk; z $href cała pozycja jest linkiem. */
 	private static function stat( string $icon, string $label, string $value, string $delta = '', string $hint = '', string $href = '' ): string {
 		$inner = '<span class="cfd-stat__top">' . self::icon( $icon ) . '<span class="cfd-stat__label">' . esc_html( $label ) . '</span></span>'
-			. '<span class="cfd-stat__row"><span class="cfd-stat__value">' . $value . '</span>' . $delta . '</span>'
+			. '<span class="cfd-stat__row"><span class="cfd-stat__value' . ( self::is_text_value( $value ) ? ' cfd-stat__value--text' : '' ) . '">' . $value . '</span>' . $delta . '</span>'
 			. ( '' !== $hint ? '<span class="cfd-stat__hint">' . esc_html( $hint ) . '</span>' : '' );
 		return '' !== $href ? '<a class="cfd-stat cfd-stat--link" href="' . esc_url( $href ) . '">' . $inner . '</a>' : '<div class="cfd-stat">' . $inner . '</div>';
 	}
@@ -302,7 +314,7 @@ final class Colorify_Dashboard {
 		}
 		$top  = array_slice( $cur['pages'], 0, 1, true );
 		$tid  = (int) key( $top );
-		$out .= self::stat( 'pages', __( 'Najczęściej oglądana', 'colorify-by-inyfinn' ), $tid ? esc_html( wp_trim_words( get_the_title( $tid ), 4, '…' ) ) : '-', '', $tid ? sprintf( /* translators: %s: liczba */ __( '%s wyświetleń', 'colorify-by-inyfinn' ), self::num( (float) reset( $top ) ) ) : '', $tid ? (string) get_edit_post_link( $tid, 'raw' ) : '' );
+		$out .= self::stat( 'pages', __( 'Najczęściej oglądana', 'colorify-by-inyfinn' ), $tid ? esc_html( get_the_title( $tid ) ) : '-', '', $tid ? self::views_label( (int) reset( $top ) ) : '', $tid ? (string) get_edit_post_link( $tid, 'raw' ) : '' );
 		return $out . '</section>';
 	}
 
@@ -864,6 +876,7 @@ a.cfd-stat:hover .cfd-stat__label{color:var(--a)}
 .cfd-stat__label{font-size:14px;color:var(--m)}
 .cfd-stat__row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-width:0}
 .cfd-stat__value{font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.cfd-stat__value--text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:16px;line-height:22px;font-weight:600;letter-spacing:0;overflow-wrap:break-word}
 .cfd-stat__hint{font-size:12px;color:var(--m)}
 .cfd-ico{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;flex:none}
 .cfd-ico svg{width:16px;height:16px}
@@ -913,7 +926,7 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-row-link td:first-child{border-radius:10px 0 0 10px}.cfd-row-link td:last-child{border-radius:0 10px 10px 0}
 .cfd-empty,.cfd-note{color:var(--m);font-size:13px;margin:0}
 @media (max-width:1100px){.cfd-row,.cfd-row--b{grid-template-columns:minmax(0,1fr)}.cfd-strip{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}.cfd-stat:nth-child(3){border-left:0}.cfd-promo{order:-1}}
-@media (max-width:600px){.cfd-card{padding:20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value{font-size:22px}.cfd-chart__value{font-size:24px}}
+@media (max-width:600px){.cfd-card{padding:20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
 </style>
 		<?php
 	}
