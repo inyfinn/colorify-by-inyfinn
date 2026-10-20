@@ -325,10 +325,10 @@ function colorify_ui_render_picker( array $args ): void {
 	echo '</div></div>';
 
 	// Dostrojenie.
-	echo '<details class="colorify-tuning colorify-card" id="colorify-tuning">';
+	echo '<details class="colorify-tuning colorify-card" id="colorify-tuning" open>';
 	echo '<summary>' . colorify_ui_icon( 'chev', 'chev' ) . '<span>' . esc_html__( 'Dostrojenie', 'colorify-by-inyfinn' ) . '</span><span class="colorify-tuning__state' . ( $tune_changed ? ' is-changed' : '' ) . '" id="colorify-tuning-state">' . ( $tune_changed ? esc_html__( 'zmienione', 'colorify-by-inyfinn' ) : esc_html__( 'bez zmian', 'colorify-by-inyfinn' ) ) . '</span></summary>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	echo '<div class="colorify-tuning__body"><div class="colorify-tuning__head">';
-	echo '<p class="colorify-desc">' . esc_html__( 'Jasność i&nbsp;nasycenie tła oraz akcentu. Zapisują się osobno dla trybu ciemnego i&nbsp;jasnego.', 'colorify-by-inyfinn' ) . '</p>';
+	echo '<p class="colorify-desc">' . esc_html__( 'Jasność i&nbsp;nasycenie tła oraz akcentu dla trybu, który teraz widzisz. Ciemny i&nbsp;jasny mają osobne ustawienia.', 'colorify-by-inyfinn' ) . '</p>';
 	echo '<div class="colorify-seg" role="radiogroup" aria-label="' . esc_attr__( 'Dostrajany tryb', 'colorify-by-inyfinn' ) . '" id="colorify-tune-mode" data-colorify-seg="tune">';
 	foreach ( array( 'dark' => __( 'Ciemny', 'colorify-by-inyfinn' ), 'light' => __( 'Jasny', 'colorify-by-inyfinn' ) ) as $m => $label ) {
 		printf(

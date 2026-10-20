@@ -1,5 +1,19 @@
 # Historia zmian
 
+## 2.2.2
+
+- **Ustawienia, Colorify: jeden ekran zamiast trzech kart.** U góry "Kolory panelu" z przełącznikiem
+  "Dla wszystkich / Każdy osobno" i przyciskiem "Dopasuj do mojej strony". Pod spodem schematy w grupach,
+  własna paleta i dostrojenie, które jest zawsze rozwinięte.
+- **Wybór schematu zeruje dostrojenie.** Przesunięcia jasności i nasycenia z poprzedniego schematu potrafiły
+  zmienić nowy schemat nie do poznania (antracyt w ciemnym trybie wychodził brązowy).
+- **Jeden przełącznik trybu.** Dostrojenie dotyczy trybu, który widać, bez drugiego przełącznika Ciemny/Jasny.
+- **Bez osobnej sekcji czcionek.** Czcionki i rogi przychodzą razem z "Dopasuj do mojej strony", więc ta sama
+  decyzja nie pojawia się dwa razy. Zapisany wcześniej styl zostaje bez zmian.
+- **Naprawione: "Dopasuj do mojej strony" dawało inne kolory niż strona.** Stare dostrojenie witryny przesuwało
+  odczytane kolory, a własny wygląd administratora je przykrywał. Dopasowanie zeruje teraz dostrojenie i zdejmuje
+  własny wygląd osoby, która je uruchamia.
+
 ## 2.1.3
 
 - **Kolory przełączają się od razu i zapisują się same.** Wybór schematu, trybu, palety i dostrojenia zapisuje się

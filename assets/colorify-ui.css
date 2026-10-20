@@ -1738,3 +1738,58 @@
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
+
+/* Ustawienia: jeden ekran "Kolory panelu" (2.2.0). */
+.colorify-main__head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px 24px;
+	margin-bottom: 20px;
+}
+
+.colorify-main__title h2 {
+	margin: 0 0 6px;
+}
+
+.colorify-main__title .colorify-desc {
+	margin: 0;
+}
+
+.colorify-main__tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+}
+
+.colorify-ui .colorify-scope-seg .colorify-seg__opt {
+	padding: 0 18px;
+}
+
+.colorify-scope-seg .colorify-seg__opt:focus-within {
+	outline: 2px solid var(--colorify-ui-focus, currentColor);
+	outline-offset: 2px;
+}
+
+.colorify-ui .colorify-match-btn {
+	min-height: 44px;
+}
+
+.colorify-main > .colorify-match__result {
+	margin-bottom: 20px;
+}
+
+.colorify-main .colorify-tuning > summary {
+	pointer-events: none;
+}
+
+.colorify-main .colorify-tuning > summary .chev {
+	display: none;
+}
+
+#colorify-save[hidden],
+#colorify-tune-mode {
+	display: none !important;
+}

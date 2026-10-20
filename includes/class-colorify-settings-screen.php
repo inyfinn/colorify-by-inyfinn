@@ -124,34 +124,6 @@ final class Colorify_Settings {
 		return sprintf( esc_html__( 'Dostępna wersja %s.', 'colorify-by-inyfinn' ), esc_html( $version ) );
 	}
 
-	/**
-	 * Trzy mini-ramki (zakres: wiele wyglądów albo jeden) i miniatura ekranu logowania.
-	 *
-	 * @param array<int,array<string,mixed>> $defs  Definicje schematów.
-	 * @param bool                           $login Czy dołożyć mini ekran logowania.
-	 */
-	private static function scope_pic( array $defs, bool $login ): string {
-		$out         = '';
-		$first_style = '';
-
-		foreach ( $defs as $def ) {
-			$style       = colorify_ui_preview_style(
-				array(
-					'dark'  => colorify_build_tokens( $def, 'dark' ),
-					'light' => colorify_build_tokens( $def, 'light' ),
-				)
-			);
-			$first_style = '' === $first_style ? $style : $first_style;
-			$out        .= colorify_ui_preview_html( $style, 'colorify-preview--dark' );
-		}
-
-		if ( $login && '' !== $first_style ) {
-			$out .= '<span class="colorify-pic-sep"></span><span class="colorify-login" data-colorify-swatch style="' . esc_attr( $first_style ) . '"><i></i></span>';
-		}
-
-		return $out;
-	}
-
 	public static function render_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -173,18 +145,6 @@ final class Colorify_Settings {
 		// pobraniem i zostawiało wyłączony po każdym błędzie (a wyłączony Colorify nie ma updatera).
 		$update_url  = wp_nonce_url( self_admin_url( 'plugins.php?action=update-selected&plugins=' . rawurlencode( $basename ) ), 'bulk-plugins' );
 
-		// Trzy różne wyglądy (zakres "osobno") i trzy takie same plus logowanie (zakres "jeden wygląd").
-		$defs        = colorify_admin_scheme_definitions();
-		$sample_defs = array();
-		foreach ( array( 'colorify-lime', 'colorify-basil', 'colorify-sky' ) as $key ) {
-			if ( isset( $defs[ $key ] ) ) {
-				$sample_defs[] = $defs[ $key ];
-			}
-		}
-		$global_def = colorify_admin_get_resolved_global_scheme();
-		$pic_user   = self::scope_pic( $sample_defs, false );
-		$pic_global = self::scope_pic( array( $global_def, $global_def, $global_def ), true );
-
 		// Klasa colorify-ui tylko na własnych blokach: WordPress wstawia cudze komunikaty (np. baner motywu) w .wrap
 		// zaraz za hr.wp-header-end, więc opakowanie .wrap nie może nosić naszych reguł przycisków i typografii.
 		echo '<div class="wrap colorify-wrap">';
@@ -198,32 +158,29 @@ final class Colorify_Settings {
 
 		colorify_ui_offstrip( esc_html__( 'Styl Colorify jest wyłączony dla Twojego konta (przełącznik w&nbsp;górnym pasku). Ustawienia witryny poniżej działają normalnie dla pozostałych osób.', 'colorify-by-inyfinn' ) );
 
-		// Kto wybiera kolory.
-		echo '<section class="colorify-card" aria-labelledby="colorify-scope-title">';
-		echo '<p class="colorify-label">' . esc_html__( 'Zakres', 'colorify-by-inyfinn' ) . '</p>';
-		echo '<h2 id="colorify-scope-title">' . esc_html__( 'Kto wybiera kolory panelu', 'colorify-by-inyfinn' ) . '</h2>';
-		echo '<div class="colorify-scope" role="radiogroup" aria-labelledby="colorify-scope-title">';
-		printf(
-			'<label class="colorify-scope__opt"><input type="radio" name="colorify_settings_scope" value="user" %1$s><span class="colorify-scope__title">%2$s</span><p class="colorify-scope__hint">%3$s</p><span class="colorify-scope__pic" aria-hidden="true">%4$s</span></label>',
-			checked( $scope, 'user', false ),
-			esc_html__( 'Każdy użytkownik osobno', 'colorify-by-inyfinn' ),
-			esc_html__( 'Każdy wybiera schemat w&nbsp;swoim profilu. Osoby bez wyboru widzą domyślny wygląd wtyczki.', 'colorify-by-inyfinn' ),
-			$pic_user // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		);
-		printf(
-			'<label class="colorify-scope__opt"><input type="radio" name="colorify_settings_scope" value="global" %1$s><span class="colorify-scope__title">%2$s</span><p class="colorify-scope__hint">%3$s</p><span class="colorify-scope__pic" aria-hidden="true">%4$s</span></label>',
-			checked( $scope, 'global', false ),
-			esc_html__( 'Jeden wygląd dla całej witryny', 'colorify-by-inyfinn' ),
-			esc_html__( 'Poniższy wygląd dostaną osoby bez własnego wyboru w&nbsp;profilu oraz strona logowania.', 'colorify-by-inyfinn' ),
-			$pic_global // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		);
-		echo '</div></section>';
-
-		// Wygląd witryny: widoczny zawsze (logowanie i osoby bez własnego wyboru).
-		echo '<section class="colorify-card" id="colorify-global-look" aria-labelledby="colorify-global-title">';
-		echo '<p class="colorify-label">' . esc_html__( 'Kolory', 'colorify-by-inyfinn' ) . '</p>';
-		echo '<h2 id="colorify-global-title">' . esc_html__( 'Wygląd witryny', 'colorify-by-inyfinn' ) . '</h2>';
-		echo '<p class="colorify-desc">' . esc_html__( 'Dla osób bez własnego wyboru w&nbsp;profilu i&nbsp;dla strony logowania. Każdy nadal może wybrać co innego u&nbsp;siebie.', 'colorify-by-inyfinn' ) . '</p>';
+		// Jeden ekran: kto widzi, skąd kolory (schematy, własna paleta, strona), dostrojenie. Bez osobnej sekcji czcionek:
+		// czcionki i rogi przychodzą razem z "Dopasuj do mojej strony".
+		echo '<section class="colorify-card colorify-main" id="colorify-global-look" aria-labelledby="colorify-global-title">';
+		echo '<div class="colorify-main__head">';
+		echo '<div class="colorify-main__title"><h2 id="colorify-global-title">' . esc_html__( 'Kolory panelu', 'colorify-by-inyfinn' ) . '</h2>';
+		echo '<p class="colorify-desc" id="colorify-scope-desc" data-user="' . esc_attr__( 'Każdy wybiera kolory w swoim profilu. Ten wygląd dostają osoby bez wyboru i strona logowania.', 'colorify-by-inyfinn' ) . '" data-global="' . esc_attr__( 'Ten wygląd widzą wszyscy w panelu i strona logowania.', 'colorify-by-inyfinn' ) . '">'
+			. ( 'global' === $scope ? esc_html__( 'Ten wygląd widzą wszyscy w panelu i strona logowania.', 'colorify-by-inyfinn' ) : esc_html__( 'Każdy wybiera kolory w swoim profilu. Ten wygląd dostają osoby bez wyboru i strona logowania.', 'colorify-by-inyfinn' ) )
+			. '</p></div>';
+		echo '<div class="colorify-main__tools">';
+		echo '<div class="colorify-seg colorify-scope-seg" role="radiogroup" aria-label="' . esc_attr__( 'Kto widzi ten wygląd', 'colorify-by-inyfinn' ) . '">';
+		foreach ( array( 'global' => __( 'Dla wszystkich', 'colorify-by-inyfinn' ), 'user' => __( 'Każdy osobno', 'colorify-by-inyfinn' ) ) as $value => $label ) {
+			printf(
+				'<label class="colorify-seg__opt" aria-checked="%3$s"><input type="radio" class="screen-reader-text" name="colorify_settings_scope" value="%1$s" %4$s>%2$s</label>',
+				esc_attr( $value ),
+				esc_html( $label ),
+				$scope === $value ? 'true' : 'false',
+				checked( $scope, $value, false )
+			);
+		}
+		echo '</div>';
+		echo '<button type="button" class="button colorify-match-btn" id="colorify-match-run">' . esc_html__( 'Dopasuj do mojej strony', 'colorify-by-inyfinn' ) . '</button>';
+		echo '</div></div>';
+		echo '<div class="colorify-match__result" id="colorify-match-result" role="status" aria-live="polite" hidden></div>';
 		colorify_ui_render_picker(
 			array(
 				'context'     => 'settings',
@@ -234,44 +191,6 @@ final class Colorify_Settings {
 				'actions'     => false,
 			)
 		);
-		echo '</section>';
-
-		// Skóra: czcionki i rogi ekranów Colorify i strony logowania.
-		$skin      = colorify_get_skin();
-		$stored    = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
-		$measured  = '' !== $stored['body'];
-		$body_name = str_replace( '"', '', (string) strtok( $stored['body'], ',' ) );
-		$body_name = preg_match( '/^(-apple-system|BlinkMacSystemFont|system-ui|ui-sans-serif|ui-serif|sans-serif|serif)$/i', $body_name ) ? __( 'czcionka systemowa', 'colorify-by-inyfinn' ) : $body_name;
-		$site_hint = $measured
-			/* translators: 1: czcionka tekstu, 2: zaokrąglenie w px */
-			? sprintf( __( 'Zmierzone na stronie głównej: %1$s, rogi %2$d px.', 'colorify-by-inyfinn' ), $body_name, $stored['radius'] )
-			: __( 'Najpierw użyj przycisku „Dopasuj do strony”.', 'colorify-by-inyfinn' );
-		$skins     = array(
-			'neutral'    => array( __( 'Neutralny', 'colorify-by-inyfinn' ), __( 'Czcionka panelu WordPressa, lekko zaokrąglone rogi. Pasuje do każdej strony.', 'colorify-by-inyfinn' ) ),
-			'site'       => array( __( 'Jak strona', 'colorify-by-inyfinn' ), $site_hint ),
-			'kancelaria' => array( __( 'Kancelaria', 'colorify-by-inyfinn' ), __( 'EB Garamond i IBM Plex Sans, ostre rogi.', 'colorify-by-inyfinn' ) ),
-		);
-		echo '<section class="colorify-card" id="colorify-skin" aria-labelledby="colorify-skin-title">';
-		echo '<p class="colorify-label">' . esc_html__( 'Styl', 'colorify-by-inyfinn' ) . '</p>';
-		echo '<h2 id="colorify-skin-title">' . esc_html__( 'Czcionki i kształt', 'colorify-by-inyfinn' ) . '</h2>';
-		echo '<p class="colorify-desc">' . esc_html__( 'Dla ekranów Colorify i&nbsp;strony logowania. Reszta panelu zostaje przy czcionce WordPressa.', 'colorify-by-inyfinn' ) . '</p>';
-		echo '<div class="colorify-scope colorify-skins" role="radiogroup" aria-labelledby="colorify-skin-title">';
-		foreach ( $skins as $key => $row ) {
-			printf(
-				'<label class="colorify-scope__opt"><input type="radio" name="colorify_skin_preset" value="%1$s" %2$s %3$s><span class="colorify-scope__title">%4$s</span><p class="colorify-scope__hint">%5$s</p></label>',
-				esc_attr( $key ),
-				checked( $skin['preset'], $key, false ),
-				disabled( 'site' === $key && ! $measured, true, false ),
-				esc_html( $row[0] ),
-				esc_html( $row[1] )
-			);
-		}
-		echo '</div>';
-		echo '<div class="colorify-match">';
-		echo '<button type="button" class="button" id="colorify-match-run">' . esc_html__( 'Dopasuj do strony', 'colorify-by-inyfinn' ) . '</button>';
-		echo '<span class="colorify-match__hint">' . esc_html__( 'Odczytuje kolory, czcionki i&nbsp;rogi przycisków ze strony głównej. Nic nie zapisuje, dopóki nie zatwierdzisz.', 'colorify-by-inyfinn' ) . '</span>';
-		echo '<div class="colorify-match__result" id="colorify-match-result" role="status" aria-live="polite" hidden></div>';
-		echo '</div>';
 		echo '</section>';
 
 		// Twoje kolory: tylko przy zakresie "osobno" (wskazówka, gdzie wybiera się kolory panelu).

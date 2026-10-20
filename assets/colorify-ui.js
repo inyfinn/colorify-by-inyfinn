@@ -471,6 +471,11 @@
 				b.setAttribute( 'aria-checked', on ? 'true' : 'false' );
 				b.tabIndex = on ? 0 : -1;
 			} );
+			// Dostrojenie zawsze dotyczy trybu, który widać: jeden przełącznik zamiast dwóch.
+			P.tuneMode = mode;
+			if ( typeof renderSliders === 'function' ) {
+				renderSliders();
+			}
 			var cap = $( '#colorify-custom-caption', root );
 			if ( cap ) {
 				cap.textContent = mode === 'dark' ? cfg.i18n.captionDark : cfg.i18n.captionLight;
@@ -744,6 +749,14 @@
 			}
 			touch();
 			P.scheme = e.target.value;
+			// Nowy schemat startuje bez dostrojenia: stare przesunięcia przefarbowywały go (np. antracyt na brąz).
+			[ 'dark', 'light' ].forEach( function ( m ) {
+				TUNE_KEYS.forEach( function ( k ) {
+					P.tuning[ m ][ k ] = 0;
+				} );
+			} );
+			writeTuningFields();
+			renderSliders();
 			renderMeta();
 			requestPreview();
 		} );
@@ -911,6 +924,14 @@
 			r.addEventListener( 'change', function () {
 				touch();
 				var scope = scopeValue();
+				$$( '.colorify-scope-seg .colorify-seg__opt' ).forEach( function ( opt ) {
+					var input = $( 'input', opt );
+					opt.setAttribute( 'aria-checked', input && input.checked ? 'true' : 'false' );
+				} );
+				var desc = $( '#colorify-scope-desc' );
+				if ( desc ) {
+					desc.textContent = desc.getAttribute( scope === 'global' ? 'data-global' : 'data-user' ) || desc.textContent;
+				}
 				var userLook = $( '#colorify-user-look' );
 				if ( userLook ) {
 					userLook.hidden = scope !== 'user';

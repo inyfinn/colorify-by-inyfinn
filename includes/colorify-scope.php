@@ -642,11 +642,10 @@ function colorify_ajax_apply_site_look(): void {
 		$colors = colorify_admin_sanitize_custom_colors( $look['colors'] );
 		update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_colors', $colors );
 		colorify_persist_global_admin_color( COLORIFY_ADMIN_CUSTOM_SCHEME_KEY );
-		// Osoba, która dopasowuje wygląd, ma go od razu zobaczyć: jej konto dostaje tę samą paletę (tryb zostaje).
-		$user_id = get_current_user_id();
-		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOM_COLORS_META, $colors );
-		update_user_meta( $user_id, $GLOBALS['wpdb']->get_blog_prefix() . 'admin_color', COLORIFY_ADMIN_CUSTOM_SCHEME_KEY );
-		update_user_meta( $user_id, COLORIFY_ADMIN_CUSTOMIZED_META, 1 );
+		// Kolory strony bez przesunięć: stare dostrojenie przefarbowywało je (np. granat na zielony).
+		update_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_tuning', colorify_admin_sanitize_custom_tuning( array() ) );
+		// Osoba, która dopasowuje wygląd, ma go od razu zobaczyć: jej własny wygląd nie może go przykrywać.
+		colorify_clear_user_appearance( get_current_user_id() );
 	}
 
 	wp_send_json_success( array( 'faces' => count( $skin['faces'] ) ) );
