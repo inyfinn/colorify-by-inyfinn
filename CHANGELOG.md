@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.7.4
+
+- Repozytorium: nowa wtyczka strony `site-plugins/eta-przekierowania` 1.0.0 (ETA Innovations: przekierowania 301 ze starych adresów zamiast strony 404). Wydanie dołącza `eta-przekierowania.zip`. Sam Colorify bez zmian.
+
 ## 2.7.3
 
 - Licznik wejść: adres, którego nie ma (404), nie liczy się już jako wejście. Wcześniej motywy, które przy 404 pokazują własną stronę (np. "Page 404" w motywie Pharma), sprawiały, że strona błędu wychodziła jako "Najczęściej oglądana".
