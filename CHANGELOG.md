@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.7.3
+
+- Licznik wejść: adres, którego nie ma (404), nie liczy się już jako wejście. Wcześniej motywy, które przy 404 pokazują własną stronę (np. "Page 404" w motywie Pharma), sprawiały, że strona błędu wychodziła jako "Najczęściej oglądana".
+- Kokpit: nowa karta "Adresy, które nie istnieją (404)" pod paskiem ruchu: ścieżka, ile razy i skąd ludzie przyszli. Pojawia się tylko, gdy są takie wejścia. Skanery szukające plików (.php, .env, kopie) i boty są pomijane.
+
 ## 2.7.2
 
 - Widok kafli (po przeglądzie projektowym): kliknięcie w skrót zwiniętego kafla otwiera go; kafle zwinięte od startu także dla kont, które nigdy nie zwijały skrzynek; wymagane pole w zwiniętym kaflu otwiera kafel zamiast cicho blokować zapis; przeciąganie skrzynek wyłączone przy kaflach (kolejność strzałkami, także z klawiatury); po otwarciu kafla cudze skrypty dostają `resize`; skrót podpięty pod przycisk zwijania (`aria-describedby`); grupy pól ACF mają skrót (pierwsze pole i "wypełnione X z Y"); pusty kafel mówi, co zrobić; ostatni nieparzysty kafel na całą szerokość.

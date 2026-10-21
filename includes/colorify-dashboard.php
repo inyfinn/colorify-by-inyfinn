@@ -19,12 +19,14 @@ final class Colorify_Dashboard {
 
 	const OPTION     = 'colorify_dashboard_style';
 	const VISITS     = 'colorify_visits';
+	const MISSING    = 'colorify_404';
 	const KEEP_DAYS  = 400;
 	const PAGES_DAY  = 200;
 	const PAID       = array( 'wc-processing', 'wc-completed', 'wc-on-hold' );
 	const STYLES     = array( 'classic', 'sales', 'leads', 'editorial', 'company' );
 
 	public static function init(): void {
+		add_action( 'template_redirect', array( __CLASS__, 'note_404' ), 0 );
 		add_action( 'template_redirect', array( __CLASS__, 'count_visit' ), 99 );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'setup' ), PHP_INT_MAX );
 		add_action( 'current_screen', array( __CLASS__, 'quiet_screen' ) );
@@ -63,17 +65,75 @@ final class Colorify_Dashboard {
 
 	/* ===================== Licznik wejść ===================== */
 
-	public static function count_visit(): void {
-		if ( is_user_logged_in() || is_admin() || wp_doing_ajax() || is_404() || is_feed() || is_preview() || is_robots() ) {
-			return;
+	/** Czy to wejście ma być liczone (człowiek, zwykłe GET, nie panel). */
+	private static function countable(): bool {
+		if ( is_user_logged_in() || is_admin() || wp_doing_ajax() || is_feed() || is_preview() || is_robots() ) {
+			return false;
 		}
 		if ( 'GET' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-			return;
+			return false;
 		}
 		$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-		if ( '' === $ua || preg_match( '/bot|crawl|spider|slurp|facebookexternalhit|preview|headless|lighthouse|curl|wget|python|monitor|uptime/i', $ua ) ) {
+		return '' !== $ua && ! preg_match( '/bot|crawl|spider|slurp|facebookexternalhit|preview|headless|lighthouse|curl|wget|python|monitor|uptime|^Mozilla\/5\.0$/i', $ua );
+	}
+
+	/** @var bool Ten request to 404 (zapamiętane przed motywem, który potrafi podmienić 404 na zwykłą stronę). */
+	private static $was_404 = false;
+
+	/**
+	 * Adresy, pod które ludzie wchodzą i dostają 404: ścieżka, ile razy, skąd przyszli (ostatni Referer), kiedy ostatnio.
+	 * Priorytet 0: przed motywami, które przy 404 pokazują własną stronę i ukrywają is_404().
+	 */
+	public static function note_404(): void {
+		if ( ! is_404() ) {
 			return;
 		}
+		self::$was_404 = true;
+		if ( ! self::countable() ) {
+			return;
+		}
+		$path = (string) wp_parse_url( (string) wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$path = substr( rawurldecode( $path ), 0, 200 );
+		// Skanery szukające plików (.php, .env, kopie) to nie ludzie: pomijamy.
+		if ( '' === $path || preg_match( '#\.(php|env|git|sql|bak|zip|ini|log|key|pem|ya?ml|asp|aspx)(/|$)|/wp-(content|includes|admin)/|/\.#i', $path ) ) {
+			return;
+		}
+		$ref  = isset( $_SERVER['HTTP_REFERER'] ) ? (string) wp_parse_url( (string) wp_unslash( $_SERVER['HTTP_REFERER'] ), PHP_URL_HOST ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$all  = get_option( self::MISSING, array() );
+		$all  = is_array( $all ) ? $all : array();
+		$row  = $all[ $path ] ?? array( 'n' => 0 );
+		$row  = array( 'n' => (int) $row['n'] + 1, 't' => time(), 'r' => '' !== $ref ? $ref : ( $row['r'] ?? '' ) );
+		$all[ $path ] = $row;
+		if ( count( $all ) > 150 ) { // ponytail: trzymamy 100 najświeższych adresów; dłuższa historia w logach serwera.
+			uasort( $all, static fn( $a, $b ) => $b['t'] <=> $a['t'] );
+			$all = array_slice( $all, 0, 100, true );
+		}
+		update_option( self::MISSING, $all, false );
+	}
+
+	/**
+	 * Wiersze karty "Adresy, które nie istnieją" z ostatnich $days dni.
+	 *
+	 * @return array<int,array<int,string>>
+	 */
+	private static function missing_rows( int $days, int $n = 5 ): array {
+		$all  = get_option( self::MISSING, array() );
+		$from = time() - $days * DAY_IN_SECONDS;
+		$all  = array_filter( is_array( $all ) ? $all : array(), static fn( $r ) => (int) ( $r['t'] ?? 0 ) >= $from );
+		uasort( $all, static fn( $a, $b ) => $b['n'] <=> $a['n'] );
+		$rows = array();
+		foreach ( array_slice( $all, 0, $n, true ) as $path => $r ) {
+			$rows[] = array( (string) $path, home_url( (string) $path ), self::num( (float) $r['n'] ) . '×', '' !== ( $r['r'] ?? '' ) ? sprintf( /* translators: %s: domena */ __( 'Skąd: %s', 'colorify-by-inyfinn' ), $r['r'] ) : __( 'Wejście bez odnośnika (zakładka, stary link, wpisany adres)', 'colorify-by-inyfinn' ) );
+		}
+		return $rows;
+	}
+
+	public static function count_visit(): void {
+		// 404 nie jest wejściem na stronę, także gdy motyw pokazał w jego miejscu własną stronę "Page 404".
+		if ( self::$was_404 || is_404() || ! self::countable() ) {
+			return;
+		}
+		$ua = (string) wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$day  = wp_date( 'Y-m-d' );
 		$ip   = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$hash = substr( md5( $ip . '|' . $ua . '|' . $day . '|' . wp_salt( 'nonce' ) ), 0, 12 );
@@ -315,7 +375,12 @@ final class Colorify_Dashboard {
 		$top  = array_slice( $cur['pages'], 0, 1, true );
 		$tid  = (int) key( $top );
 		$out .= self::stat( 'pages', __( 'Najczęściej oglądana', 'colorify-by-inyfinn' ), $tid ? esc_html( get_the_title( $tid ) ) : '-', '', $tid ? self::views_label( (int) reset( $top ) ) : '', $tid ? (string) get_edit_post_link( $tid, 'raw' ) : '' );
-		return $out . '</section>';
+		$out .= '</section>';
+		$miss = self::missing_rows( $days );
+		if ( $miss ) {
+			$out .= self::list_card( __( 'Adresy, które nie istnieją (404)', 'colorify-by-inyfinn' ), $miss, '' );
+		}
+		return $out;
 	}
 
 	/** @param array<int,int> $pages */
