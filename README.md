@@ -28,6 +28,9 @@ Na starszym środowisku wtyczka pokazuje komunikat w panelu i nie ładuje reszty
   boczne i górny pasek. Poprawka działa w stanie spoczynku: elementy najechane i wciśnięte zachowują własne kolory.
 - **Schemat domyślny: Grafit i złoto** (ciemne menu i pasek `#1a1a1a`, złoty akcent `#b1976b`). Osoby z zapisanym
   własnym wyborem zachowują go.
+- **Kafle na listach wpisów.** Na każdej liście (Wpisy, Strony, własne rodzaje treści) przełącznik "Kafle / Lista"
+  i suwak wielkości kafli. Administrator w trybie "Dostosuj kafelki" wybiera, co widać na kafelku. Wtyczki stron dokładają
+  własne pola filtrem `colorify_list_tile_fields`.
 - **Ograniczenie:** edytor blokowy działa w ramce (iframe), do której Colorify nie sięga; obszar edycji treści
   zostaje jasny.
 

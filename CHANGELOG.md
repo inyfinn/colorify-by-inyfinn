@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.8.0
+
+- Kafle na listach wpisów, stron i własnych rodzajów treści (Wpisy, Strony itd.). Nad tabelą przełącznik "Kafle / Lista" (każde konto pamięta swój wybór, domyślnie lista) i suwak "Rozmiar kafelków" od 3 do 10 w rzędzie. Na węższym ekranie kafli w rzędzie jest mniej: licznik pokazuje prawdziwą liczbę i jest komunikat, że widok się zmienił.
+- Pierwszy kafel to zawsze "Dodaj nowy...". Kafel ma obrazek, tytuł i wybrane pola; na dole Edytuj, Duplikuj, Zobacz i kosz (akcje innych wtyczek z wiersza tabeli też, np. Duplicate Page). Gdy kafel jest wąski, przyciski tracą podpisy, a potem chowają się pod "..."; nigdy nie znikają.
+- Tryb edycji ("Dostosuj kafelki", tylko administrator): zaznaczasz, co pokazuje kafel danego rodzaju treści (obrazek, status, data, autor, zajawka, kategorie i tagi, pola własne). Ustawienie obowiązuje wszystkich.
+- Dla wtyczek stron: filtry `colorify_list_tile_fields` (własne pola, np. adres i godziny sklepu), `colorify_list_tile_image`, `colorify_list_tile_title`, `colorify_list_tiles_default_view`, `colorify_list_tiles_excluded_post_types` i funkcja `colorify_lt_active()` (czy lista jest teraz w kaflach). Klasy `cfl-badge` (`is-ok`, `is-bad`) i `cfl-table` do pól z plakietką i tabelką.
+
 ## 2.7.4
 
 - Repozytorium: nowa wtyczka strony `site-plugins/eta-przekierowania` 1.0.0 (ETA Innovations: przekierowania 301 ze starych adresów zamiast strony 404). Wydanie dołącza `eta-przekierowania.zip`. Sam Colorify bez zmian.
