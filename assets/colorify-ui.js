@@ -1082,6 +1082,9 @@
 			alpha: a,
 			lum: 0.2126 * lin[ 0 ] + 0.7152 * lin[ 1 ] + 0.0722 * lin[ 2 ],
 			sat: Math.max.apply( null, rgb ) - Math.min.apply( null, rgb ),
+			// Nasycenie w skali HSV (0-1): ciemny brąz #301E0E ma ok. 0.7, mimo że różnica kanałów to tylko 34 z 255.
+			s: Math.max.apply( null, rgb ) ? ( Math.max.apply( null, rgb ) - Math.min.apply( null, rgb ) ) / Math.max.apply( null, rgb ) : 0,
+			max: Math.max.apply( null, rgb ),
 		};
 	}
 
@@ -1145,6 +1148,78 @@
 		return faces;
 	}
 
+	/** Kolor zapisany dowolnie w CSS (hex, rgb, hsl, nazwa) odczytany przez przeglądarkę; null, gdy to nie kolor. */
+	function probeColor( doc, win, value ) {
+		value = ( value || '' ).trim();
+		if ( ! value || /^(inherit|initial|unset|currentcolor|transparent)$/i.test( value ) ) {
+			return null;
+		}
+		var p = doc.createElement( 'span' );
+		p.style.color = value;
+		if ( ! p.style.color ) {
+			return null;
+		}
+		doc.body.appendChild( p );
+		var c = parseColor( win.getComputedStyle( p ).color );
+		p.remove();
+		return c;
+	}
+
+	/** Zmienne CSS z :root, html, body (i zestawu Elementora) strony, które są kolorami: [{ name, c }]. */
+	function readCssVars( doc, win ) {
+		var names = {};
+		var count = 0;
+		function walk( sheet ) {
+			var rules;
+			try {
+				rules = sheet.cssRules;
+			} catch ( e ) {
+				return; // arkusz z innego serwera
+			}
+			Array.prototype.forEach.call( rules || [], function ( rule ) {
+				if ( rule.styleSheet ) {
+					walk( rule.styleSheet );
+				} else if ( rule.cssRules && ! rule.selectorText ) {
+					walk( rule ); // @media, @supports
+				} else if ( rule.selectorText && rule.style && /(^|,)\s*(:root|html|body|\.elementor-kit-\d+)\s*(,|$)/.test( rule.selectorText ) ) {
+					for ( var i = 0; i < rule.style.length && count < 600; i++ ) {
+						if ( rule.style[ i ].indexOf( '--' ) === 0 && ! names[ rule.style[ i ] ] ) {
+							names[ rule.style[ i ] ] = 1;
+							count++;
+						}
+					}
+				}
+			} );
+		}
+		Array.prototype.forEach.call( doc.styleSheets, walk );
+		var cs = win.getComputedStyle( doc.body );
+		var out = [];
+		Object.keys( names ).forEach( function ( n ) {
+			var c = probeColor( doc, win, cs.getPropertyValue( n ) );
+			if ( c && c.alpha > 0.9 ) {
+				out.push( { name: n.toLowerCase(), c: c } );
+			}
+		} );
+		return out;
+	}
+
+	/** Ile punktów dostaje kolor za nazwę zmiennej: "główny" waży więcej niż "drugi", tło i tekst nie liczą się jako akcent. */
+	function varWeight( name ) {
+		if ( /(bg|background|surface|canvas|paper|text|foreground|border|shadow|overlay|success|error|warning|danger|info|gradient)/.test( name ) ) {
+			return 0.2;
+		}
+		if ( /primary|brand|main|theme|cta|button|btn/.test( name ) ) {
+			return 5;
+		}
+		if ( /accent|highlight|link/.test( name ) ) {
+			return 3;
+		}
+		if ( /secondary|second|tertiary/.test( name ) ) {
+			return 2;
+		}
+		return 1;
+	}
+
 	function measureSite( doc, win ) {
 		function shown( el ) {
 			var r = el.getBoundingClientRect();
@@ -1184,9 +1259,16 @@
 			}
 		);
 
-		// Akcent: kolor nasycony, który na stronie widać najwięcej (tła przycisków, kolory odnośników, ikon, nagłówków),
-		// a nie pierwszy z brzegu element. Kolory prawie czarne to tło menu, nie akcent.
+		// Zmienne CSS strony (:root { --color-primary: ... }): motywy trzymają tam swoją paletę, także kolory ciemne
+		// i stonowane (brąz, granat), które w samych elementach giną wśród setek odcieni tekstu i teł.
+		var vars = readCssVars( doc, win );
+
+		// Akcent: kolor, który na stronie widać najwięcej (tła przycisków, odnośniki, ikony, nagłówki) albo który motyw
+		// nazywa głównym, a nie pierwszy z brzegu element. Ciemne barwne kolory (brąz, granat) są pełnoprawnymi akcentami;
+		// odrzucamy tylko szarości, biel i czerń.
 		var votes = {};
+		var neutral = {};
+		var total = 0;
 		Array.prototype.forEach.call( doc.querySelectorAll( 'a, button, [class*="button"], [class*="btn"], h1, h2, h3, h4, svg, i, strong' ), function ( el ) {
 			if ( foreign( el ) ) {
 				return;
@@ -1198,36 +1280,96 @@
 			var cs = win.getComputedStyle( el );
 			[ [ cs.backgroundColor, r.width * r.height / 100 ], [ cs.color, r.width / 10 ], [ cs.fill, r.width / 10 ] ].forEach( function ( pair ) {
 				var c = parseColor( pair[ 0 ] );
-				if ( ! c || c.alpha < 0.6 || c.sat < 40 || c.lum < 0.04 || c.lum > 0.8 ) {
+				if ( ! c || c.alpha < 0.6 || c.lum > 0.8 ) {
 					return;
 				}
-				votes[ c.hex ] = votes[ c.hex ] || { c: c, n: 0 };
-				votes[ c.hex ].n += pair[ 1 ];
+				var bucket = c.s >= 0.25 && c.max >= 24 ? votes : ( c.lum < 0.25 && c.lum > 0.001 ? neutral : null );
+				if ( ! bucket ) {
+					return;
+				}
+				bucket[ c.hex ] = bucket[ c.hex ] || { c: c, n: 0 };
+				bucket[ c.hex ].n += pair[ 1 ];
+				if ( bucket === votes ) {
+					total += pair[ 1 ];
+				}
 			} );
 		} );
-		var ranked = Object.keys( votes ).map( function ( k ) {
-			return votes[ k ];
+
+		var scored = {};
+		function addScore( c, pts ) {
+			scored[ c.hex ] = scored[ c.hex ] || { c: c, v: 0 };
+			scored[ c.hex ].v += pts;
+		}
+		Object.keys( votes ).forEach( function ( k ) {
+			addScore( votes[ k ].c, total ? 6 * votes[ k ].n / total : 0 );
+		} );
+		vars.forEach( function ( v ) {
+			if ( v.c.s >= 0.25 && v.c.max >= 24 ) {
+				addScore( v.c, varWeight( v.name ) );
+			}
+		} );
+		var ranked = Object.keys( scored ).map( function ( k ) {
+			return scored[ k ];
 		} ).sort( function ( a, b ) {
-			return b.n - a.n;
+			return b.v - a.v;
 		} );
 		var accent = ranked[ 0 ] ? ranked[ 0 ].c : null;
+		// Strona bez żadnego barwnego koloru (czerń i biel): akcentem jest najczęstsze ciemne tło przycisku.
+		if ( ! accent ) {
+			var darkest = Object.keys( neutral ).map( function ( k ) {
+				return neutral[ k ];
+			} ).sort( function ( a, b ) {
+				return b.n - a.n;
+			} )[ 0 ];
+			accent = darkest ? darkest.c : null;
+		}
+		function farFrom( hex, ref ) {
+			return [ 1, 3, 5 ].reduce( function ( s, i ) {
+				return s + Math.abs( parseInt( hex.substr( i, 2 ), 16 ) - parseInt( ref.substr( i, 2 ), 16 ) );
+			}, 0 ) > 60;
+		}
 		// Drugi akcent: następny wyraźnie inny kolor, a gdy go nie ma, jaśniejszy odcień akcentu.
 		var link = null;
-		ranked.slice( 1 ).some( function ( v ) {
-			var diff = [ 1, 3, 5 ].reduce( function ( s, i ) {
-				return s + Math.abs( parseInt( v.c.hex.substr( i, 2 ), 16 ) - parseInt( accent.hex.substr( i, 2 ), 16 ) );
-			}, 0 );
-			if ( diff > 60 ) {
-				link = v.c;
+		if ( accent ) {
+			ranked.slice( 1 ).some( function ( v ) {
+				if ( farFrom( v.c.hex, accent.hex ) ) {
+					link = v.c;
+					return true;
+				}
+				return false;
+			} );
+		}
+
+		// Jasne tło strony (krem, biel): tło body albo zmienna motywu o nazwie tła.
+		var page = null;
+		[ doc.body, doc.documentElement ].some( function ( el ) {
+			var c = parseColor( win.getComputedStyle( el ).backgroundColor );
+			if ( c && c.alpha > 0.9 && c.lum > 0.6 ) {
+				page = c;
 				return true;
 			}
 			return false;
 		} );
+		if ( ! page ) {
+			vars.some( function ( v ) {
+				if ( /(^|-)(bg|background|surface|canvas|paper|cream|base)(-|$)/.test( v.name ) && v.c.lum > 0.6 ) {
+					page = v.c;
+					return true;
+				}
+				return false;
+			} );
+		}
+		// Gdy akcent jest ciemny (brąz, granat), nie zabarwi podświetlenia na ciemnym menu: wtedy drugim kolorem jest jasne
+		// tło strony (krem). Menu dostaje jasną pigułkę z ciemnym tekstem, a przyciski w treści zostają w kolorze akcentu.
+		if ( accent && accent.lum < 0.08 && page ) {
+			link = page;
+		}
 		if ( accent && ! link ) {
 			link = { hex: mixHex( accent.hex, 255, 0.25 ) };
 		}
 
-		// Ciemna powierzchnia strony (stopka, nagłówek) na menu panelu; bez niej kolor tekstu, a na końcu grafit.
+		// Ciemna powierzchnia strony (stopka, nagłówek) na menu panelu; bez niej ciemna zmienna motywu, kolor tekstu,
+		// a na końcu grafit.
 		var ink = null;
 		Array.prototype.some.call( doc.querySelectorAll( 'footer, .site-footer, [data-elementor-type="footer"], header, .site-header' ), function ( el ) {
 			var bg = shown( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
@@ -1238,7 +1380,19 @@
 			return false;
 		} );
 		if ( ! ink ) {
+			var darkVars = vars.filter( function ( v ) {
+				return v.c.lum < 0.06 && v.c.max >= 12 && ! /(black|text|foreground|shadow|overlay)/.test( v.name );
+			} ).sort( function ( a, b ) {
+				return varWeight( b.name ) - varWeight( a.name );
+			} );
+			ink = darkVars[ 0 ] ? darkVars[ 0 ].c : null;
+		}
+		if ( ! ink ) {
 			ink = text && text.lum < 0.12 ? text : { hex: '#1d2327', lum: 0.015 };
+		}
+		// Ciemny barwny akcent (brąz, granat) jest kolorem marki: menu dostaje jego barwę, a nie prawie czarną stopkę.
+		if ( accent && accent.lum < 0.08 && accent.s >= 0.25 ) {
+			ink = accent;
 		}
 		// Szary tekst albo szara stopka to za jasne tło dla menu: przyciemniamy do grafitu w tym samym odcieniu.
 		ink = ink.lum > 0.03 ? mixHex( ink.hex, 0, 0.6 ) : ink.hex;
@@ -1250,6 +1404,9 @@
 			body: bodyCs.fontFamily,
 			radius: Math.round( Math.min( 10, radius ) ),
 			faces: collectFaces( doc, [ firstFamily( heading ), firstFamily( bodyCs.fontFamily ) ] ),
+			source: accent && vars.some( function ( x ) {
+				return x.c.hex === accent.hex;
+			} ) ? 'vars' : 'page',
 			colors: accent
 				? { bg: mixHex( ink, 0, 0.25 ), bg2: ink, accent: accent.hex, accent2: ( link || accent ).hex }
 				: null,
@@ -1311,6 +1468,23 @@
 			row( cfg.i18n.matchBody, fontLabel( look.body ) );
 			row( cfg.i18n.matchRadius, look.radius + ' px' );
 
+			// Co zastosować: kolory i czcionki osobno. Czcionki strony, które nie dają się wczytać z tego serwera, zostają
+			// odznaczone, a panel zachowuje czytelną czcionkę WordPressa.
+			var opts = el( 'div', 'colorify-match__opts' );
+			function option( label, checked, off ) {
+				var wrap = el( 'label', 'colorify-match__opt' );
+				var box = el( 'input' );
+				box.type = 'checkbox';
+				box.checked = checked;
+				box.disabled = off;
+				wrap.appendChild( box );
+				wrap.appendChild( d.createTextNode( ' ' + label ) );
+				opts.appendChild( wrap );
+				return box;
+			}
+			var useColors = option( cfg.i18n.matchUseColors, !! look.colors, ! look.colors );
+			var useFonts = option( cfg.i18n.matchUseFonts, look.faces.length > 0, false );
+
 			var apply = el( 'button', 'button button-primary', cfg.i18n.matchApply );
 			apply.type = 'button';
 			var cancel = el( 'button', 'button', cfg.i18n.matchCancel );
@@ -1320,7 +1494,12 @@
 			} );
 			apply.addEventListener( 'click', function () {
 				apply.disabled = true;
-				post( 'colorify_apply_site_look', { look: JSON.stringify( look ) } )
+				var chosen = JSON.parse( JSON.stringify( look ) );
+				chosen.fonts = useFonts.checked;
+				if ( ! useColors.checked ) {
+					chosen.colors = null;
+				}
+				post( 'colorify_apply_site_look', { look: JSON.stringify( chosen ) } )
 					.then( function () {
 						w.location.reload();
 					} )
@@ -1335,8 +1514,9 @@
 
 			show( [
 				list,
+				opts,
 				el( 'p', 'colorify-match__note', look.faces.length ? cfg.i18n.matchFonts + ' ' + look.faces.length + '.' : cfg.i18n.matchNoFonts ),
-				el( 'p', 'colorify-match__note', look.colors ? cfg.i18n.matchNote : '' ),
+				el( 'p', 'colorify-match__note', look.colors ? ( 'vars' === look.source ? cfg.i18n.matchSourceVars : cfg.i18n.matchSourcePage ) + ' ' + cfg.i18n.matchNote : cfg.i18n.matchNoColors ),
 				actions,
 			] );
 		}

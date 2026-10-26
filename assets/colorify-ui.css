@@ -1727,6 +1727,25 @@
 	display: none;
 }
 
+.colorify-match__opts {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0 0 10px;
+}
+
+.colorify-match__opt {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.colorify-match__opt input {
+	margin-top: 3px;
+}
+
 .colorify-match__actions {
 	display: flex;
 	gap: 12px;

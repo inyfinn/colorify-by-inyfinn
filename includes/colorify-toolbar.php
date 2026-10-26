@@ -40,6 +40,7 @@ function colorify_ui_sprite(): void {
 	// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- statyczne znaczniki wtyczki.
 	echo '<svg id="colorify-sprite" style="display:none" aria-hidden="true" focusable="false">'
 		. $logo
+		. '<symbol id="colorify-i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-1-.9-1.5-.9-2.4 0-1 .8-1.6 1.8-1.6H17a4 4 0 0 0 4-4c0-4.4-4-8.3-9-8.3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></symbol>'
 		. '<symbol id="colorify-i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>'
 		. '<symbol id="colorify-i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>'
 		. '<symbol id="colorify-i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>'
@@ -129,7 +130,8 @@ function colorify_toolbar_admin_bar_menu( $bar ): void {
 		array(
 			'id'     => 'colorify',
 			'parent' => 'top-secondary',
-			'title'  => '<span class="colorify-ab-icon">' . colorify_ui_icon( 'logo', 'colorify-i--fill' ) . '</span>'
+			// Strona z własną ikoną witryny ma już swój znak na pasku: menu Colorify dostaje wtedy neutralną paletę zamiast logo INYFINN.
+			'title'  => '<span class="colorify-ab-icon">' . ( colorify_branding_uses_site_favicon() ? colorify_ui_icon( 'palette' ) : colorify_ui_icon( 'logo', 'colorify-i--fill' ) ) . '</span>'
 				. '<span class="colorify-ab-label">' . ( $active ? esc_html__( 'Colorify', 'colorify-by-inyfinn' ) : esc_html__( 'Colorify wyłączony', 'colorify-by-inyfinn' ) ) . '</span>'
 				. colorify_ui_icon( 'chev', 'colorify-ab-chev' ),
 			'href'   => '#colorify-menu',
@@ -270,6 +272,11 @@ function colorify_ui_enqueue(): void {
 			'matchFonts'   => $decode( __( 'Pliki czcionek z tej strony:', 'colorify-by-inyfinn' ) ),
 			'matchNoFonts' => $decode( __( 'Strona ładuje czcionki z zewnętrznego serwera albo ich nie ma. Colorify użyje wtedy czcionki systemowej.', 'colorify-by-inyfinn' ) ),
 			'matchNote'    => $decode( __( 'Kolory zostaną zapisane jako własna paleta witryny, a Twoje konto dostanie te same kolory.', 'colorify-by-inyfinn' ) ),
+			'matchUseColors' => $decode( __( 'Zastosuj kolory strony', 'colorify-by-inyfinn' ) ),
+			'matchUseFonts'  => $decode( __( 'Zastosuj też czcionki i rogi strony (bez tego panel zostaje przy czcionkach WordPressa)', 'colorify-by-inyfinn' ) ),
+			'matchSourceVars' => $decode( __( 'Kolory odczytane ze zmiennych CSS motywu strony.', 'colorify-by-inyfinn' ) ),
+			'matchSourcePage' => $decode( __( 'Kolory odczytane z wyglądu elementów strony.', 'colorify-by-inyfinn' ) ),
+			'matchNoColors'   => $decode( __( 'Na stronie nie znaleziono barwnego koloru marki. Wybierz kolory ręcznie.', 'colorify-by-inyfinn' ) ),
 			'modeError'    => $decode( __( 'Nie udało się zmienić trybu. Spróbuj ponownie.', 'colorify-by-inyfinn' ) ),
 			'styleError'   => $decode( __( 'Nie udało się zmienić stylu. Spróbuj ponownie.', 'colorify-by-inyfinn' ) ),
 			'dismiss'      => $decode( __( 'Zamknij komunikat', 'colorify-by-inyfinn' ) ),

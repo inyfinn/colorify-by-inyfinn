@@ -45,11 +45,20 @@ add_action(
 		if ( ! is_admin() || ! colorify_is_user_theme_enabled() ) {
 			return;
 		}
-		$url = esc_url( colorify_branding_site_icon_url( 512 ) );
-		printf(
-			'<style id="colorify-admin-bar-site-icon">#wpadminbar #wp-admin-bar-site-name > .ab-item::before{content:""!important;display:inline-block!important;width:18px!important;height:18px!important;margin:7px 6px 0 0!important;padding:0!important;background:url("%s") center/contain no-repeat!important;opacity:.92;float:left!important;}</style>',
-			$url // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		);
+		// Jedno logo na pasku. Logo WordPressa po lewej ustępuje (filtr colorify_hide_wp_logo), a przy nazwie witryny jest
+		// wyłącznie ikona witryny z Tożsamości witryny. Bez niej nie dokładamy znaku INYFINN: ten jest już w menu Colorify
+		// po prawej, a drugi obraz nakładał się na ikonę domu z WordPressa.
+		$css = '';
+		if ( colorify_branding_uses_site_favicon() ) {
+			$css .= '#wpadminbar #wp-admin-bar-site-name > .ab-item::before{content:""!important;display:inline-block!important;width:18px!important;height:18px!important;margin:7px 6px 0 0!important;padding:0!important;background:url("' . esc_url( colorify_branding_site_icon_url( 512 ) ) . '") center/contain no-repeat!important;opacity:.92;float:left!important;}';
+		}
+		if ( apply_filters( 'colorify_hide_wp_logo', true ) ) {
+			$css .= '#wpadminbar #wp-admin-bar-wp-logo{display:none!important}';
+		}
+		if ( '' !== $css ) {
+			echo '<style id="colorify-admin-bar-site-icon">' . $css . '</style>' . "
+"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- stały CSS i adres po esc_url().
+		}
 	},
 	100
 );

@@ -632,9 +632,15 @@ function colorify_ajax_apply_site_look(): void {
 		wp_send_json_error( array( 'message' => 'invalid' ), 400 );
 	}
 
-	$skin = colorify_skin_sanitize( array_merge( $look, array( 'preset' => 'site' ) ) );
-	if ( '' === $skin['body'] ) {
-		wp_send_json_error( array( 'message' => 'no_font' ), 400 );
+	// Czcionki i rogi strony są opcją: bez nich panel zostaje przy czytelnej czcionce WordPressa (skóra "neutral").
+	$use_fonts = ! isset( $look['fonts'] ) || ! empty( $look['fonts'] );
+	if ( $use_fonts ) {
+		$skin = colorify_skin_sanitize( array_merge( $look, array( 'preset' => 'site' ) ) );
+		if ( '' === $skin['body'] ) {
+			wp_send_json_error( array( 'message' => 'no_font' ), 400 );
+		}
+	} else {
+		$skin = colorify_skin_sanitize( array( 'preset' => 'neutral' ) );
 	}
 	update_option( COLORIFY_SKIN_OPTION, $skin );
 

@@ -17,13 +17,15 @@ defined( 'ABSPATH' ) || exit;
 
 final class Colorify_Dashboard {
 
+	use Colorify_Dashboard_Planner;
+
 	const OPTION     = 'colorify_dashboard_style';
 	const VISITS     = 'colorify_visits';
 	const MISSING    = 'colorify_404';
 	const KEEP_DAYS  = 400;
 	const PAGES_DAY  = 200;
 	const PAID       = array( 'wc-processing', 'wc-completed', 'wc-on-hold' );
-	const STYLES     = array( 'classic', 'sales', 'leads', 'editorial', 'company' );
+	const STYLES     = array( 'classic', 'sales', 'leads', 'editorial', 'company', 'calendar', 'bookings', 'portfolio' );
 
 	public static function init(): void {
 		add_action( 'template_redirect', array( __CLASS__, 'note_404' ), 0 );
@@ -45,6 +47,9 @@ final class Colorify_Dashboard {
 			'leads'     => array( __( 'Zapytania', 'colorify-by-inyfinn' ), __( 'Usługi: wiadomości z formularzy, popularne podstrony.', 'colorify-by-inyfinn' ) ),
 			'editorial' => array( __( 'Redakcja', 'colorify-by-inyfinn' ), __( 'Blog: komentarze, zaplanowane wpisy, szkice, czytane.', 'colorify-by-inyfinn' ) ),
 			'company'   => array( __( 'Firma', 'colorify-by-inyfinn' ), __( 'Wizytówka: kondycja strony, aktualizacje, tłumaczenia.', 'colorify-by-inyfinn' ) ),
+			'calendar'  => array( __( 'Kalendarz zleceń', 'colorify-by-inyfinn' ), __( 'Terminarz: miesiąc z wydarzeniami, najbliższe zlecenia, liczby (dane podaje wtyczka zleceń).', 'colorify-by-inyfinn' ) ),
+			'bookings'  => array( __( 'Rezerwacje', 'colorify-by-inyfinn' ), __( 'Usługi na zamówienie: etapy zleceń, wartość, najbliższy termin (dane podaje wtyczka zleceń).', 'colorify-by-inyfinn' ) ),
+			'portfolio' => array( __( 'Portfolio', 'colorify-by-inyfinn' ), __( 'Twórca: ostatnio dodane zdjęcia, strony, wejścia.', 'colorify-by-inyfinn' ) ),
 		);
 	}
 
@@ -57,7 +62,10 @@ final class Colorify_Dashboard {
 		if ( 'sales' === $s && ( ! function_exists( 'wc_get_orders' ) || ! current_user_can( 'manage_woocommerce' ) ) ) {
 			return 'classic';
 		}
-		if ( in_array( $s, array( 'leads', 'company' ), true ) && ! current_user_can( 'manage_options' ) ) {
+		if ( in_array( $s, array( 'leads', 'company', 'calendar', 'bookings' ), true ) && ! current_user_can( 'manage_options' ) ) {
+			return 'classic';
+		}
+		if ( 'portfolio' === $s && ! current_user_can( 'upload_files' ) ) {
 			return 'classic';
 		}
 		return $s;
@@ -226,6 +234,7 @@ final class Colorify_Dashboard {
 		add_filter( 'get_user_option_screen_layout_dashboard', static function () { return 1; } );
 		add_filter( 'screen_options_show_screen', '__return_false' );
 		add_action( 'admin_head', array( __CLASS__, 'css' ) );
+		add_action( 'admin_head', array( __CLASS__, 'planner_css' ) );
 	}
 
 	/* ---------- Drobne elementy widoku ---------- */
@@ -272,6 +281,10 @@ final class Colorify_Dashboard {
 			'card'    => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
 			'alert'   => '<path d="M12 4l9 16H3L12 4z"/><path d="M12 10v4M12 17h.01"/>',
 			'file'    => '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+			'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+			'pin'     => '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+			'image'   => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+			'film'    => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v14M16 5v14M3 10h5M3 14h5M16 10h5M16 14h5"/>',
 		);
 		return '<span class="cfd-ico cfd-ico--' . esc_attr( $name ) . '" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . ( $paths[ $name ] ?? '' ) . '</svg></span>';
 	}
@@ -417,6 +430,15 @@ final class Colorify_Dashboard {
 				break;
 			case 'company':
 				echo self::company( $days );
+				break;
+			case 'calendar':
+				echo self::calendar( $days );
+				break;
+			case 'bookings':
+				echo self::bookings( $days );
+				break;
+			case 'portfolio':
+				echo self::portfolio( $days );
 				break;
 		}
 		// phpcs:enable
@@ -711,9 +733,11 @@ final class Colorify_Dashboard {
 			set_transient( $key, $f ?? 'none', 5 * MINUTE_IN_SECONDS );
 		}
 		$f    = is_array( $f ) ? $f : null;
+		// Zlecenia z wtyczki (filtry colorify_calendar_events / colorify_dashboard_kpis) to też zapytania: nie straszymy "formularze nie zapisują".
+		$ext  = $f ? null : self::plan_leads_source();
 		$tcur = self::traffic( $from, $to );
 		$tpre = self::traffic( $prevf, $from );
-		$msg  = $f ? $f['url'] : admin_url( 'plugins.php' );
+		$msg  = $f ? $f['url'] : ( $ext ? $ext['url'] : admin_url( 'plugins.php' ) );
 
 		/* translators: %d: liczba dni */
 		$out  = self::head( sprintf( __( 'Ostatnie %d dni', 'colorify-by-inyfinn' ), $days ), $days );
@@ -727,14 +751,23 @@ final class Colorify_Dashboard {
 		);
 
 		$out .= '<section class="cfd-card cfd-strip">';
-		$out .= self::stat( 'mail', __( 'Zapytania', 'colorify-by-inyfinn' ), $f ? esc_html( self::num( $f['total'] ) ) : '-', '', $f ? $f['name'] : __( 'Formularze nie zapisują wiadomości', 'colorify-by-inyfinn' ), $msg );
+		if ( $ext ) {
+			$out .= self::stat( 'mail', __( 'Zlecenia w terminarzu', 'colorify-by-inyfinn' ), esc_html( self::num( $ext['count'] ) ), '', __( 'Najbliższe pół roku', 'colorify-by-inyfinn' ), $msg );
+		} else {
+			$out .= self::stat( 'mail', __( 'Zapytania', 'colorify-by-inyfinn' ), $f ? esc_html( self::num( $f['total'] ) ) : '-', '', $f ? $f['name'] : __( 'Formularze nie zapisują wiadomości', 'colorify-by-inyfinn' ), $msg );
+		}
 		$out .= self::stat( 'eye', __( 'Wejścia na stronę', 'colorify-by-inyfinn' ), esc_html( self::num( $tcur['views'] ) ), self::delta( $tcur['views'], $tpre['views'] ) );
 		$out .= self::stat( 'user', __( 'Unikalni odwiedzający', 'colorify-by-inyfinn' ), esc_html( self::num( $tcur['visitors'] ) ), self::delta( $tcur['visitors'], $tpre['visitors'] ) );
 		$rate = ( $f && $tcur['visitors'] > 0 ) ? $f['total'] / $tcur['visitors'] * 100 : -1;
 		$out .= self::stat( 'conv', __( 'Zapytania na 100 odwiedzających', 'colorify-by-inyfinn' ), $rate >= 0 ? esc_html( self::num( $rate, 1 ) ) : '-' );
 		$out .= '</section>';
 
-		if ( ! $f ) {
+		if ( ! $f && $ext ) {
+			$nx    = $ext['next'];
+			$promo = $nx
+				? self::promo( __( 'Najbliższe zlecenie', 'colorify-by-inyfinn' ), $nx['title'], array_filter( array( wp_date( 'j F Y', strtotime( $nx['date'] . ' 12:00:00' ) ), $nx['meta'] ) ), '' !== $nx['url'] ? __( 'Otwórz zlecenie', 'colorify-by-inyfinn' ) : '', $nx['url'] )
+				: self::promo( __( 'Do przejrzenia', 'colorify-by-inyfinn' ), __( 'Brak nadchodzących zleceń', 'colorify-by-inyfinn' ), array( __( 'Nowe zlecenia pojawią się tutaj.', 'colorify-by-inyfinn' ) ), '', '', true );
+		} elseif ( ! $f ) {
 			$promo = self::promo( __( 'Do przejrzenia', 'colorify-by-inyfinn' ), __( 'Wiadomości nie są zapisywane na stronie', 'colorify-by-inyfinn' ), array( __( 'Formularze wysyłają je tylko e-mailem. Żeby widzieć je tutaj, włącz zapisywanie zgłoszeń (np. MetForm: Store Entries, Contact Form 7: wtyczka Flamingo).', 'colorify-by-inyfinn' ) ), __( 'Wtyczki', 'colorify-by-inyfinn' ), admin_url( 'plugins.php' ), true );
 		} elseif ( null !== $f['unread'] && $f['unread'] > 0 ) {
 			/* translators: %d: liczba */

@@ -212,7 +212,7 @@ final class Colorify_Settings {
 		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '</p>';
 		echo '<p class="colorify-site__hint" id="colorify-dash-hint">' . esc_html( $dl[ $dstyle ][1] ) . '</p></div>';
 		echo '<div class="colorify-seg colorify-scope-seg colorify-style-seg colorify-dash-seg" role="radiogroup" aria-label="' . esc_attr__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '">';
-		foreach ( array( 'sales', 'leads', 'editorial', 'company', 'classic' ) as $value ) {
+		foreach ( array( 'calendar', 'bookings', 'portfolio', 'sales', 'leads', 'editorial', 'company', 'classic' ) as $value ) {
 			printf(
 				'<label class="colorify-seg__opt" aria-checked="%3$s" title="%5$s"><input type="radio" class="screen-reader-text" name="colorify_dashboard_style" value="%1$s" %4$s>%2$s</label>',
 				esc_attr( $value ),
@@ -227,7 +227,7 @@ final class Colorify_Settings {
 		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.
 		$skin_now  = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
 		$site_cols = get_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_colors', array() );
-		$site_on   = COLORIFY_ADMIN_CUSTOM_SCHEME_KEY === colorify_get_global_admin_color() && 'site' === $skin_now['preset'] && is_array( $site_cols );
+		$site_on   = COLORIFY_ADMIN_CUSTOM_SCHEME_KEY === colorify_get_global_admin_color() && is_array( $site_cols ) && ! empty( $site_cols );
 		$host      = (string) wp_parse_url( home_url(), PHP_URL_HOST );
 		echo '<div class="colorify-site">';
 		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Dopasowanie do strony', 'colorify-by-inyfinn' ) . '</p>';
@@ -242,8 +242,12 @@ final class Colorify_Settings {
 					echo '<i class="colorify-match__swatch" data-colorify-swatch style="background:' . esc_attr( $hex ) . '" title="' . esc_attr( $hex ) . '"></i>';
 				}
 			}
-			/* translators: 1: czcionka, 2: zaokrąglenie w px */
-			echo '<span>' . esc_html( sprintf( __( '%1$s, rogi %2$d px', 'colorify-by-inyfinn' ), $font, $skin_now['radius'] ) ) . '</span></p>';
+			if ( 'site' === $skin_now['preset'] ) {
+				/* translators: 1: czcionka, 2: zaokrąglenie w px */
+				echo '<span>' . esc_html( sprintf( __( '%1$s, rogi %2$d px', 'colorify-by-inyfinn' ), $font, $skin_now['radius'] ) ) . '</span></p>';
+			} else {
+				echo '<span>' . esc_html__( 'czcionki WordPressa', 'colorify-by-inyfinn' ) . '</span></p>';
+			}
 		}
 		echo '</div>';
 		echo '<button type="button" class="button button-primary colorify-match-btn" id="colorify-match-run">' . esc_html( $site_on ? __( 'Odczytaj ponownie', 'colorify-by-inyfinn' ) : __( 'Dopasuj do mojej strony', 'colorify-by-inyfinn' ) ) . '</button>';

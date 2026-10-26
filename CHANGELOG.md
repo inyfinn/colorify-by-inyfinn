@@ -1,5 +1,14 @@
 # Historia zmian
 
+## 2.9.0
+
+- "Dopasuj do mojej strony" odczytuje teraz kolory motywu. Wcześniej wykrywacz pomijał kolory ciemne i stonowane (brąz `#301E0E`, granat) jako "za mało nasycone", a zmienne CSS strony (`:root { --color-primary: ... }`) w ogóle nie były czytane, więc strona z brązową marką nie dawała żadnej palety. Teraz: czyta zmienne CSS z `:root`, `html`, `body` i zestawu Elementora (waży nazwy: primary, brand, main, accent, secondary), liczy użycie kolorów w elementach z nasyceniem HSV (ciemny brąz jest barwny), przy czerni i bieli bierze najczęstsze ciemne tło przycisku, wykrywa jasne tło strony (krem). Ciemny akcent staje się kolorem menu, a krem tła strony kolorem podświetlenia na menu (jasna pigułka z ciemnym tekstem).
+- Podgląd dopasowania ma dwa przełączniki: "Zastosuj kolory strony" i "Zastosuj też czcionki i rogi strony". Czcionki, których strona nie udostępnia lokalnie, są domyślnie odznaczone, a panel zostaje przy czcionkach WordPressa (skóra "neutral"). Pod podglądem widać, skąd pochodzą kolory (zmienne CSS motywu albo wygląd elementów).
+- Tokeny: gdy akcent zlewa się z menu (brąz na brązie), podświetlenie menu bierze drugi kolor palety, jeśli się wyróżnia (kontrast co najmniej 3:1); przyciski w treści zostają w kolorze akcentu.
+- Pasek administratora: jedno logo. Logo WordPressa po lewej jest ukryte (filtr `colorify_hide_wp_logo`, domyślnie `true`), ikona witryny przy nazwie pojawia się tylko, gdy witryna ma własną ikonę (wcześniej bez niej dokładany był znak INYFINN, który dublował znak w menu Colorify i nakładał się na ikonę domu). Gdy witryna ma ikonę, menu Colorify dostaje neutralną ikonę palety zamiast logo INYFINN.
+- Kokpit: trzy nowe style. **Kalendarz zleceń** (miesiąc z wydarzeniami, lista najbliższych, liczby), **Rezerwacje** (etapy zleceń z liczbą i wartością, najbliższe zlecenie, lista) i **Portfolio** (ostatnio dodane zdjęcia, liczba zdjęć i filmów, strony, wejścia). Kalendarz i Rezerwacje czytają dane przez filtry `colorify_calendar_events( array(), $from_ymd, $to_ymd )` (elementy: `date`, `title`, `url`, `type`, `status`, `amount`, `meta`) i `colorify_dashboard_kpis( array() )` (elementy: `label`, `value`, `hint`, `url`). Bez danych jest pusty kalendarz z podpowiedzią, nie błąd. Na telefonie siatka miesiąca pokazuje kropki, a szczegóły są na liście pod spodem.
+- Kokpit Zapytania: gdy formularze niczego nie zapisują, ale wtyczka podaje zlecenia przez powyższe filtry, kafel nie straszy "Formularze nie zapisują wiadomości", tylko pokazuje liczbę zleceń w terminarzu i najbliższe zlecenie.
+
 ## 2.8.3
 
 - Logowanie: logo strony na górze tylko z filtra `colorify_login_logo`. Wersja 2.8.2 brała też logo z Tożsamości witryny, które jest zwykle ciemne i znikało na ciemnym tle ekranu logowania (kancelaria, ETA). Strony bez filtra mają znów nazwę z ikoną na górze; logo INYFINN zostaje na dole.

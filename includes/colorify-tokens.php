@@ -157,7 +157,12 @@ function colorify_build_tokens( array $def, string $mode ): array {
 	$menu_icon = colorify_tokens_seek_on( colorify_cm_mix( $menu_text, $menu_bg, 0.30 ), $menu_bg, $toward );
 
 	$fill = $accent;
-	if ( colorify_cm_contrast( $accent, $menu_bg ) < 1.5 ) {
+	// Akcent zlewa się z menu (brąz na brązie, granat na granacie): drugi kolor palety (krem strony), jeśli wyróżnia się
+	// na menu; dopiero potem rozjaśnianie akcentu. Przyciski w treści zostają w kolorze akcentu (`$theme`).
+	if ( colorify_cm_contrast( $accent, $menu_bg ) < 1.5 && colorify_cm_contrast( $in['accent_soft'], $menu_bg ) >= 3.0 ) {
+		$fill = $in['accent_soft'];
+	}
+	if ( colorify_cm_contrast( $fill, $menu_bg ) < 1.5 ) {
 		$fill = colorify_cm_seek(
 			$accent,
 			static function ( $c ) use ( $menu_bg ) {
