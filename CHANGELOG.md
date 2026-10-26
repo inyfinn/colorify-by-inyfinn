@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.8.3
+
+- Logowanie: logo strony na górze tylko z filtra `colorify_login_logo`. Wersja 2.8.2 brała też logo z Tożsamości witryny, które jest zwykle ciemne i znikało na ciemnym tle ekranu logowania (kancelaria, ETA). Strony bez filtra mają znów nazwę z ikoną na górze; logo INYFINN zostaje na dole.
+
 ## 2.8.2
 
 - Logowanie: na górze logo strony (obraz), na dole logo INYFINN. Logo strony pochodzi z filtra `colorify_login_logo( $url, $mode )` (wtyczka strony podaje osobny obraz dla trybu ciemnego i jasnego) albo z Wygląd > Personalizuj > Tożsamość witryny. Bez logo zostaje nazwa strony z ikoną jak dotąd. Znak INYFINN przeniesiony z góry do stopki, nad podpis "Colorify · inyfinn.art".

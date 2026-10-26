@@ -8,25 +8,20 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Logo strony na górze logowania: filtr `colorify_login_logo` (wtyczka strony podaje adres obrazu, osobny dla trybu
- * ciemnego i jasnego), a gdy go nie ma, logo z Wygląd > Personalizuj > Tożsamość witryny (custom_logo). '' = brak logo.
+ * Logo strony na górze logowania: tylko z filtra `colorify_login_logo`, bo ekran logowania ma własne, zwykle ciemne tło,
+ * a logo z Tożsamości witryny (custom_logo) jest zwykle ciemne i znikałoby na nim. Wtyczka strony podaje obraz
+ * czytelny na ekranie danego trybu. '' = brak logo (zostaje nazwa strony z ikoną).
  *
  * @param string $mode 'dark' albo 'light' (tryb strony logowania).
  */
 function colorify_branding_login_logo_url( string $mode ): string {
-	$url = '';
-	$id  = (int) get_theme_mod( 'custom_logo' );
-	if ( $id > 0 ) {
-		$src = wp_get_attachment_image_url( $id, 'full' );
-		$url = is_string( $src ) ? $src : '';
-	}
 	/**
 	 * Logo strony na ekranie logowania.
 	 *
 	 * @param string $url  Adres obrazu albo ''.
 	 * @param string $mode 'dark' albo 'light'.
 	 */
-	$url = apply_filters( 'colorify_login_logo', $url, $mode );
+	$url = apply_filters( 'colorify_login_logo', '', $mode );
 	return is_string( $url ) ? $url : '';
 }
 
