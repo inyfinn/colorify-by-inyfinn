@@ -202,6 +202,21 @@ html[data-colorify-login] body.login h1.wp-login-logo a::after {
 	mask: url("inyfinn-logo-okrag.svg") center / contain no-repeat;
 }
 
+/* Logo strony (obraz): wysokość ograniczona, bez rozciągania i bez zawijania. */
+.colorify-login-brand--logo {
+	display: block;
+}
+
+.colorify-login-brand__logo {
+	display: block;
+	width: auto;
+	max-width: min(100%, 300px);
+	height: auto;
+	max-height: 96px;
+	margin: 0 auto;
+	object-fit: contain;
+}
+
 .colorify-login-brand__wordmark {
 	min-width: 0;
 	overflow-wrap: anywhere;
@@ -613,10 +628,35 @@ html[data-colorify-login] .login .language-switcher select option {
 }
 
 html[data-colorify-login] .colorify-login-credits {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
 	margin: 28px 0 0;
 	text-align: center;
 	color: var(--cl-muted);
 	font-size: 14px;
+}
+
+html[data-colorify-login] .colorify-login-credits p {
+	margin: 0;
+}
+
+/* Logo INYFINN na dole: znak z maską w kolorze tekstu strony. */
+html[data-colorify-login] .colorify-login-credits a.colorify-login-credits__logo {
+	min-height: 0;
+	padding: 2px;
+	text-decoration: none;
+}
+
+.colorify-login-credits__mark {
+	display: block;
+	width: 44px;
+	height: 44px;
+	background: var(--cl-fg);
+	opacity: 0.9;
+	-webkit-mask: url("inyfinn-logo-okrag.svg") center / contain no-repeat;
+	mask: url("inyfinn-logo-okrag.svg") center / contain no-repeat;
 }
 
 html[data-colorify-login] .colorify-login-credits a {

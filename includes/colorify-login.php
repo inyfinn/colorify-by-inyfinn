@@ -7,11 +7,42 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Logo strony na górze logowania: filtr `colorify_login_logo` (wtyczka strony podaje adres obrazu, osobny dla trybu
+ * ciemnego i jasnego), a gdy go nie ma, logo z Wygląd > Personalizuj > Tożsamość witryny (custom_logo). '' = brak logo.
+ *
+ * @param string $mode 'dark' albo 'light' (tryb strony logowania).
+ */
+function colorify_branding_login_logo_url( string $mode ): string {
+	$url = '';
+	$id  = (int) get_theme_mod( 'custom_logo' );
+	if ( $id > 0 ) {
+		$src = wp_get_attachment_image_url( $id, 'full' );
+		$url = is_string( $src ) ? $src : '';
+	}
+	/**
+	 * Logo strony na ekranie logowania.
+	 *
+	 * @param string $url  Adres obrazu albo ''.
+	 * @param string $mode 'dark' albo 'light'.
+	 */
+	$url = apply_filters( 'colorify_login_logo', $url, $mode );
+	return is_string( $url ) ? $url : '';
+}
+
 function colorify_branding_login_brand_html(): string {
+	$logo = colorify_branding_login_logo_url( colorify_get_global_appearance_mode() );
+	if ( '' !== $logo ) {
+		// Marka strony to jej logo (obraz), bez znaku INYFINN: ten stoi na dole, w stopce.
+		return '<span class="colorify-login-brand colorify-login-brand--logo">'
+			. '<img src="' . esc_url( $logo ) . '" alt="' . esc_attr( colorify_branding_site_name() ) . '" class="colorify-login-brand__logo" decoding="async" />'
+			. '</span>';
+	}
+
 	if ( colorify_branding_uses_site_favicon() ) {
 		$icon = '<img src="' . esc_url( colorify_branding_site_icon_url( 512 ) ) . '" alt="" class="colorify-login-brand__icon-img" width="40" height="40" decoding="async" />';
 	} else {
-		// Znak INYFINN rysuje arkusz (maska), więc pasuje do każdego schematu.
+		// Bez logo i bez ikony witryny: znak INYFINN rysuje arkusz (maska), więc pasuje do każdego schematu.
 		$icon = '<span class="colorify-login-brand__mark" aria-hidden="true"></span>';
 	}
 
@@ -70,9 +101,11 @@ add_filter(
 
 function colorify_branding_login_credits(): void {
 	printf(
-		'<p class="colorify-login-credits">%s · <a href="%s" target="_blank" rel="noopener noreferrer">%s</a></p>',
-		esc_html( colorify_branding_style_name() ),
+		'<div class="colorify-login-credits"><a class="colorify-login-credits__logo" href="%1$s" target="_blank" rel="noopener noreferrer" aria-label="%2$s"><span class="colorify-login-credits__mark" aria-hidden="true"></span></a>'
+		. '<p>%3$s · <a href="%1$s" target="_blank" rel="noopener noreferrer">%4$s</a></p></div>',
 		esc_url( COLORIFY_CREDITS_URL ),
+		esc_attr( COLORIFY_CREDITS ),
+		esc_html( colorify_branding_style_name() ),
 		esc_html( COLORIFY_CREDITS )
 	);
 }

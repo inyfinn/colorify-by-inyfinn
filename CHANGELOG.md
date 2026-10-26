@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.8.2
+
+- Logowanie: na górze logo strony (obraz), na dole logo INYFINN. Logo strony pochodzi z filtra `colorify_login_logo( $url, $mode )` (wtyczka strony podaje osobny obraz dla trybu ciemnego i jasnego) albo z Wygląd > Personalizuj > Tożsamość witryny. Bez logo zostaje nazwa strony z ikoną jak dotąd. Znak INYFINN przeniesiony z góry do stopki, nad podpis "Colorify · inyfinn.art".
+
 ## 2.8.1
 
 - Logowanie: logo z motywu nie nakłada się już na znak i nazwę Colorify. Motyw (np. Realexa) drukuje w nagłówku `#login h1 a { background-image: ...; width: 250px; height: 50px }`; selektor z id był silniejszy od arkusza Colorify, więc obraz leżał pod nazwą. Teraz Colorify odbiera temu elementowi tło, wymiary i elementy pseudo.
