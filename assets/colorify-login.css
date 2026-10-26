@@ -138,16 +138,22 @@ html[data-colorify-login] .login h1.wp-login-logo {
 	text-align: center;
 }
 
-html[data-colorify-login] .login h1.wp-login-logo a {
+/* Motyw lub wtyczka potrafią wydrukować własne logo logowania w <style> z selektorem "#login h1 a" (z id, więc
+ * silniejszym niż klasy) i narzucić 250 x 50 px oraz tło-obraz. Znak i nazwa Colorify rysują markę, więc to logo
+ * nakładałoby się na nazwę: odbieramy mu obraz i wymiary, także na elementach pseudo. */
+html[data-colorify-login] body.login #login h1.wp-login-logo a,
+html[data-colorify-login] body.login h1.wp-login-logo a {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: auto;
-	height: auto;
+	width: auto !important;
+	height: auto !important;
+	max-width: 100%;
 	margin: 0;
 	padding: 4px;
 	overflow: visible;
-	background: none;
+	background: none !important;
+	background-image: none !important;
 	color: var(--cl-fg);
 	font-family: var(--cl-serif);
 	font-size: clamp(28px, 22px + 1.2vw, 34px);
@@ -157,6 +163,12 @@ html[data-colorify-login] .login h1.wp-login-logo a {
 	text-decoration: none;
 	text-indent: 0;
 	text-wrap: balance;
+}
+
+html[data-colorify-login] body.login h1.wp-login-logo a::before,
+html[data-colorify-login] body.login h1.wp-login-logo a::after {
+	content: none !important;
+	background: none !important;
 }
 
 .colorify-login-brand {

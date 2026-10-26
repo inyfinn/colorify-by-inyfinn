@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.8.1
+
+- Logowanie: logo z motywu nie nakłada się już na znak i nazwę Colorify. Motyw (np. Realexa) drukuje w nagłówku `#login h1 a { background-image: ...; width: 250px; height: 50px }`; selektor z id był silniejszy od arkusza Colorify, więc obraz leżał pod nazwą. Teraz Colorify odbiera temu elementowi tło, wymiary i elementy pseudo.
+
 ## 2.8.0
 
 - Kafle na listach wpisów, stron i własnych rodzajów treści (Wpisy, Strony itd.). Nad tabelą przełącznik "Kafle / Lista" (każde konto pamięta swój wybór, domyślnie lista) i suwak "Rozmiar kafelków" od 3 do 10 w rzędzie. Na węższym ekranie kafli w rzędzie jest mniej: licznik pokazuje prawdziwą liczbę i jest komunikat, że widok się zmienił.
