@@ -453,7 +453,7 @@ function colorify_tresci_kadr_z_tekstu( $v ) {
 /* ---------------------------------------------------------------------------
  * Panel format <-> stored format
  * Stored: light HTML (<br>, <em>, <strong>, <span class>, <a href>), spaces as typed;
- * a theme output filter may glue short words with &nbsp; itself, so nobody has to type it.
+ * the theme may glue short words with &nbsp; in its own output filter, so nobody has to type it.
  * The panel editor works on that HTML directly (Enter = <br>, &nbsp; shown as a space).
  * ------------------------------------------------------------------------- */
 
