@@ -65,7 +65,8 @@
 .cfd .cfb-kpi__label { font-size: 14px; line-height: 1.3; color: var(--m); }
 .cfd .cfb-kpi .cfd-ico { width: 34px; height: 34px; background: color-mix(in srgb, var(--a) 12%, var(--s)); color: var(--a); }
 .cfd .cfb-kpi .cfd-ico svg { width: 17px; height: 17px; }
-.cfd .cfb-kpi__value { font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
+/* 2.11.2: wartość nigdy nie łamie się w środku słowa; przy 6 kaflach siatka 3×2 poniżej 1600 px, wyżej ciaśniejsze kafle i mniejszy font. */
+.cfd .cfb-kpi__value { font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: normal; word-break: keep-all; hyphens: manual; min-width: 0; }
 .cfd .cfb-kpi__value.is-text { font-size: 21px; line-height: 1.2; }
 .cfd .cfb-kpi__hint { margin-top: auto; font-size: 13px; line-height: 1.35; color: var(--m); }
 .cfd .cfb-kpi__hint:empty { display: none; }
@@ -79,6 +80,14 @@
 .cfd .cfb-kpi.is-warning .cfd-ico { background: #f3dcae; color: #6b4a14; }
 body.colorify-dark .cfd .cfb-kpi.is-warning { --t: #f6e2bf; --m: #e8cf9c; --a: #e8b15a; background: #3a2a12; box-shadow: inset 0 0 0 1px #d79a3e; }
 body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; color: #f6e2bf; }
+@media (max-width: 1599px) {
+	.cfd .cfb-kpis[data-n="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1600px) {
+	.cfd .cfb-kpis[data-n="6"] .cfb-kpi { padding: 22px 20px; }
+	.cfd .cfb-kpis[data-n="6"] .cfb-kpi__value { font-size: clamp(20px, 1.5vw, 28px); }
+	.cfd .cfb-kpis[data-n="6"] .cfb-kpi__value.is-text { font-size: 19px; }
+}
 @media (max-width: 1279px) {
 	.cfd .cfb-kpis[data-n="5"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 	.cfd .cfb-kpis[data-n="5"] > * { grid-column: span 2; }

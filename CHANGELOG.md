@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.11.2
+
+- Kokpit, kafle liczb: wartość nigdy nie łamie się w środku słowa (`overflow-wrap: normal; word-break: keep-all`); wartość ze słowem (np. "14 listopada") dostaje rozmiar tekstu (21 px), liczby z jednostką ("4 690 zł") zostają duże; przy 6 kaflach siatka 3×2 poniżej 1600 px, od 1600 px sześć kolumn z ciaśniejszym kaflem i fontem `clamp(20px, 1.5vw, 28px)`.
+
 ## 2.11.1
 
 - Kokpit, kafle liczb (filtr `colorify_dashboard_kpis`): trzy nowe, opcjonalne pola elementu: `tone` (znane: `warning`, ciepły bursztyn: jasny `#fdf1dc` / obrys `#e3b56b` / tekst `#4a2e05`, ciemny `#3a2a12` / `#d79a3e` / `#f6e2bf`), `note` (uwaga pod wartością, np. zbliżanie się do limitu działalności nierejestrowanej) i `action` (`label` + `url`: mały link w kafelku, np. "Ukryj"). Kafel z `action` jest blokiem, a jego `url` przechodzi na wartość (link w linku jest niedozwolony). Bez tych pól kafel bez zmian.

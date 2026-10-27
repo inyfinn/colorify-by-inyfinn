@@ -415,7 +415,9 @@ trait Colorify_Dashboard_Planner {
 				$ico = $fallback[ $i % count( $fallback ) ];
 			}
 			$cls   = 'cfd-card cfb-kpi' . ( '' !== $k['tone'] ? ' is-' . $k['tone'] : '' );
-			$value = '<span class="cfb-kpi__value' . ( self::is_text_value( $k['value'] ) ? ' is-text' : '' ) . '">' . esc_html( $k['value'] ) . '</span>';
+			// Wartość ze słowem (np. "14 listopada") dostaje rozmiar tekstu, żeby zmieściła się bez łamania; "4 690 zł" zostaje liczbą.
+			$tekst = self::is_text_value( $k['value'] ) || preg_match( '/\p{L}{4,}/u', $k['value'] );
+			$value = '<span class="cfb-kpi__value' . ( $tekst ? ' is-text' : '' ) . '">' . esc_html( $k['value'] ) . '</span>';
 			$inner = '<span class="cfb-kpi__top">' . self::icon( $ico ) . '<span class="cfb-kpi__label">' . esc_html( $k['label'] ) . '</span></span>'
 				. ( $k['action'] && '' !== $k['url'] ? '<a class="cfb-kpi__lnk" href="' . esc_url( $k['url'] ) . '">' . $value . '</a>' : $value )
 				. ( '' !== $k['note'] ? '<span class="cfb-kpi__note">' . esc_html( $k['note'] ) . '</span>' : '' )
