@@ -68,6 +68,17 @@
 .cfd .cfb-kpi__value { font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: break-word; }
 .cfd .cfb-kpi__value.is-text { font-size: 21px; line-height: 1.2; }
 .cfd .cfb-kpi__hint { margin-top: auto; font-size: 13px; line-height: 1.35; color: var(--m); }
+.cfd .cfb-kpi__hint:empty { display: none; }
+/* 2.11.1: uwaga pod wartością, mały link akcji (np. "Ukryj") i ciepły bursztyn dla tone=warning (AA na jasnym i ciemnym). */
+.cfd .cfb-kpi__note { font-size: 13px; line-height: 1.4; color: var(--t); }
+.cfd .cfb-kpi__lnk { color: inherit; text-decoration: none; }
+.cfd .cfb-kpi__lnk:hover .cfb-kpi__value { text-decoration: underline; text-underline-offset: 3px; }
+.cfd .cfb-kpi__act { align-self: flex-start; margin-top: 2px; padding: 6px 12px; font-size: 12.5px; font-weight: 500; line-height: 1.3; color: inherit; background: color-mix(in srgb, currentColor 10%, transparent); border-radius: var(--rc); text-decoration: none; }
+.cfd .cfb-kpi__act:hover, .cfd .cfb-kpi__act:focus-visible { background: color-mix(in srgb, currentColor 18%, transparent); color: inherit; }
+.cfd .cfb-kpi.is-warning { --t: #4a2e05; --m: #6b4a14; --a: #8a5a10; color: var(--t); background: #fdf1dc; box-shadow: inset 0 0 0 1px #e3b56b; }
+.cfd .cfb-kpi.is-warning .cfd-ico { background: #f3dcae; color: #6b4a14; }
+body.colorify-dark .cfd .cfb-kpi.is-warning { --t: #f6e2bf; --m: #e8cf9c; --a: #e8b15a; background: #3a2a12; box-shadow: inset 0 0 0 1px #d79a3e; }
+body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; color: #f6e2bf; }
 @media (max-width: 1279px) {
 	.cfd .cfb-kpis[data-n="5"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 	.cfd .cfb-kpis[data-n="5"] > * { grid-column: span 2; }

@@ -194,11 +194,20 @@ trait Colorify_Dashboard_Planner {
 			if ( ! is_array( $k ) || empty( $k['label'] ) ) {
 				continue;
 			}
+			// Opcjonalne (2.11.1): tone (znane: warning), note (uwaga pod wartością), action (label + url: mały link, np. "Ukryj").
+			$tone   = isset( $k['tone'] ) ? sanitize_key( (string) $k['tone'] ) : '';
+			$action = array();
+			if ( isset( $k['action'] ) && is_array( $k['action'] ) && ! empty( $k['action']['label'] ) && ! empty( $k['action']['url'] ) ) {
+				$action = array( 'label' => wp_strip_all_tags( (string) $k['action']['label'] ), 'url' => esc_url_raw( (string) $k['action']['url'] ) );
+			}
 			$out[] = array(
-				'label' => wp_strip_all_tags( (string) $k['label'] ),
-				'value' => wp_strip_all_tags( (string) ( $k['value'] ?? '' ) ),
-				'hint'  => wp_strip_all_tags( (string) ( $k['hint'] ?? '' ) ),
-				'url'   => isset( $k['url'] ) ? esc_url_raw( (string) $k['url'] ) : '',
+				'label'  => wp_strip_all_tags( (string) $k['label'] ),
+				'value'  => wp_strip_all_tags( (string) ( $k['value'] ?? '' ) ),
+				'hint'   => wp_strip_all_tags( (string) ( $k['hint'] ?? '' ) ),
+				'url'    => isset( $k['url'] ) ? esc_url_raw( (string) $k['url'] ) : '',
+				'tone'   => in_array( $tone, array( 'warning' ), true ) ? $tone : '',
+				'note'   => wp_strip_all_tags( (string) ( $k['note'] ?? '' ) ),
+				'action' => '' !== ( $action['url'] ?? '' ) ? $action : array(),
 			);
 		}
 		return array_slice( $out, 0, 8 );
@@ -390,7 +399,8 @@ trait Colorify_Dashboard_Planner {
 		$fallback = array( 'calendar', 'cash', 'pin', 'clock', 'user', 'pages', 'mail', 'conv' );
 		$out      = '<section class="cfb-kpis" data-n="' . (int) min( 6, count( $kpis ) ) . '" style="--cfb-n:' . (int) min( 6, count( $kpis ) ) . '" aria-label="' . esc_attr__( 'Najważniejsze liczby', 'colorify-by-inyfinn' ) . '">';
 		foreach ( $kpis as $i => $k ) {
-			$l = mb_strtolower( $k['label'] );
+			$k += array( 'tone' => '', 'note' => '', 'action' => array() );
+			$l  = mb_strtolower( $k['label'] );
 			if ( preg_match( '/zarob|kwot|wartość|przychód|przych|zł/u', $l ) ) {
 				$ico = 'cash';
 			} elseif ( preg_match( '/kilometr|\bkm\b|dojazd/u', $l ) ) {
@@ -404,10 +414,15 @@ trait Colorify_Dashboard_Planner {
 			} else {
 				$ico = $fallback[ $i % count( $fallback ) ];
 			}
+			$cls   = 'cfd-card cfb-kpi' . ( '' !== $k['tone'] ? ' is-' . $k['tone'] : '' );
+			$value = '<span class="cfb-kpi__value' . ( self::is_text_value( $k['value'] ) ? ' is-text' : '' ) . '">' . esc_html( $k['value'] ) . '</span>';
 			$inner = '<span class="cfb-kpi__top">' . self::icon( $ico ) . '<span class="cfb-kpi__label">' . esc_html( $k['label'] ) . '</span></span>'
-				. '<span class="cfb-kpi__value' . ( self::is_text_value( $k['value'] ) ? ' is-text' : '' ) . '">' . esc_html( $k['value'] ) . '</span>'
-				. '<span class="cfb-kpi__hint">' . esc_html( $k['hint'] ) . '</span>';
-			$out  .= '' !== $k['url'] ? '<a class="cfd-card cfb-kpi is-link" href="' . esc_url( $k['url'] ) . '">' . $inner . '</a>' : '<div class="cfd-card cfb-kpi">' . $inner . '</div>';
+				. ( $k['action'] && '' !== $k['url'] ? '<a class="cfb-kpi__lnk" href="' . esc_url( $k['url'] ) . '">' . $value . '</a>' : $value )
+				. ( '' !== $k['note'] ? '<span class="cfb-kpi__note">' . esc_html( $k['note'] ) . '</span>' : '' )
+				. '<span class="cfb-kpi__hint">' . esc_html( $k['hint'] ) . '</span>'
+				. ( $k['action'] ? '<a class="cfb-kpi__act" href="' . esc_url( $k['action']['url'] ) . '">' . esc_html( $k['action']['label'] ) . '</a>' : '' );
+			// Kafel z akcją jest blokiem (link w linku jest niedozwolony): adres kafla trafia wtedy na wartość.
+			$out  .= '' !== $k['url'] && ! $k['action'] ? '<a class="' . $cls . ' is-link" href="' . esc_url( $k['url'] ) . '">' . $inner . '</a>' : '<div class="' . $cls . '">' . $inner . '</div>';
 		}
 		return $out . '</section>';
 	}

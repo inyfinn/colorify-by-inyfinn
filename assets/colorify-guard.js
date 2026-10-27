@@ -132,15 +132,22 @@
 					} else {
 						var stops = img.match( /rgba?\([^)]+\)|#[0-9a-f]{3,8}\b/gi );
 						if ( stops && stops.length ) {
-							var r = 0, g = 0, b = 0, a = 0;
+							// Gradient z przezroczystą stopą (np. poświata na ciemnym kaflu) nie mówi, co widać pod spodem:
+							// uśredniony kolor fałszował tło i wymuszał ciemny tekst na ciemnym kaflu. Traktujemy go jak url(): nie ruszamy tekstu.
+							var r = 0, g = 0, b = 0, a = 0, translucent = false;
 							for ( var i = 0; i < stops.length; i++ ) {
 								var s = parse( stops[ i ] );
+								if ( s.a < 0.999 ) {
+									translucent = true;
+								}
 								r += s.r * s.a;
 								g += s.g * s.a;
 								b += s.b * s.a;
 								a += s.a;
 							}
-							if ( a > 0 ) {
+							if ( translucent ) {
+								unknown = true;
+							} else if ( a > 0 ) {
 								layers.push( { r: r / a, g: g / a, b: b / a, a: ( a / stops.length ) * op } );
 							}
 						}
