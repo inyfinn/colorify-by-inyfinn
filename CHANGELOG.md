@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.11.0
+
+- Nowy moduł **Edytor treści** (Ustawienia, Colorify, przełącznik; domyślnie WYŁĄCZONY, więc istniejące strony nie zauważą aktualizacji). Panel "Treści strony": teksty, zdjęcia, filmy i listy strony w jednym miejscu, z podglądem na żywo prawdziwej strony obok formularza (iframe tej samej domeny: pisanie i kadr podmieniane w DOM od razu, fokus pola przewija i podświetla element, kliknięcie w podglądzie otwiera pole; Komputer 1440 / Duży ekran 1920 / Telefon 390; poniżej 1200 px podgląd wysuwany), kadrowaniem zdjęć w proporcjach dokładnie takich jak na stronie (punkt ostrości, przybliżenie 1-2,5×, zapis inline `object-position` + `scale` + `clip-path`, bez wrapperów), edytorem akapitów bez surowego HTML (B / I / Enter, znaczki "↵ tylko komputer" i "w jednej linii"), listami z dodawaniem, usuwaniem i przesuwaniem, kaflami sekcji z żywą miniaturą, historią 10 wersji z przywracaniem i bramką "nie nadpisuj, czego nie widziałeś" (wersja opcji w formularzu, odmowa z listą pól zmienionych w międzyczasie i scalanie; pasek ostrzeżenia co 60 s). Motyw rejestruje schemat filtrem `colorify_tresci_rejestr` (pola text/area/url/email/media z kadrem, listy faq/ig/punkty/menu i własne, strony do podglądu). WP-CLI `wp colorify-tresci list|get|set|reset|wersja` (plus alias z rejestru) zapisuje tą samą funkcją co panel, z autorem "AI/WP-CLI" i `--wersja`. Dokumentacja: docs/edytor-tresci.md; test: `wp eval-file tools/test-tresci.php`.
+
 ## 2.10.2
 
 - Kokpit "Kalendarz zleceń": kalendarz miesiąca na komputerze ma najwyżej 600 px wysokości (6 tygodni po 65 px). W dniu do dwóch wydarzeń w jednej linii (jedno wydarzenie: dwie linie), reszta pod "+N więcej"; pełna nazwa jest w karcie szczegółów. Telefon i tablet bez zmian (lista dni). Od 1600 px kafel "Najbliższe wesele" schodzi obok listy "Najbliższe", więc pod krótszym kalendarzem nie ma pustego miejsca.

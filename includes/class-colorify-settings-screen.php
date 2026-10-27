@@ -73,6 +73,7 @@ final class Colorify_Settings {
 		colorify_save_admin_style_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		Colorify_Dashboard::save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_about_redirect_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		colorify_tresci_save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 		if ( 'global' === $scope ) {
 			colorify_clear_user_appearance( get_current_user_id() );
@@ -231,6 +232,9 @@ final class Colorify_Settings {
 		echo '<p class="colorify-site__hint">' . esc_html__( 'Strona z nowościami po aktualizacji WordPressa (about.php) przekierowuje na kokpit.', 'colorify-by-inyfinn' ) . '</p></div>';
 		echo '<label class="colorify-site__check"><input type="hidden" name="colorify_redirect_about_present" value="1"><input type="checkbox" name="colorify_redirect_about" value="1"' . checked( colorify_about_redirect_enabled(), true, false ) . '> ' . esc_html__( 'Przekieruj na kokpit', 'colorify-by-inyfinn' ) . '</label>';
 		echo '</div>';
+
+		// Moduł Edytor treści (domyślnie wyłączony; działa tylko z motywem, który rejestruje schemat).
+		colorify_tresci_settings_row();
 
 		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.
 		$skin_now  = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
