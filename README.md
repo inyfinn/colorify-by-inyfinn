@@ -72,6 +72,13 @@ Zwykłe wydanie oznaczone na GitHubie jako Latest jest oferowane stronom. Pre-re
 
 Bento na 100% szerokości (CSS grid z nazwanymi obszarami: ≥1600 px, ≥1100 px, tablet, telefon): liczby w równych kafelkach, kalendarz miesiąca na całą szerokość (na komputerze najwyżej 600 px wysokości, od 2.10.2), duży kafel "Najbliższe wesele" ze wszystkimi szczegółami (każda wartość kopiuje się kliknięciem), "Do zrobienia w tym tygodniu", "Najbliższe" i "Zadatki do wpłaty" (listy po 6 pozycji i "Pokaż wszystkie", bez przewijania w kafelkach). Wydarzenia mają ikony rodzaju i kolor statusu; najechanie, fokus albo dotyk otwiera kartę szczegółów (znika po 0,5 s po opuszczeniu, nie znika po powrocie), z przyciskami "Skopiuj informacje" (tekst do Messengera), "Otwórz zlecenie", "Zadzwoń", "Trasa" i "Poprzednie/Następne" po wydarzeniach w czasie. Status w karcie jest listą do wyboru, gdy wtyczka poda `status_options` i `status_action` (2.10.2). Miesiąc i rok zmieniasz kliknięciem w nagłówek (siatka miesięcy + pole roku), strzałkami ←/→ (miesiąc) i Shift + ←/→ (rok). Na telefonie siatka zastępowana jest listą dni (agenda).
 
+### Moduł "Kreator e-maili" (2.12.0)
+
+Ekran **Wiadomości do par** dla wtyczek, które rejestrują szablony maili filtrem `colorify_maile_rejestr`: edytor
+z chipami zmiennych, wersje do losowania, podgląd na żywo, test na własny adres, włącz / wyłącz, historia i bramka
+wersji; dane zostają w opcjach wtyczki. Domyślnie wyłączony: Ustawienia, Colorify, "Kreator e-maili". Opis dla
+wtyczki: `docs/kreator-maili.md`.
+
 ### Moduł "Edytor treści" (2.11.0)
 
 Panel **Treści strony** dla motywów, które rejestrują schemat treści filtrem `colorify_tresci_rejestr`: teksty, zdjęcia
@@ -86,6 +93,7 @@ edytor akapitów bez surowego HTML, historia 10 wersji, bramka "nie nadpisuj, cz
 |-------|-----------|----------|
 | `colorify_contrast_guard` | `true` | `false` wyłącza strażnika kontrastu w trybie ciemnym. |
 | `colorify_dark_engine_screens` | pusta lista | Identyfikatory ekranów (np. `post`), na których silnik trybu ciemnego się nie włącza: ekran zostaje jasny i czytelny, reszta panelu jest ciemna. Wyjście awaryjne, gdy ciemny tryb zwalnia ciężki ekran. |
+| `colorify_maile_rejestr` | pusta tablica | Wtyczka rejestruje szablony maili modułu "Kreator e-maili" (opcja, pola, wersje, zmienne, dane, renderer). `docs/kreator-maili.md`. |
 | `colorify_tresci_rejestr` | pusta tablica | Motyw rejestruje schemat modułu "Edytor treści" (opcja, sekcje i pola, listy, strony do podglądu, `plik_url`). `docs/edytor-tresci.md`. |
 | `colorify_calendar_events` | pusta lista | Wydarzenia dla kokpitu "Kalendarz zleceń" i "Rezerwacje". Argumenty: `$events`, `$from` (Y-m-d), `$to` (Y-m-d). Element: `date` (Y-m-d), `title`, `url`, `type` (`wesele`, `kontakt`, `oddanie`, `przygotowanie`, `blokada` albo własny), `status` (np. `nowe`, `wstepnie`, `umowa`, `zadatek`, `zrealizowane`), `amount` (liczba lub null), `meta`. Opcjonalnie, dla pełnej karty szczegółów: `id` (zlecenia; łączy przypomnienia ze zleceniem), `phone`, `email`, `route_url`, `status_label`, `reminder_done`, `details` (lista `[ 'label' => ..., 'value' => ... ]`: Miejsce, Sala, Dojazd, Pakiet, Kwota...; każda wartość da się skopiować jednym kliknięciem). Status do zmiany z karty (2.10.2): `status_options` (lista `[ wartość, etykieta ]`) i `status_action` (`[ 'action' => 'moja_akcja', 'nonce' => wp_create_nonce( ... ) ]`); wybór wysyła POST `action`, `nonce`, `id`, `status` do admin-ajax.php i czeka na `wp_send_json_success()`. Akcja sama sprawdza nonce i uprawnienia. |
 | `colorify_dashboard_kpis` | pusta lista | Liczby dla kokpitu "Kalendarz zleceń" i "Rezerwacje": lista elementów `label`, `value`, `hint`, `url`. |

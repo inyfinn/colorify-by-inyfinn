@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.12.0
+
+- Nowy moduł **Kreator e-maili** (Ustawienia, Colorify, przełącznik; domyślnie WYŁĄCZONY). Ekran "Wiadomości do par": szablony maili zarejestrowane przez wtyczkę filtrem `colorify_maile_rejestr` (temat, nagłówek, akapity z B / I, punkty, przycisk, podpis, drobny druk), chipy zmiennych wstawiane w miejscu kursora, wersje wielokrotne (np. 6 wersji na przycisk; losowanie robi wtyczka) z zakładkami, dodawaniem i usuwaniem, podgląd na żywo w iframe (600 / 375 px, dane przykładowe albo wybrany rekord), "Wyślij test" na własny adres (domyślnie z rejestru albo e-mail zalogowanej osoby), włącz / wyłącz, "Przywróć domyślne", historia 8 wersji z przywracaniem i bramka wersji ("ktoś zapisał w międzyczasie" = odmowa). Dane zostają w opcjach wtyczki (także wspólna opcja z kluczami i format pozycyjny), więc nie ma migracji; wtyczka dostarcza dane rekordu, wartości zmiennych, renderer HTML i wysyłkę, a bez renderera moduł rysuje prosty mail w stylu kremowo-złotym. Stary ekran wtyczki (`zastepuje`) przekierowuje na moduł, menu zostaje. Dokumentacja: docs/kreator-maili.md.
+
 ## 2.11.3
 
 - Edytor treści: kafelki "Resztę strony edytujesz tutaj" większe (min. 200 px szerokości, 72 px wysokości, siatka auto-fill) z ikoną w kremowym kółku po lewej (22 px, złoto, linia 1,5 px), tytułem 15 px i podpisem 12 px. Rejestr motywu podaje ikonę jako czwarty element wpisu `gdzie`: nazwa z zestawu modułu (`metka`, `serce`, `koperta`, `podpis`, `ksiazka`, `tarcza`, `ciastko`, `dymek`) albo z zestawu kokpitu (`mail`, `cash`, `calendar`, `shield`, `file`, `comment`...), albo gotowy `<svg>`; bez ikony strzałka. `Colorify_Dashboard::ikona_sciezki()` udostępnia ścieżki ikon kokpitu innym modułom.

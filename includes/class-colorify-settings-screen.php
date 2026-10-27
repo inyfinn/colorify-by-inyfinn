@@ -74,6 +74,7 @@ final class Colorify_Settings {
 		Colorify_Dashboard::save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_about_redirect_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_tresci_save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		colorify_maile_save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 		if ( 'global' === $scope ) {
 			colorify_clear_user_appearance( get_current_user_id() );
@@ -235,6 +236,7 @@ final class Colorify_Settings {
 
 		// Moduł Edytor treści (domyślnie wyłączony; działa tylko z motywem, który rejestruje schemat).
 		colorify_tresci_settings_row();
+		colorify_maile_settings_row();
 
 		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.
 		$skin_now  = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
