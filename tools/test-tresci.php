@@ -16,6 +16,8 @@ if ( ! function_exists( 'colorify_kadr_css' ) ) {
 }
 
 $fail = array();
+// Rejestr jest cache'owany przy pierwszym użyciu: schemat testowy musi wejść PRZED pierwszym wywołaniem funkcji rejestru.
+$wlasny = (bool) has_filter( 'colorify_tresci_rejestr' );
 $ok   = static function ( $cond, $msg ) use ( &$fail ) {
 	if ( ! $cond ) {
 		$fail[] = $msg;
@@ -36,7 +38,7 @@ $ok( null === colorify_tresci_kadr_z_tekstu( 'abc' ), 'kadr z tekstu: śmieci = 
 $ok( colorify_tresci_norm( 'A&nbsp;b <br/> c' ) === colorify_tresci_norm( "A b<br>c" ), 'norm: nbsp, spacje, br' );
 $ok( "Linia 1<br>Linia 2" === colorify_tresci_z_edycji( "Linia 1\nLinia 2" ), 'z_edycji: nowa linia = <br>' );
 $ok( "Ak 1\n\nAk 2" === colorify_tresci_z_edycji( 'Ak 1<br><br>Ak 2', true ), 'z_edycji multi: <br><br> = akapit' );
-$ok( '&lt;3 <em>x</em>' === colorify_tresci_z_edycji( '<3 <em>x</em><script>a</script>' ), 'z_edycji: "<3" jako tekst, script wycięty' );
+$ok( '&lt;3 <em>x</em>a' === colorify_tresci_z_edycji( '<3 <em>x</em><script>a</script>' ), 'z_edycji: "<3" jako tekst, tag script wycięty (tekst zostaje, jak w wp_kses)' );
 
 // Schemat testowy (nie rusza rejestru strony: osobna, lokalna mapa pól przez filtr tylko w tym procesie).
 $schemat = array(
@@ -57,13 +59,12 @@ foreach ( $schemat['sekcja']['fields'] as $key => $f ) {
 	$pola[ $key ] = $f;
 }
 $pola['foto__kadr'] = array( 'type' => 'kadr', 'label' => 'Zdjęcie: kadr', 'default' => colorify_tresci_kadr_domyslny( $pola['foto'] ), 'hint' => '', 'section' => 'sekcja', 'dla' => 'foto', 'kadr' => $pola['foto']['kadr'] );
-$ok( isset( colorify_tresci_listy()['punkty'] ), 'wbudowany typ listy punkty' );
-
-// z_formularza na schemacie testowym: korzysta z colorify_tresci_pola(), więc podmieniamy ją przez rejestr tylko, gdy strona nie ma schematu.
-if ( ! colorify_tresci_schema() ) {
+// z_formularza na schemacie testowym (tylko gdy motyw nie ma własnego schematu; rejestr jest jeden na proces).
+if ( ! $wlasny ) {
 	add_filter( 'colorify_tresci_rejestr', static function ( $r ) use ( $schemat ) { return array( 'sekcje' => $schemat, 'plik_url' => static function ( $ref ) { return 'img:a.jpg' === $ref ? 'https://example.com/a.jpg' : ''; } ) + (array) $r; } );
-	$new = colorify_tresci_z_formularza( array( 'tytul' => 'Domyślny', 'akapit' => "Tekst domyślny.\nDruga.", 'link' => 'nie-url', 'foto' => '', 'foto__kadr' => '50,50,1', 'punkty' => array( array( 't' => 'Jeden' ), array( 't' => 'Dwa' ) ) ), array() );
-	$ok( array() === $new, 'formularz równy domyślnym nie zapisuje nic: ' . wp_json_encode( $new ) );
+	$ok( isset( colorify_tresci_listy()['punkty'] ), 'wbudowany typ listy punkty' );
+	$new = colorify_tresci_z_formularza( array( 'tytul' => 'Domyślny', 'akapit' => "Tekst domyślny.\nDruga.", 'link' => 'javascript:alert(1)', 'foto' => '', 'foto__kadr' => '50,50,1', 'punkty' => array( array( 't' => 'Jeden' ), array( 't' => 'Dwa' ) ) ), array() );
+	$ok( array() === $new, 'formularz równy domyślnym (i niebezpieczny URL) nie zapisuje nic: ' . wp_json_encode( $new ) );
 	$new = colorify_tresci_z_formularza( array( 'tytul' => '', 'akapit' => 'Nowy <b>tekst</b>', 'foto' => '-', 'foto__kadr' => '30,20,1.5', 'punkty' => '[{"t":"Trzy"},{"t":""}]' ), array() );
 	$ok( ! isset( $new['tytul'] ), 'puste pole wymagane = domyślne' );
 	$ok( 'Nowy tekst' === ( $new['akapit'] ?? null ), 'akapit: niedozwolony <b> wycięty: ' . ( $new['akapit'] ?? 'brak' ) );
