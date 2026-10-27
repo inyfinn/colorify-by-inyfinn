@@ -105,7 +105,7 @@ function colorify_maile_szablon( string $id ) {
  * ------------------------------------------------------------------------- */
 
 function colorify_maile_surowe( array $t ) {
-	$o = get_option( $t['opcja'] );
+	$o = get_option( $t['opcja'], null ); // null = opcji nie ma (get_option bez domyślnej zwraca false)
 	if ( '' !== (string) $t['klucz'] ) {
 		return is_array( $o ) && isset( $o[ $t['klucz'] ] ) ? $o[ $t['klucz'] ] : null;
 	}

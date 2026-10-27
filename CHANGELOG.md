@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.12.2
+
+- Kreator e-maili: brak opcji szablonu jest rozpoznawany poprawnie (`get_option()` zwraca `false`, nie `null`), więc zapis niezmienionych domyślnych naprawdę nic nie zapisuje; 2.12.1 łapało to tylko dla szablonów pod kluczem wspólnej opcji.
+
 ## 2.12.1
 
 - Kreator e-maili: zapis formularza równego domyślnym nie tworzy kopii domyślnych w opcji (komunikat "nic się nie zmieniło"); wtyczka dalej czyta swoje domyślne.
