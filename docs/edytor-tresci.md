@@ -28,7 +28,7 @@ add_filter( 'colorify_tresci_rejestr', function ( $r ) {
 			'omnie' => array( 'url' => home_url( '/o-mnie/' ), 'nazwa' => 'O mnie', 'post' => 12, 'karta' => 'o1' ),
 		),
 		'plik_url' => 'moj_plik_url',           // callable: "img:plik.jpg" -> URL pliku motywu ('' gdy nieznane)
-		'gdzie'    => array( array( 'Pakiety i ceny', 'Usługi', 'admin.php?page=uslugi' ) ), // linki "Resztę edytujesz tutaj"
+		'gdzie'    => array( array( 'Pakiety i ceny', 'Usługi', 'admin.php?page=uslugi', 'metka' ) ), // kafelki "Resztę edytujesz tutaj": tytuł, podpis, adres, ikona (metka, serce, koperta, podpis, ksiazka, tarcza, ciastko, dymek, nazwy z kokpitu albo <svg>)
 		'lead'     => '',                       // zdanie pod tytułem (puste = domyślne)
 		'fonty'    => '',                       // URL arkusza czcionek dla panelu (np. Google Fonts), puste = czcionki Colorify
 		'przyciski_regex' => 'przycisk|link',   // klucze pól trafiające do grupy "Przyciski i linki"

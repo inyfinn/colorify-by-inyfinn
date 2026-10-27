@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.11.3
+
+- Edytor treści: kafelki "Resztę strony edytujesz tutaj" większe (min. 200 px szerokości, 72 px wysokości, siatka auto-fill) z ikoną w kremowym kółku po lewej (22 px, złoto, linia 1,5 px), tytułem 15 px i podpisem 12 px. Rejestr motywu podaje ikonę jako czwarty element wpisu `gdzie`: nazwa z zestawu modułu (`metka`, `serce`, `koperta`, `podpis`, `ksiazka`, `tarcza`, `ciastko`, `dymek`) albo z zestawu kokpitu (`mail`, `cash`, `calendar`, `shield`, `file`, `comment`...), albo gotowy `<svg>`; bez ikony strzałka. `Colorify_Dashboard::ikona_sciezki()` udostępnia ścieżki ikon kokpitu innym modułom.
+
 ## 2.11.2
 
 - Kokpit, kafle liczb: wartość nigdy nie łamie się w środku słowa (`overflow-wrap: normal; word-break: keep-all`); wartość ze słowem (np. "14 listopada") dostaje rozmiar tekstu (21 px), liczby z jednostką ("4 690 zł") zostają duże; przy 6 kaflach siatka 3×2 poniżej 1600 px, od 1600 px sześć kolumn z ciaśniejszym kaflem i fontem `clamp(20px, 1.5vw, 28px)`.

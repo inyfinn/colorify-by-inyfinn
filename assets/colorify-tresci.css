@@ -95,11 +95,17 @@
 .cft-wskazowki li { margin: 0 0 6px; }
 
 /* Where to edit the rest of the site */
-.cft-gdzie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 18px; }
-.cft-gdzie__t { width: 100%; font-weight: 500; font-size: 13.5px; margin-bottom: 2px; }
-.cft-gdzie a { display: inline-flex; flex-direction: column; padding: 8px 14px; border: 1px solid rgba(184, 149, 90, 0.4); border-radius: var(--cft-r); text-decoration: none; color: inherit; background: rgba(255, 252, 244, 0.6); line-height: 1.35; font-size: 13.5px; }
-.cft-gdzie a:hover, .cft-gdzie a:focus-visible { border-color: var(--cft-zloto); }
-.cft-gdzie small { font-size: 11px; opacity: 0.7; }
+/* 2.11.3: większe kafelki z ikoną w kremowym kółku, siatka auto-fill (min 200 px), hover subtelny. */
+.cft-gdzie { margin: 0 0 20px; }
+.cft-gdzie__t { display: block; font-weight: 500; font-size: 13.5px; margin-bottom: 8px; }
+.cft-gdzie__siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.cft-gdzie a { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 12px 16px 12px 12px; border: 1px solid rgba(184, 149, 90, 0.35); border-radius: var(--cft-r-karta); text-decoration: none; color: var(--cft-braz-d); background: var(--cft-krem); line-height: 1.3; transition: border-color 0.15s, box-shadow 0.15s; }
+.cft-gdzie a:hover, .cft-gdzie a:focus-visible { color: var(--cft-braz-d); border-color: var(--cft-zloto); box-shadow: 0 2px 10px rgba(48, 30, 14, 0.07); }
+.cft-gdzie__i { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--cft-zloto-d); background: var(--cft-krem-2); border-radius: 50%; }
+.cft-gdzie__i svg { width: 22px; height: 22px; }
+.cft-gdzie__o { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cft-gdzie__n { font-size: 15px; font-weight: 500; }
+.cft-gdzie small { font-size: 12px; color: var(--cft-cichy); }
 
 /* ---------- układ: formularz + podgląd ---------- */
 .cft-uklad { display: block; }

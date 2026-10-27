@@ -371,6 +371,33 @@ function cft_lista( $key, $type, $val, $default ) {
 	echo '</div></div>';
 }
 
+/**
+ * Ikona kafelka "Resztę strony edytujesz tutaj": nazwa z zestawu niżej albo z zestawu kokpitu (Colorify_Dashboard),
+ * albo gotowy <svg>; '' = strzałka. Linia 1,5 px, kolor z CSS (złoto).
+ */
+function cft_ikona( $ikona ) {
+	$ikona = (string) $ikona;
+	if ( 0 === strpos( ltrim( $ikona ), '<svg' ) ) {
+		return wp_kses( $ikona, array( 'svg' => array( 'viewbox' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'aria-hidden' => true, 'class' => true ), 'path' => array( 'd' => true ), 'circle' => array( 'cx' => true, 'cy' => true, 'r' => true ), 'rect' => array( 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true ), 'line' => array( 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true ), 'polyline' => array( 'points' => true ) ) );
+	}
+	$wlasne = array(
+		'metka'    => '<path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9z"/><circle cx="8" cy="8" r="1.5"/>',
+		'serce'    => '<path d="M12 20s-7-4.4-9-8.5C1.5 8 4 5 7 5c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3 0 5.5 3 4 6.5-2 4.1-9 8.5-9 8.5z"/>',
+		'koperta'  => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+		'podpis'   => '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 17c1.5-3 3-3 3.5-1 .5 1.5 1.5 1 2.5-1"/>',
+		'ksiazka'  => '<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/>',
+		'tarcza'   => '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+		'ciastko'  => '<path d="M12 3a9 9 0 1 0 9 9 3.5 3.5 0 0 1-4-4 3.5 3.5 0 0 1-5-5z"/><circle cx="8.5" cy="10.5" r="1"/><circle cx="12" cy="15.5" r="1"/><circle cx="15.5" cy="12.5" r="1"/><circle cx="9" cy="15" r=".6"/>',
+		'dymek'    => '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+		'strzalka' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+	);
+	$p = $wlasne[ $ikona ] ?? ( class_exists( 'Colorify_Dashboard' ) ? Colorify_Dashboard::ikona_sciezki( $ikona ) : '' );
+	if ( '' === $p ) {
+		$p = $wlasne['strzalka'];
+	}
+	return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $p . '</svg>';
+}
+
 /** Group of a field inside a card: teksty | media | przyciski | lista. */
 function cft_grupa( $key, $f ) {
 	if ( 'media' === $f['type'] ) {
@@ -511,9 +538,11 @@ function cft_ekran() {
 		<?php if ( ! empty( $rej['gdzie'] ) ) : ?>
 		<nav class="cft-gdzie" aria-label="Gdzie edytujesz resztę strony">
 			<span class="cft-gdzie__t">Resztę strony edytujesz tutaj:</span>
+			<div class="cft-gdzie__siatka">
 			<?php foreach ( (array) $rej['gdzie'] as $g ) : ?>
-				<a href="<?php echo esc_url( 0 === strpos( (string) $g[2], 'http' ) ? $g[2] : admin_url( (string) $g[2] ) ); ?>"><?php echo esc_html( $g[0] ); ?> <small><?php echo esc_html( $g[1] ); ?></small></a>
+				<a href="<?php echo esc_url( 0 === strpos( (string) $g[2], 'http' ) ? $g[2] : admin_url( (string) $g[2] ) ); ?>"><span class="cft-gdzie__i"><?php echo cft_ikona( $g[3] ?? '' ); // SVG z własnego zestawu albo po wp_kses ?></span><span class="cft-gdzie__o"><span class="cft-gdzie__n"><?php echo esc_html( $g[0] ); ?></span><small><?php echo esc_html( $g[1] ); ?></small></span></a>
 			<?php endforeach; ?>
+			</div>
 		</nav>
 		<?php endif; ?>
 

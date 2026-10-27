@@ -297,6 +297,11 @@ final class Colorify_Dashboard {
 	}
 
 	/** Znak ikony bez okrągłego tła (do przycisków, plakietek i kart). */
+	/** Ścieżki ikony liniowej z zestawu kokpitu dla innych modułów ('' gdy nie ma). */
+	public static function ikona_sciezki( string $name ): string {
+		return self::icon_svg( $name );
+	}
+
 	private static function icon_svg( string $name ): string {
 		$paths = array(
 			'cash'    => '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
