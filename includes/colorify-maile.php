@@ -305,6 +305,9 @@ function colorify_maile_zapisz( array $t, $surowe_nowe, string $label, $wersja_b
 	if ( $surowe_nowe == $stare ) { // phpcs:ignore WordPress.PHP.StrictComparisons
 		return false;
 	}
+	if ( null === $stare && null !== $surowe_nowe && $surowe_nowe == colorify_maile_do_surowego( $t, colorify_maile_domyslne( $t ), null ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons
+		return false; // formularz równy domyślnym: wtyczka dalej czyta swoje domyślne, nic nie zapisujemy
+	}
 	$h = colorify_maile_historia( $t );
 	if ( null === $autor ) {
 		$u     = wp_get_current_user();
