@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.10.1
+
+- Kafle na listach (Zlecenia, Opinie, Wpisy...): przyciski, pigułki, przełącznik Kafle/Lista, suwak i znaczniki stanu dziedziczą kształt z ustawień Colorify (kanciasty kształt strony = kanciaste wszędzie), główne przyciski (Edytuj, kosz, aktywny widok) mają kolor akcentu palety zamiast czerni tekstu, pierścień fokusu i obrys dodawania 1 px, padding wewnątrz kafli i panelu pól o 8 px większy.
+
 ## 2.10.0
 
 - Kokpit "Kalendarz zleceń" przebudowany jako bento (CSS grid z nazwanymi obszarami, 100% szerokości obszaru treści, układ zależny od szerokości: ≥1600, ≥1100, tablet, telefon). Liczby w równych, osobnych kafelkach; kalendarz miesiąca na całą szerokość o stałej wysokości (zawsze 6 tygodni, nic nie skacze); duży kafel "Najbliższe wesele" z kompletem szczegółów (para, data, dzień tygodnia, za ile dni, miejsce i sala, dojazd, nocleg, pakiet i jego zawartość, kwota, status, telefon, e-mail, wiadomość, przypomnienia przy zleceniu) i przyciskami Skopiuj informacje, Otwórz zlecenie, Zadzwoń, Trasa; "Do zrobienia w tym tygodniu", "Najbliższe", "Zadatki do wpłaty". Listy pokazują 6 pozycji i "Pokaż wszystkie", w kafelkach nie ma przewijania.
