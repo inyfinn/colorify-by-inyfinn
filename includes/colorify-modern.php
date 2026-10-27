@@ -156,3 +156,15 @@ function colorify_save_admin_style_from_input( array $input ): void {
 	}
 	update_option( COLORIFY_STYLE_OPTION, 'modern' === sanitize_key( (string) $input['colorify_admin_style'] ) ? 'modern' : 'classic' );
 }
+
+/**
+ * Kolor uchwytu cienkiego paska przewijania. Domyślnie akcent schematu; strona (wtyczka, mu-plugin) może podać własny
+ * filtrem colorify_scrollbar_color (np. '#B8955A') albo zmienną CSS --colorify-scrollbar-thumb.
+ */
+function colorify_scrollbar_color_css(): void {
+	$color = sanitize_hex_color( (string) apply_filters( 'colorify_scrollbar_color', '' ) );
+	if ( $color && 'modern' === colorify_get_admin_style() ) {
+		echo '<style id="colorify-scrollbar-color">:root{--colorify-scrollbar-thumb:' . esc_html( $color ) . '}</style>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- kolor po sanitize_hex_color().
+	}
+}
+add_action( 'admin_head', 'colorify_scrollbar_color_css', 3 );

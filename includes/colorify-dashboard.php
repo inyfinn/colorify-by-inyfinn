@@ -15,6 +15,41 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Czy komentarze działają na tej stronie: menu "Komentarze" jest w panelu, wpisy je obsługują i są albo otwarte, albo już jakieś są.
+ * Strony z wyłączonymi komentarzami (motyw usuwa menu i obsługę) nie dostają kafli ani licznika komentarzy.
+ */
+function colorify_comments_available(): bool {
+	global $menu;
+	if ( is_array( $menu ) && $menu ) {
+		$has = false;
+		foreach ( $menu as $item ) {
+			if ( isset( $item[2] ) && 'edit-comments.php' === $item[2] ) {
+				$has = true;
+				break;
+			}
+		}
+		if ( ! $has ) {
+			return false;
+		}
+	}
+	if ( ! post_type_supports( 'post', 'comments' ) && ! post_type_supports( 'page', 'comments' ) ) {
+		return false;
+	}
+	if ( 'closed' === get_option( 'default_comment_status' ) && 0 === (int) wp_count_comments()->total_comments ) {
+		return false;
+	}
+	return true;
+}
+
+/** Licznik komentarzy w pasku admina znika, gdy komentarze są wyłączone. */
+function colorify_adminbar_hide_comments( $bar ): void {
+	if ( $bar instanceof WP_Admin_Bar && ! colorify_comments_available() ) {
+		$bar->remove_node( 'comments' );
+	}
+}
+add_action( 'admin_bar_menu', 'colorify_adminbar_hide_comments', 999 );
+
 final class Colorify_Dashboard {
 
 	use Colorify_Dashboard_Planner;
@@ -234,7 +269,9 @@ final class Colorify_Dashboard {
 		add_filter( 'get_user_option_screen_layout_dashboard', static function () { return 1; } );
 		add_filter( 'screen_options_show_screen', '__return_false' );
 		add_action( 'admin_head', array( __CLASS__, 'css' ) );
-		add_action( 'admin_head', array( __CLASS__, 'planner_css' ) );
+		if ( in_array( self::effective(), array( 'calendar', 'bookings', 'portfolio' ), true ) ) {
+			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'planner_assets' ) );
+		}
 	}
 
 	/* ---------- Drobne elementy widoku ---------- */
@@ -259,7 +296,8 @@ final class Colorify_Dashboard {
 		return '<span class="cfd-pill cfd-pill--' . $cls . '" title="' . esc_attr__( 'w porównaniu z poprzednim okresem', 'colorify-by-inyfinn' ) . '">' . esc_html( self::num( abs( $pct ) ) . '% ' . $arr ) . '</span>';
 	}
 
-	private static function icon( string $name ): string {
+	/** Znak ikony bez okrągłego tła (do przycisków, plakietek i kart). */
+	private static function icon_svg( string $name ): string {
 		$paths = array(
 			'cash'    => '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
 			'bag'     => '<path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
@@ -285,8 +323,24 @@ final class Colorify_Dashboard {
 			'pin'     => '<path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
 			'image'   => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
 			'film'    => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v14M16 5v14M3 10h5M3 14h5M16 10h5M16 14h5"/>',
+			'ring'    => '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M12 3.2l1.8 2.1L12 7.4 10.2 5.3z"/>',
+			'phone'   => '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+			'lock'    => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+			'bell'    => '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+			'copy'    => '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+			'ext'     => '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
+			'route'   => '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>',
+			'prev'    => '<path d="M15 5l-7 7 7 7"/>',
+			'next'    => '<path d="M9 5l7 7-7 7"/>',
+			'close'   => '<path d="M6 6l12 12M18 6L6 18"/>',
+			'check'   => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+			'chev'    => '<path d="M6 9l6 6 6-6"/>',
 		);
-		return '<span class="cfd-ico cfd-ico--' . esc_attr( $name ) . '" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' . ( $paths[ $name ] ?? '' ) . '</svg></span>';
+		return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( $paths[ $name ] ?? '' ) . '</svg>';
+	}
+
+	private static function icon( string $name ): string {
+		return '<span class="cfd-ico cfd-ico--' . esc_attr( $name ) . '" aria-hidden="true">' . self::icon_svg( $name ) . '</span>';
 	}
 
 	/** "1 wyświetlenie", "3 wyświetlenia", "12 wyświetleń" (polska odmiana bez pliku tłumaczeń). */
@@ -808,7 +862,8 @@ final class Colorify_Dashboard {
 	private static function editorial( int $days ): string {
 		list( $from, $to, $prevf ) = self::range( $days );
 		$counts   = wp_count_posts( 'post' );
-		$comments = wp_count_comments();
+		$cm_on    = colorify_comments_available();
+		$comments = $cm_on ? wp_count_comments() : (object) array( 'moderated' => 0 );
 		$pub_now  = count( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 500, 'fields' => 'ids', 'date_query' => array( array( 'after' => $from, 'inclusive' => true ) ) ) ) );
 		$pub_prev = count( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 500, 'fields' => 'ids', 'date_query' => array( array( 'after' => $prevf, 'before' => $from, 'inclusive' => true ) ) ) ) );
 		$missed   = get_posts( array( 'post_type' => 'post', 'post_status' => 'future', 'numberposts' => 10, 'date_query' => array( array( 'before' => current_time( 'mysql' ) ) ) ) );
@@ -821,15 +876,17 @@ final class Colorify_Dashboard {
 			array(
 				array( 'plus', __( 'Nowy wpis', 'colorify-by-inyfinn' ), admin_url( 'post-new.php' ) ),
 				array( 'file', __( 'Szkice', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_status=draft&post_type=post' ) ),
-				array( 'comment', __( 'Komentarze', 'colorify-by-inyfinn' ), admin_url( 'edit-comments.php?comment_status=moderated' ) ),
+				$cm_on ? array( 'comment', __( 'Komentarze', 'colorify-by-inyfinn' ), admin_url( 'edit-comments.php?comment_status=moderated' ) ) : array( 'pages', __( 'Strony', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_type=page' ) ),
 				array( 'clock', __( 'Zaplanowane', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_status=future&post_type=post' ) ),
 			)
 		);
-		$out .= '<section class="cfd-card cfd-strip">';
+		$out .= '<section class="cfd-card cfd-strip cfd-strip--n" style="--cfd-n:' . ( $cm_on ? 4 : 3 ) . '">';
 		$out .= self::stat( 'edit', __( 'Opublikowane', 'colorify-by-inyfinn' ), esc_html( self::num( $pub_now ) ), self::delta( $pub_now, $pub_prev ), '', admin_url( 'edit.php?post_status=publish&post_type=post' ) );
 		$out .= self::stat( 'clock', __( 'Zaplanowane', 'colorify-by-inyfinn' ), esc_html( self::num( (float) $counts->future ) ), '', '', admin_url( 'edit.php?post_status=future&post_type=post' ) );
 		$out .= self::stat( 'file', __( 'Szkice', 'colorify-by-inyfinn' ), esc_html( self::num( (float) $counts->draft ) ), '', '', admin_url( 'edit.php?post_status=draft&post_type=post' ) );
-		$out .= self::stat( 'comment', __( 'Komentarze do moderacji', 'colorify-by-inyfinn' ), esc_html( self::num( (float) $comments->moderated ) ), '', '', admin_url( 'edit-comments.php?comment_status=moderated' ) );
+		if ( $cm_on ) {
+			$out .= self::stat( 'comment', __( 'Komentarze do moderacji', 'colorify-by-inyfinn' ), esc_html( self::num( (float) $comments->moderated ) ), '', '', admin_url( 'edit-comments.php?comment_status=moderated' ) );
+		}
 		$out .= '</section>';
 
 		$lines = array();
@@ -851,7 +908,7 @@ final class Colorify_Dashboard {
 		$out .= '<div class="cfd-row cfd-row--even">'
 			. self::list_card( __( 'Szkice do dokończenia', 'colorify-by-inyfinn' ), self::recent_posts( 'post', array( 'draft' ) ), __( 'Wszystkie rozpoczęte wpisy są opublikowane albo zaplanowane.', 'colorify-by-inyfinn' ), __( 'Wszystkie', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_status=draft&post_type=post' ) )
 			. self::list_card( __( 'Najczęściej czytane', 'colorify-by-inyfinn' ), self::top_pages_rows( $tcur['pages'] ), __( 'Licznik zbiera dane od dziś.', 'colorify-by-inyfinn' ), '', '', true )
-			. self::comments_card()
+			. ( $cm_on ? self::comments_card() : '' )
 			. '</div>';
 		$out .= self::traffic_strip( $tcur, $tpre, $days );
 		return $out;
@@ -948,25 +1005,26 @@ body.index-php #wpbody-content .notice,body.index-php #wpbody-content .update-na
 #colorify_dashboard{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important}
 #colorify_dashboard .postbox-header{display:none}
 #colorify_dashboard .inside{margin:0!important;padding:0!important}
-.cfd{--s:var(--colorify-ui-surface,#fff);--t:var(--colorify-ui-text,#1d2327);--m:var(--colorify-ui-text-muted,#646970);--a:var(--colorify-ui-accent,#2271b1);--on:var(--colorify-ui-on-accent,#fff);--line:color-mix(in srgb,var(--t) 8%,transparent);--r:var(--colorify-radius-card,20px);color:var(--t);max-width:1280px;display:flex;flex-direction:column;gap:20px}
-.cfd a:focus-visible,.cfd button:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.cfd{--s:var(--colorify-ui-surface,#fff);--t:var(--colorify-ui-text,#1d2327);--m:var(--colorify-ui-text-muted,#646970);--a:var(--colorify-ui-accent,#2271b1);--on:var(--colorify-ui-on-accent,#fff);--line:color-mix(in srgb,var(--t) 8%,transparent);--r:var(--colorify-radius-card,20px);--rc:var(--colorify-radius-control,12px);--rp:var(--colorify-radius-pill,999px);color:var(--t);max-width:1280px;display:flex;flex-direction:column;gap:20px}
+.cfd a:focus-visible,.cfd button:focus-visible{outline:1px solid var(--a);outline-offset:2px}
 .cfd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .cfd-head__sub{margin:0;color:var(--m);font-size:14px}
-.cfd-range{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--s)}
-.cfd-range a{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:9px;color:var(--m);text-decoration:none;font-size:13px;font-weight:500}
+.cfd-range{display:inline-flex;gap:4px;padding:4px;border-radius:var(--rc);background:var(--s)}
+.cfd-range a{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:min(9px,var(--rc));color:var(--m);text-decoration:none;font-size:13px;font-weight:500}
 .cfd-range a:hover{color:var(--t)}
 .cfd-range a[aria-current]{background:var(--a);color:var(--on)}
 .cfd-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.cfd-quick__a{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 18px;border-radius:16px;background:var(--s);color:var(--t);text-decoration:none;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .15s ease,box-shadow .15s ease,color .15s ease}
+.cfd-quick__a{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 18px;border-radius:var(--rc);background:var(--s);color:var(--t);text-decoration:none;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .15s ease,box-shadow .15s ease,color .15s ease}
 .cfd-quick__a:hover{color:var(--a);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,24,40,.08)}
 body.colorify-dark .cfd-quick__a:hover{background:color-mix(in srgb,#fff 5%,var(--s))}
 .cfd-quick__a.is-main{background:color-mix(in srgb,var(--a) 10%,var(--s));color:var(--a)}
-.cfd-card{background:var(--s);border-radius:var(--r);padding:24px 28px;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04));min-width:0}
+.cfd-card{background:var(--s);border-radius:var(--r);padding:32px 36px;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04));min-width:0}
 .cfd-card__label,.cfd-card__title{margin:0;font-size:15px;font-weight:600;color:var(--t)}
 .cfd-card__label{font-weight:500;color:var(--m)}
 .cfd-card__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .cfd-link{font-size:13px;font-weight:500;color:var(--a);text-decoration:none;white-space:nowrap}
 .cfd-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:22px 0}
+.cfd-strip--n{grid-template-columns:repeat(var(--cfd-n,4),minmax(0,1fr))}
 .cfd-stat{padding:0 28px;display:flex;flex-direction:column;gap:8px;min-width:0;color:inherit;text-decoration:none}
 .cfd-stat+.cfd-stat{border-left:1px solid var(--line)}
 a.cfd-stat:hover .cfd-stat__label{color:var(--a)}
@@ -976,10 +1034,10 @@ a.cfd-stat:hover .cfd-stat__label{color:var(--a)}
 .cfd-stat__value{font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .cfd-stat__value--text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:16px;line-height:22px;font-weight:600;letter-spacing:0;overflow-wrap:break-word}
 .cfd-stat__hint{font-size:12px;color:var(--m)}
-.cfd-ico{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;flex:none}
+.cfd-ico{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:min(50%,var(--rp));flex:none}
 .cfd-ico svg{width:16px;height:16px}
 .cfd-ico--cash,.cfd-ico--alert{background:#fdecdf;color:#d9622b}.cfd-ico--bag,.cfd-ico--conv,.cfd-ico--shield{background:#e2f4ea;color:#1f8a52}.cfd-ico--box,.cfd-ico--eye,.cfd-ico--mail,.cfd-ico--list{background:#e3eefc;color:#2a6fd6}.cfd-ico--avg,.cfd-ico--comment{background:#fbe4ea;color:#c8345a}.cfd-ico--user,.cfd-ico--clock,.cfd-ico--globe{background:#efe7fb;color:#7046c2}.cfd-ico--pages,.cfd-ico--file,.cfd-ico--edit,.cfd-ico--refresh,.cfd-ico--plus,.cfd-ico--card{background:#f2efe6;color:#8a6d1f}
-.cfd-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border:0;border-radius:999px;font:inherit;font-size:11px;font-weight:600;line-height:1.6;white-space:nowrap}
+.cfd-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border:0;border-radius:var(--rp);font:inherit;font-size:11px;font-weight:600;line-height:1.6;white-space:nowrap}
 .cfd-pill--up{background:var(--colorify-tag-ok-bg,#e2f4ea);color:var(--colorify-tag-ok-fg,#167443)}.cfd-pill--down{background:var(--colorify-tag-bad-bg,#fde7e9);color:var(--colorify-tag-bad-fg,#b42335)}.cfd-pill--flat{background:var(--line);color:var(--m)}.cfd-pill--info{background:var(--colorify-tag-info-bg,#e3eefc);color:var(--colorify-tag-info-fg,#1c5bb8)}.cfd-pill--warn{background:var(--colorify-tag-warn-bg,#fdf1d8);color:var(--colorify-tag-warn-fg,#8a5a00)}
 button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#167443}
 .cfd-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px}
@@ -989,18 +1047,18 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-chart{display:flex;flex-direction:column}
 .cfd-chart__value{margin:6px 0 20px;font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .cfd-bars{position:relative;display:flex;align-items:flex-end;gap:5px;height:170px;margin-top:auto;padding-top:34px}
-.cfd-bar{position:relative;flex:1;height:var(--h);min-width:3px;border-radius:6px;background:color-mix(in srgb,var(--t) 9%,transparent)}
+.cfd-bar{position:relative;flex:1;height:var(--h);min-width:3px;border-radius:min(6px,var(--rc));background:color-mix(in srgb,var(--t) 9%,transparent)}
 .cfd-bar:hover{background:color-mix(in srgb,var(--a) 45%,transparent)}
 .cfd-bar.is-top{background:var(--a)}
 .cfd-bar__tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);padding:5px 9px;border-radius:8px;background:#1d2327;color:#fff;font-size:12px;font-weight:600;white-space:nowrap}
 .cfd-bars__axis{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--m)}
 .cfd-promo{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:26px 28px;background:var(--a);color:var(--on);background-image:radial-gradient(circle at 110% 120%,rgba(255,255,255,.18) 0 38%,transparent 39%)}
 .cfd-promo--calm{background:var(--s);color:var(--t);background-image:none}
-.cfd-promo__tag{padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.95);color:var(--a);font-size:12px;font-weight:600}
+.cfd-promo__tag{padding:4px 12px;border-radius:var(--rp);background:rgba(255,255,255,.95);color:var(--a);font-size:12px;font-weight:600}
 .cfd-promo--calm .cfd-promo__tag{background:color-mix(in srgb,var(--a) 12%,var(--s))}
 .cfd-promo__title{margin:4px 0 0;font-size:22px;line-height:1.25;font-weight:700}
 .cfd-promo__text{margin:0;font-size:14px;line-height:1.5;opacity:.9}
-.cfd-promo__btn{margin-top:auto;align-self:stretch;display:flex;align-items:center;justify-content:center;min-height:46px;margin-top:14px;border-radius:12px;background:#fff;color:#1d2327;font-size:14px;font-weight:600;text-decoration:none}
+.cfd-promo__btn{margin-top:auto;align-self:stretch;display:flex;align-items:center;justify-content:center;min-height:46px;margin-top:14px;border-radius:var(--rc);background:#fff;color:#1d2327;font-size:14px;font-weight:600;text-decoration:none}
 .cfd-promo__btn:hover{color:#1d2327;background:rgba(255,255,255,.9)}
 .cfd-promo--calm .cfd-promo__btn{background:var(--a);color:var(--on)}
 .cfd-rows{margin:8px 0 0;padding:0;list-style:none;counter-reset:t}
@@ -1021,10 +1079,10 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-table a{color:var(--t);font-weight:600;text-decoration:none}
 .cfd-row-link{cursor:pointer}
 .cfd-row-link:hover td{background:color-mix(in srgb,var(--a) 6%,transparent)}
-.cfd-row-link td:first-child{border-radius:10px 0 0 10px}.cfd-row-link td:last-child{border-radius:0 10px 10px 0}
+.cfd-row-link td:first-child{border-radius:min(10px,var(--rc)) 0 0 min(10px,var(--rc))}.cfd-row-link td:last-child{border-radius:0 min(10px,var(--rc)) min(10px,var(--rc)) 0}
 .cfd-empty,.cfd-note{color:var(--m);font-size:13px;margin:0}
 @media (max-width:1100px){.cfd-row,.cfd-row--b{grid-template-columns:minmax(0,1fr)}.cfd-strip{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}.cfd-stat:nth-child(3){border-left:0}.cfd-promo{order:-1}}
-@media (max-width:600px){.cfd-card{padding:20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
+@media (max-width:600px){.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
 </style>
 		<?php
 	}

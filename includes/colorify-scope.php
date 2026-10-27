@@ -525,7 +525,7 @@ function colorify_skin_sanitize_font_stack( $value ): string {
 
 /**
  * @param mixed $input Zapisana albo nadesłana skóra.
- * @return array{preset:string,heading:string,body:string,radius:int,faces:array<int,array<string,string>>}
+ * @return array{preset:string,heading:string,body:string,radius:int,corner:int,faces:array<int,array<string,string>>}
  */
 function colorify_skin_sanitize( $input ): array {
 	$input  = is_array( $input ) ? $input : array();
@@ -562,12 +562,14 @@ function colorify_skin_sanitize( $input ): array {
 		'heading' => colorify_skin_sanitize_font_stack( $input['heading'] ?? '' ),
 		'body'    => colorify_skin_sanitize_font_stack( $input['body'] ?? '' ),
 		'radius'  => max( 0, min( 10, (int) ( $input['radius'] ?? 0 ) ) ),
+		// Kształt przycisków strony: -1 = domyślny styl (okrągłe), 0 = kanciaste, 1..40 = róg w px.
+		'corner'  => max( -1, min( 40, (int) ( $input['corner'] ?? -1 ) ) ),
 		'faces'   => $faces,
 	);
 }
 
 /**
- * @return array{preset:string,heading:string,body:string,radius:int,faces:array<int,array<string,string>>}
+ * @return array{preset:string,heading:string,body:string,radius:int,corner:int,faces:array<int,array<string,string>>}
  */
 function colorify_get_skin(): array {
 	$skin = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
@@ -582,16 +584,25 @@ function colorify_get_skin(): array {
  * Arkusz skóry: zmienne czytane przez colorify-ui.css i colorify-login.css oraz @font-face czcionek strony.
  * Skóra kancelarii nie wypisuje nic: jej wartości są zapasowymi w arkuszach.
  */
+function colorify_skin_corner_css( int $corner ): string {
+	if ( $corner < 0 ) {
+		return '';
+	}
+	// Przyciski, pigułki i pola mają róg strony, karty dwa razy większy (do 20 px); 0 = kanciaste wszędzie.
+	return ':root{--colorify-radius-control:' . $corner . 'px;--colorify-radius-pill:' . $corner . 'px;--colorify-radius-card:' . min( 20, $corner * 2 ) . 'px}';
+}
+
 function colorify_skin_css(): string {
-	$skin = colorify_get_skin();
+	$skin   = colorify_get_skin();
+	$corner = colorify_skin_corner_css( $skin['corner'] );
 
 	if ( 'kancelaria' === $skin['preset'] ) {
-		return '';
+		return $corner;
 	}
 
 	if ( 'neutral' === $skin['preset'] ) {
 		$system = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
-		return ':root{--colorify-skin-serif:' . $system . ';--colorify-skin-sans:' . $system . ';--colorify-skin-radius:4px}';
+		return ':root{--colorify-skin-serif:' . $system . ';--colorify-skin-sans:' . $system . ';--colorify-skin-radius:4px}' . $corner;
 	}
 
 	$css = '';
@@ -601,7 +612,7 @@ function colorify_skin_css(): string {
 	}
 	$heading = '' !== $skin['heading'] ? $skin['heading'] : $skin['body'];
 
-	return $css . ':root{--colorify-skin-serif:' . $heading . ', serif;--colorify-skin-sans:' . $skin['body'] . ', sans-serif;--colorify-skin-radius:' . $skin['radius'] . 'px}';
+	return $css . ':root{--colorify-skin-serif:' . $heading . ', serif;--colorify-skin-sans:' . $skin['body'] . ', sans-serif;--colorify-skin-radius:' . $skin['radius'] . 'px}' . $corner;
 }
 
 /**
@@ -632,15 +643,17 @@ function colorify_ajax_apply_site_look(): void {
 		wp_send_json_error( array( 'message' => 'invalid' ), 400 );
 	}
 
-	// Czcionki i rogi strony są opcją: bez nich panel zostaje przy czytelnej czcionce WordPressa (skóra "neutral").
+	// Czcionki strony są opcją: bez nich panel zostaje przy czytelnej czcionce WordPressa (skóra "neutral").
+	// Kształt przycisków (rogi) to osobna opcja: kanciaste przyciski strony dają kanciaste przyciski, karty i pola w panelu.
 	$use_fonts = ! isset( $look['fonts'] ) || ! empty( $look['fonts'] );
+	$corner    = ( ! isset( $look['corners'] ) || ! empty( $look['corners'] ) ) ? (int) ( $look['corner'] ?? -1 ) : -1;
 	if ( $use_fonts ) {
-		$skin = colorify_skin_sanitize( array_merge( $look, array( 'preset' => 'site' ) ) );
+		$skin = colorify_skin_sanitize( array_merge( $look, array( 'preset' => 'site', 'corner' => $corner ) ) );
 		if ( '' === $skin['body'] ) {
 			wp_send_json_error( array( 'message' => 'no_font' ), 400 );
 		}
 	} else {
-		$skin = colorify_skin_sanitize( array( 'preset' => 'neutral' ) );
+		$skin = colorify_skin_sanitize( array( 'preset' => 'neutral', 'corner' => $corner ) );
 	}
 	update_option( COLORIFY_SKIN_OPTION, $skin );
 

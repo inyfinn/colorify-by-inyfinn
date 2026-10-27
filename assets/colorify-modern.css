@@ -17,6 +17,10 @@ body.colorify-style-modern {
 	--cm-r-card: var(--colorify-radius-card, 20px);
 	--cm-r-ctl: var(--colorify-radius-control, 12px);
 	--cm-r-pill: var(--colorify-radius-pill, 999px);
+	--cm-r-card-lg: calc(var(--cm-r-card) * 1.4);
+	/* 2.10.0: okna (karty, metaboksy, kafle) mają o 8 px większy odstęp w środku niż do 2.9; nic nie jest ucinane przy zaokrągleniu. */
+	--cm-pad-x: 32px;
+	--cm-pad-y: 28px;
 	--cm-shadow: var(--colorify-shadow-card, 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .03));
 }
 
@@ -54,7 +58,7 @@ body.colorify-style-modern #dashboard-widgets .postbox {
 }
 body.colorify-style-modern .card {
 	max-width: none;
-	padding: 20px 24px;
+	padding: var(--cm-pad-y) var(--cm-pad-x);
 }
 body.colorify-style-modern .postbox .postbox-header {
 	border-bottom: 1px solid var(--cm-line);
@@ -62,10 +66,14 @@ body.colorify-style-modern .postbox .postbox-header {
 body.colorify-style-modern .postbox .postbox-header .hndle {
 	font-size: 14px;
 	font-weight: 600;
-	padding: 14px 18px;
+	padding: 22px 26px 14px;
 }
 body.colorify-style-modern .postbox .inside {
-	padding: 6px 18px 16px;
+	padding: 14px 26px 24px;
+}
+body.colorify-style-modern .welcome-panel,
+body.colorify-style-modern .stuffbox {
+	padding: var(--cm-pad-y) var(--cm-pad-x);
 }
 body.colorify-style-modern .meta-box-sortables.empty-container,
 body.colorify-style-modern .postbox-container .empty-container {
@@ -84,7 +92,7 @@ body.colorify-style-modern .wrap .form-table {
 }
 body.colorify-style-modern .wrap .form-table th,
 body.colorify-style-modern .wrap .form-table td {
-	padding: 18px 24px;
+	padding: 22px var(--cm-pad-x);
 	border-top: 1px solid var(--cm-line);
 }
 body.colorify-style-modern .wrap .form-table tr:first-child > th,
@@ -156,7 +164,7 @@ body.colorify-style-modern input[type="radio"] {
 	border-color: var(--cm-field);
 }
 body.colorify-style-modern input[type="checkbox"] {
-	border-radius: 6px;
+	border-radius: min(6px, var(--cm-r-ctl));
 }
 
 /* ---------- Przyciski: pigułki ---------- */
@@ -297,18 +305,18 @@ body.colorify-style-modern .subsubsub {
 	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > * {
 		padding-top: 14px; padding-bottom: 14px; border-bottom: 0;
 	}
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :first-child { border-radius: 20px 0 0 20px; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :last-child { border-radius: 0 20px 20px 0; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :first-child { border-radius: var(--cm-r-card) 0 0 var(--cm-r-card); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > :is(thead, tfoot) > tr > :last-child { border-radius: 0 var(--cm-r-card) var(--cm-r-card) 0; }
 	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > * { border-top: 8px solid transparent; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :first-child { border-radius: 28px 0 0 20px; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :last-child { border-radius: 0 28px 20px 0; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :first-child { border-radius: var(--cm-r-card-lg) 0 0 var(--cm-r-card); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tfoot > tr > :last-child { border-radius: 0 var(--cm-r-card-lg) var(--cm-r-card) 0; }
 	/* karta wierszy: odstęp od belki, cienka linia między wierszami, zaokrąglone rogi */
 	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr > * { border-top: 1px solid var(--cm-line); }
 	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > * { border-top: 8px solid transparent; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :first-child { border-top-left-radius: 28px; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :last-child { border-top-right-radius: 28px; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :first-child { border-bottom-left-radius: 20px; }
-	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :last-child { border-bottom-right-radius: 20px; }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :first-child { border-top-left-radius: var(--cm-r-card-lg); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:first-child > :last-child { border-top-right-radius: var(--cm-r-card-lg); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :first-child { border-bottom-left-radius: var(--cm-r-card); }
+	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:last-child > :last-child { border-bottom-right-radius: var(--cm-r-card); }
 	/* najechanie: lekki odcień tej samej powierzchni (nakładka, jak zebra) */
 	body.colorify-style-modern:not(.post-type-kw_usluga) .wp-list-table > tbody > tr:hover > * {
 		background-image: linear-gradient(rgba(0, 0, 0, .06), rgba(0, 0, 0, .06));
@@ -438,7 +446,7 @@ body.colorify-style-modern #adminmenu li.wp-has-current-submenu .wp-submenu a {
 	padding-left: 12px;
 }
 body.colorify-style-modern #adminmenu .wp-submenu a {
-	border-radius: 8px;
+	border-radius: min(8px, var(--cm-r-ctl));
 }
 body.colorify-style-modern #adminmenu div.wp-menu-image {
 	opacity: .9;
@@ -597,4 +605,51 @@ body.colorify-style-modern #adminmenu li.opensub > a.menu-top div.wp-menu-image:
 /* 2.5.2: kafel skrótu kokpitu przy najechaniu o krok jaśniejszy niż karta (tryb ciemny). */
 body.colorify-dark .cfd-quick__a:hover {
 	background: color-mix(in srgb, #fff 5%, var(--colorify-ui-surface, #2a2a2a));
+}
+
+/* 2.10.0: przyciski w panelu mają obrys najwyżej 1 px (spoczynek, najechanie i fokus z klawiatury); pierścień fokusu to
+   1 px z odstępem, czytelny na kartach i bez grubej ramki. Dotyczy też przycisków wtyczek (.ejr-btn). */
+body.colorify-style-modern #wpbody-content :is(.button, .button-primary, .button-secondary, .page-title-action, .ejr-btn) {
+	border-width: 1px;
+}
+body.colorify-style-modern #wpbody-content :is(.button, .button-primary, .button-secondary, .page-title-action, .ejr-btn, button, input[type="submit"], input[type="button"]):focus-visible {
+	outline: 1px solid var(--cm-accent) !important;
+	outline-offset: 2px;
+	box-shadow: none !important;
+}
+@media (max-width: 782px) {
+	body.colorify-style-modern { --cm-pad-x: 22px; --cm-pad-y: 24px; }
+}
+
+/* 2.10.0: cienki pasek przewijania w całym panelu (4 px, bez strzałek, przezroczysty tor). Uchwyt ma kolor akcentu schematu;
+   strona może podać własny (np. złoty) zmienną --colorify-scrollbar-thumb albo filtrem colorify_scrollbar_color.
+   Bez scrollbar-width i scrollbar-color w Chrome (przywracają strzałki): tylko w przeglądarkach bez ::-webkit-scrollbar. */
+body.colorify-style-modern {
+	--cm-thumb: var(--colorify-scrollbar-thumb, color-mix(in srgb, var(--colorify-ui-accent, #2271b1) 70%, transparent));
+}
+body.colorify-style-modern *::-webkit-scrollbar,
+html:has(body.colorify-style-modern)::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+}
+body.colorify-style-modern *::-webkit-scrollbar-track,
+html:has(body.colorify-style-modern)::-webkit-scrollbar-track {
+	background: transparent;
+}
+body.colorify-style-modern *::-webkit-scrollbar-thumb,
+html:has(body.colorify-style-modern)::-webkit-scrollbar-thumb {
+	background: var(--colorify-scrollbar-thumb, color-mix(in srgb, var(--colorify-ui-accent, #2271b1) 70%, transparent));
+	border-radius: 99px;
+}
+body.colorify-style-modern *::-webkit-scrollbar-button,
+html:has(body.colorify-style-modern)::-webkit-scrollbar-button {
+	display: none;
+	width: 0;
+	height: 0;
+}
+@supports not selector(::-webkit-scrollbar) {
+	body.colorify-style-modern * {
+		scrollbar-width: thin;
+		scrollbar-color: var(--cm-thumb) transparent;
+	}
 }

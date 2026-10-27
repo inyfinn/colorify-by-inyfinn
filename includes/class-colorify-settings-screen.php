@@ -72,6 +72,7 @@ final class Colorify_Settings {
 		}
 		colorify_save_admin_style_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		Colorify_Dashboard::save_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		colorify_save_about_redirect_from_input( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		colorify_save_global_appearance( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- pola przechodzą sanitize_* w funkcji zapisu.
 		if ( 'global' === $scope ) {
 			colorify_clear_user_appearance( get_current_user_id() );
@@ -224,6 +225,13 @@ final class Colorify_Settings {
 		}
 		echo '</div></div>';
 
+		// Ekran "Witaj" WordPressa po aktualizacji: na kokpit.
+		echo '<div class="colorify-site colorify-style-row">';
+		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Ekran powitalny WordPressa', 'colorify-by-inyfinn' ) . '</p>';
+		echo '<p class="colorify-site__hint">' . esc_html__( 'Strona z nowościami po aktualizacji WordPressa (about.php) przekierowuje na kokpit.', 'colorify-by-inyfinn' ) . '</p></div>';
+		echo '<label class="colorify-site__check"><input type="hidden" name="colorify_redirect_about_present" value="1"><input type="checkbox" name="colorify_redirect_about" value="1"' . checked( colorify_about_redirect_enabled(), true, false ) . '> ' . esc_html__( 'Przekieruj na kokpit', 'colorify-by-inyfinn' ) . '</label>';
+		echo '</div>';
+
 		// Panel dopasowania do strony: zawsze widoczny, z tym, co zastosowano ostatnio.
 		$skin_now  = colorify_skin_sanitize( get_option( COLORIFY_SKIN_OPTION, array() ) );
 		$site_cols = get_option( COLORIFY_GLOBAL_OPTION_PREFIX . 'custom_colors', array() );
@@ -242,11 +250,11 @@ final class Colorify_Settings {
 					echo '<i class="colorify-match__swatch" data-colorify-swatch style="background:' . esc_attr( $hex ) . '" title="' . esc_attr( $hex ) . '"></i>';
 				}
 			}
+			$corner_label = $skin_now['corner'] < 0 ? '' : ( 0 === $skin_now['corner'] ? __( 'kanciaste przyciski', 'colorify-by-inyfinn' ) : sprintf( /* translators: %d: róg w px */ __( 'rogi %d px', 'colorify-by-inyfinn' ), $skin_now['corner'] ) );
 			if ( 'site' === $skin_now['preset'] ) {
-				/* translators: 1: czcionka, 2: zaokrąglenie w px */
-				echo '<span>' . esc_html( sprintf( __( '%1$s, rogi %2$d px', 'colorify-by-inyfinn' ), $font, $skin_now['radius'] ) ) . '</span></p>';
+				echo '<span>' . esc_html( $font . ( '' !== $corner_label ? ', ' . $corner_label : '' ) ) . '</span></p>';
 			} else {
-				echo '<span>' . esc_html__( 'czcionki WordPressa', 'colorify-by-inyfinn' ) . '</span></p>';
+				echo '<span>' . esc_html( __( 'czcionki WordPressa', 'colorify-by-inyfinn' ) . ( '' !== $corner_label ? ', ' . $corner_label : '' ) ) . '</span></p>';
 			}
 		}
 		echo '</div>';

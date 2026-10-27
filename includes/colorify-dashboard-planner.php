@@ -49,12 +49,42 @@ trait Colorify_Dashboard_Planner {
 		return array( 'count' => count( $ev ), 'next' => $ev ? $ev[0] : null, 'url' => $url );
 	}
 
+	/** Czy to konto widzi dane zleceń (dane osobowe klientów). Filtr colorify_calendar_capability zmienia wymagane uprawnienie. */
+	private static function plan_can_see(): bool {
+		return current_user_can( (string) apply_filters( 'colorify_calendar_capability', 'edit_posts' ) );
+	}
+
+	/**
+	 * Szczegóły wydarzenia: lista par etykieta/wartość (tekst bez HTML).
+	 *
+	 * @param mixed $raw Surowe 'details' z filtra.
+	 * @return array<int,array{0:string,1:string}>
+	 */
+	private static function plan_details( $raw ): array {
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$label = trim( wp_strip_all_tags( (string) ( $row['label'] ?? ( $row[0] ?? '' ) ) ) );
+			$value = trim( wp_strip_all_tags( (string) ( $row['value'] ?? ( $row[1] ?? '' ) ) ) );
+			if ( '' !== $label && '' !== $value ) {
+				$out[] = array( $label, mb_substr( $value, 0, 600 ) );
+			}
+		}
+		return array_slice( $out, 0, 24 );
+	}
+
 	/**
 	 * Wydarzenia z filtra, tylko poprawne (data, tytuł), posortowane po dacie.
+	 * Poza polami podstawowymi wtyczka może podać: id, phone, email, route_url, status_label, reminder_done, details.
 	 *
-	 * @return array<int,array{date:string,title:string,url:string,type:string,status:string,amount:?int,meta:string}>
+	 * @return array<int,array<string,mixed>>
 	 */
 	private static function plan_events( string $from, string $to ): array {
+		if ( ! self::plan_can_see() ) {
+			return array();
+		}
 		$raw = apply_filters( 'colorify_calendar_events', array(), $from, $to );
 		$out = array();
 		foreach ( is_array( $raw ) ? $raw : array() as $e ) {
@@ -66,14 +96,22 @@ trait Colorify_Dashboard_Planner {
 				continue;
 			}
 			$title = trim( wp_strip_all_tags( (string) ( $e['title'] ?? '' ) ) );
+			$slab  = $e['status_label'] ?? ( $e['status_nazwa'] ?? '' );
 			$out[] = array(
-				'date'   => $date,
-				'title'  => '' !== $title ? $title : __( '(bez tytułu)', 'colorify-by-inyfinn' ),
-				'url'    => isset( $e['url'] ) ? esc_url_raw( (string) $e['url'] ) : '',
-				'type'   => sanitize_key( (string) ( $e['type'] ?? '' ) ),
-				'status' => sanitize_key( (string) ( $e['status'] ?? '' ) ),
-				'amount' => isset( $e['amount'] ) && is_numeric( $e['amount'] ) ? (int) $e['amount'] : null,
-				'meta'   => trim( wp_strip_all_tags( (string) ( $e['meta'] ?? '' ) ) ),
+				'date'         => $date,
+				'title'        => '' !== $title ? $title : __( '(bez tytułu)', 'colorify-by-inyfinn' ),
+				'url'          => isset( $e['url'] ) ? esc_url_raw( (string) $e['url'] ) : '',
+				'type'         => sanitize_key( (string) ( $e['type'] ?? '' ) ),
+				'status'       => sanitize_key( (string) ( $e['status'] ?? '' ) ),
+				'amount'       => isset( $e['amount'] ) && is_numeric( $e['amount'] ) ? (int) $e['amount'] : null,
+				'meta'         => trim( wp_strip_all_tags( (string) ( $e['meta'] ?? '' ) ) ),
+				'id'           => isset( $e['id'] ) ? (int) $e['id'] : 0,
+				'phone'        => trim( wp_strip_all_tags( (string) ( $e['phone'] ?? '' ) ) ),
+				'email'        => sanitize_email( (string) ( $e['email'] ?? '' ) ),
+				'route'        => isset( $e['route_url'] ) ? esc_url_raw( (string) $e['route_url'] ) : '',
+				'status_label' => trim( wp_strip_all_tags( (string) $slab ) ),
+				'done'         => ! empty( $e['reminder_done'] ),
+				'details'      => self::plan_details( $e['details'] ?? array() ),
 			);
 		}
 		usort(
@@ -83,6 +121,26 @@ trait Colorify_Dashboard_Planner {
 			}
 		);
 		return $out;
+	}
+
+	/**
+	 * Wszystkie wydarzenia z okna (rok wstecz, dwa lata do przodu) z numerem kolejnym 'i', raz na żądanie.
+	 * Numer łączy wydarzenie w kalendarzu, na listach i w karcie szczegółów.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function plan_all(): array {
+		static $all = null;
+		if ( null === $all ) {
+			$tz   = wp_timezone();
+			$from = ( new DateTimeImmutable( 'first day of this month', $tz ) )->modify( '-13 months' )->format( 'Y-m-d' );
+			$to   = ( new DateTimeImmutable( 'last day of this month', $tz ) )->modify( '+25 months' )->format( 'Y-m-d' );
+			$all  = array_slice( self::plan_events( $from, $to ), 0, 600 );
+			foreach ( $all as $i => $e ) {
+				$all[ $i ]['i'] = $i;
+			}
+		}
+		return $all;
 	}
 
 	/**
@@ -134,21 +192,142 @@ trait Colorify_Dashboard_Planner {
 			'kontakt' => __( 'Kontakt', 'colorify-by-inyfinn' ),
 			'oddanie' => __( 'Oddanie materiałów', 'colorify-by-inyfinn' ),
 			'blokada' => __( 'Zablokowane', 'colorify-by-inyfinn' ),
+			'przypomnienie' => __( 'Przypomnienie', 'colorify-by-inyfinn' ),
+			'przygotowanie' => __( 'Przygotowanie', 'colorify-by-inyfinn' ),
 		);
 		return $map[ $type ] ?? ( '' === $type ? __( 'Wydarzenie', 'colorify-by-inyfinn' ) : ucfirst( $type ) );
 	}
 
-	/** Klasa koloru chipa: nieznany rodzaj wygląda jak "kontakt". */
-	private static function plan_type_class( string $type ): string {
-		return in_array( $type, array( 'wesele', 'kontakt', 'oddanie', 'blokada' ), true ) ? $type : 'kontakt';
+
+	/** Brak danych z wtyczki: podpowiedź zamiast błędu. */
+	private static function plan_hint(): string {
+		return self::promo(
+			__( 'Podpowiedź', 'colorify-by-inyfinn' ),
+			__( 'Terminarz jest pusty', 'colorify-by-inyfinn' ),
+			array( __( 'Żadna wtyczka nie podaje jeszcze zleceń. Wtyczka rezerwacji lub zleceń przekazuje je kokpitowi filtrem colorify_calendar_events, a liczby filtrem colorify_dashboard_kpis.', 'colorify-by-inyfinn' ) ),
+			'',
+			'',
+			true
+		);
 	}
 
-	/** Liczby w pasku: z filtra, a bez nich policzone z wydarzeń miesiąca. @return string HTML */
+	/* ===================== Motyw: Kalendarz zleceń ===================== */
+
+	/** Rodzaj wydarzenia sprowadzony do jednego z pięciu znanych (nieznany to przypomnienie). */
+	private static function plan_type_key( string $type ): string {
+		return in_array( $type, array( 'wesele', 'kontakt', 'oddanie', 'blokada', 'przypomnienie', 'przygotowanie' ), true ) ? $type : 'przypomnienie';
+	}
+
+	/** Ikona rodzaju wydarzenia (nazwa w Colorify_Dashboard::icon). */
+	private static function plan_type_icon( string $type ): string {
+		$map = array( 'wesele' => 'ring', 'kontakt' => 'phone', 'oddanie' => 'box', 'blokada' => 'lock', 'przypomnienie' => 'bell', 'przygotowanie' => 'list' );
+		return $map[ self::plan_type_key( $type ) ] ?? 'calendar';
+	}
+
+	/** Klasa koloru statusu: znany etap zlecenia albo "other". */
+	private static function plan_status_key( string $status ): string {
+		return in_array( $status, array( 'nowe', 'wstepnie', 'umowa', 'zadatek', 'zrealizowane', 'anulowane' ), true ) ? $status : 'other';
+	}
+
+	/** "dziś", "jutro", "za 5 dni", "3 dni temu". */
+	private static function plan_rel( string $ymd, DateTimeImmutable $today ): string {
+		$n = (int) $today->diff( new DateTimeImmutable( $ymd, wp_timezone() ) )->format( '%r%a' );
+		if ( 0 === $n ) {
+			return __( 'dziś', 'colorify-by-inyfinn' );
+		}
+		if ( 1 === $n ) {
+			return __( 'jutro', 'colorify-by-inyfinn' );
+		}
+		if ( -1 === $n ) {
+			return __( 'wczoraj', 'colorify-by-inyfinn' );
+		}
+		/* translators: %d: liczba dni */
+		return $n > 0 ? sprintf( __( 'za %d dni', 'colorify-by-inyfinn' ), $n ) : sprintf( __( '%d dni temu', 'colorify-by-inyfinn' ), -$n );
+	}
+
+	/**
+	 * Wydarzenie w postaci gotowej dla przeglądarki (karta szczegółów, kopiowanie).
+	 *
+	 * @param array<string,mixed> $e Wydarzenie z plan_all().
+	 * @return array<string,mixed>
+	 */
+	private static function plan_payload( array $e, DateTimeImmutable $today ): array {
+		$ts     = strtotime( $e['date'] . ' 12:00:00' );
+		$type   = self::plan_type_key( (string) $e['type'] );
+		$st     = self::plan_status( (string) $e['status'] );
+		$slabel = '' !== $e['status_label'] ? $e['status_label'] : $st[0];
+		$amount = ( null !== $e['amount'] && $e['amount'] > 0 ) ? self::plan_money( (float) $e['amount'] ) : '';
+		$rows   = $e['details'];
+		if ( ! $rows ) { // wtyczka nie podała szczegółów: pokazujemy to, co jest
+			if ( '' !== $e['meta'] && $e['meta'] !== $e['phone'] && $e['meta'] !== $e['email'] ) {
+				$rows[] = array( __( 'Szczegóły', 'colorify-by-inyfinn' ), $e['meta'] );
+			}
+			if ( '' !== $amount ) {
+				$rows[] = array( __( 'Kwota', 'colorify-by-inyfinn' ), $amount );
+			}
+			if ( '' !== $slabel && 'blokada' !== $type ) {
+				$rows[] = array( __( 'Status', 'colorify-by-inyfinn' ), $slabel );
+			}
+			if ( '' !== $e['phone'] ) {
+				$rows[] = array( __( 'Telefon', 'colorify-by-inyfinn' ), $e['phone'] );
+			}
+			if ( '' !== $e['email'] ) {
+				$rows[] = array( __( 'E-mail', 'colorify-by-inyfinn' ), $e['email'] );
+			}
+		}
+		$long = wp_date( 'l, j F Y', $ts );
+		// Tekst do wklejenia (Messenger, SMS): czysty, wielowierszowy, bez notatek wewnętrznych.
+		$lines = array( self::plan_type_label( $type ) . ': ' . $e['title'], $long );
+		foreach ( $rows as $r ) {
+			if ( false === stripos( $r[0], 'notatk' ) ) {
+				$lines[] = $r[0] . ': ' . $r[1];
+			}
+		}
+		return array(
+			'i'      => (int) $e['i'],
+			'id'     => (int) $e['id'],
+			'date'   => $e['date'],
+			'dow'    => wp_date( 'l', $ts ),
+			'long'   => $long,
+			'rel'    => self::plan_rel( $e['date'], $today ),
+			'title'  => $e['title'],
+			'type'   => $type,
+			'tl'     => self::plan_type_label( $type ),
+			'st'     => self::plan_status_key( (string) $e['status'] ),
+			'sl'     => 'blokada' === $type ? '' : $slabel,
+			'amount' => $amount,
+			'url'    => $e['url'],
+			'phone'  => $e['phone'],
+			'email'  => $e['email'],
+			'route'  => $e['route'],
+			'rows'   => $rows,
+			'done'   => (bool) $e['done'],
+			'copy'   => implode( "\n", $lines ),
+		);
+	}
+
+	/** Plakietka statusu zlecenia. */
+	private static function plan_pill( array $e ): string {
+		if ( 'blokada' === $e['type'] ) {
+			return '';
+		}
+		$st    = self::plan_status( (string) $e['status'] );
+		$label = '' !== $e['status_label'] ? $e['status_label'] : $st[0];
+		return '' !== $label ? '<span class="cfd-pill cfd-pill--' . esc_attr( $st[1] ) . '">' . esc_html( $label ) . '</span>' : '';
+	}
+
+	/** Data jako plakietka (dzień i miesiąc). */
+	private static function plan_date_badge( string $ymd ): string {
+		$ts = strtotime( $ymd . ' 12:00:00' );
+		return '<span class="cfb-date" aria-hidden="true"><b>' . esc_html( wp_date( 'j', $ts ) ) . '</b><i>' . esc_html( wp_date( 'M', $ts ) ) . '</i></span>';
+	}
+
+	/** Liczby w osobnych, równych kafelkach. Bez liczb z wtyczki: liczone z wydarzeń miesiąca. @return string HTML */
 	private static function plan_strip( array $kpis, array $month_events, int $days_in_month ): string {
 		if ( ! $kpis && $month_events ) {
-			$busy   = array();
-			$sum    = 0;
-			$count  = 0;
+			$busy  = array();
+			$sum   = 0;
+			$count = 0;
 			foreach ( $month_events as $e ) {
 				if ( 'blokada' === $e['type'] ) {
 					continue;
@@ -167,10 +346,27 @@ trait Colorify_Dashboard_Planner {
 		if ( ! $kpis ) {
 			return '';
 		}
-		$icons = array( 'calendar', 'cash', 'pin', 'clock', 'user', 'pages', 'mail', 'conv' );
-		$out   = '<section class="cfd-card cfd-strip cfd-strip--n" style="--cfd-n:' . (int) min( 6, count( $kpis ) ) . '" aria-label="' . esc_attr__( 'Najważniejsze liczby', 'colorify-by-inyfinn' ) . '">';
+		$fallback = array( 'calendar', 'cash', 'pin', 'clock', 'user', 'pages', 'mail', 'conv' );
+		$out      = '<section class="cfb-kpis" data-n="' . (int) min( 6, count( $kpis ) ) . '" style="--cfb-n:' . (int) min( 6, count( $kpis ) ) . '" aria-label="' . esc_attr__( 'Najważniejsze liczby', 'colorify-by-inyfinn' ) . '">';
 		foreach ( $kpis as $i => $k ) {
-			$out .= self::stat( $icons[ $i % count( $icons ) ], $k['label'], esc_html( $k['value'] ), '', $k['hint'], $k['url'] );
+			$l = mb_strtolower( $k['label'] );
+			if ( preg_match( '/zarob|kwot|wartość|przychód|przych|zł/u', $l ) ) {
+				$ico = 'cash';
+			} elseif ( preg_match( '/kilometr|\bkm\b|dojazd/u', $l ) ) {
+				$ico = 'pin';
+			} elseif ( preg_match( '/najbliż|termin|wesel|dat[aey]/u', $l ) ) {
+				$ico = 'calendar';
+			} elseif ( preg_match( '/czek|oczek|odpowied/u', $l ) ) {
+				$ico = 'clock';
+			} elseif ( preg_match( '/zgłosz|zapyt|wiadom|mail/u', $l ) ) {
+				$ico = 'mail';
+			} else {
+				$ico = $fallback[ $i % count( $fallback ) ];
+			}
+			$inner = '<span class="cfb-kpi__top">' . self::icon( $ico ) . '<span class="cfb-kpi__label">' . esc_html( $k['label'] ) . '</span></span>'
+				. '<span class="cfb-kpi__value' . ( self::is_text_value( $k['value'] ) ? ' is-text' : '' ) . '">' . esc_html( $k['value'] ) . '</span>'
+				. '<span class="cfb-kpi__hint">' . esc_html( $k['hint'] ) . '</span>';
+			$out  .= '' !== $k['url'] ? '<a class="cfd-card cfb-kpi is-link" href="' . esc_url( $k['url'] ) . '">' . $inner . '</a>' : '<div class="cfd-card cfb-kpi">' . $inner . '</div>';
 		}
 		return $out . '</section>';
 	}
@@ -185,131 +381,286 @@ trait Colorify_Dashboard_Planner {
 		return new DateTimeImmutable( 'first day of this month', $tz );
 	}
 
-	/** Brak danych z wtyczki: podpowiedź zamiast błędu. */
-	private static function plan_hint(): string {
-		return self::promo(
-			__( 'Podpowiedź', 'colorify-by-inyfinn' ),
-			__( 'Terminarz jest pusty', 'colorify-by-inyfinn' ),
-			array( __( 'Żadna wtyczka nie podaje jeszcze zleceń. Wtyczka rezerwacji lub zleceń przekazuje je kokpitowi filtrem colorify_calendar_events, a liczby filtrem colorify_dashboard_kpis.', 'colorify-by-inyfinn' ) ),
-			'',
-			'',
-			true
-		);
-	}
-
-	/* ===================== Motyw: Kalendarz zleceń ===================== */
-
-	private static function calendar( int $days ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
-		global $wp_locale;
-		$tz       = wp_timezone();
-		$first    = self::plan_month();
-		$today    = new DateTimeImmutable( 'today', $tz );
-		$last     = $first->modify( 'last day of this month' );
-		$start    = $first->modify( '-' . ( (int) $first->format( 'N' ) - 1 ) . ' days' );
-		$end      = $last->modify( '+' . ( 7 - (int) $last->format( 'N' ) ) . ' days' );
-		$events   = self::plan_events( $start->format( 'Y-m-d' ), $end->format( 'Y-m-d' ) );
-		$by_day   = array();
-		foreach ( $events as $e ) {
-			$by_day[ $e['date'] ][] = $e;
-		}
-		$provider = self::plan_has_provider();
-		$in_month = array_values( array_filter( $events, static function ( $e ) use ( $first, $last ) {
-			return $e['date'] >= $first->format( 'Y-m-d' ) && $e['date'] <= $last->format( 'Y-m-d' );
-		} ) );
-
-		$base = admin_url( 'index.php' );
-		$prev = $first->modify( '-1 month' )->format( 'Y-m' );
-		$next = $first->modify( '+1 month' )->format( 'Y-m' );
-		$out  = self::head( __( 'Terminarz zleceń', 'colorify-by-inyfinn' ), 30, false );
-		$out .= self::plan_strip( self::plan_kpis(), $in_month, (int) $last->format( 'j' ) );
-
-		// Siatka miesiąca.
-		$cal  = '<section class="cfd-card cfc-cal" aria-label="' . esc_attr__( 'Kalendarz', 'colorify-by-inyfinn' ) . '">';
-		$cal .= '<div class="cfc-bar"><h2 class="cfc-title">' . esc_html( wp_date( 'F Y', $first->getTimestamp() ) ) . '</h2><nav class="cfc-nav" aria-label="' . esc_attr__( 'Miesiąc', 'colorify-by-inyfinn' ) . '">'
-			. '<a class="cfc-nav__a" href="' . esc_url( add_query_arg( 'cfd_month', $prev, $base ) ) . '" aria-label="' . esc_attr__( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ) . '">&lsaquo;</a>'
-			. '<a class="cfc-nav__a cfc-nav__today" href="' . esc_url( $base ) . '">' . esc_html__( 'Dziś', 'colorify-by-inyfinn' ) . '</a>'
-			. '<a class="cfc-nav__a" href="' . esc_url( add_query_arg( 'cfd_month', $next, $base ) ) . '" aria-label="' . esc_attr__( 'Następny miesiąc', 'colorify-by-inyfinn' ) . '">&rsaquo;</a>'
-			. '</nav></div>';
-		$cal .= '<table class="cfc-grid"><thead><tr>';
-		foreach ( array( 1, 2, 3, 4, 5, 6, 0 ) as $wd ) {
-			$cal .= '<th scope="col">' . esc_html( $wp_locale->get_weekday_abbrev( $wp_locale->get_weekday( $wd ) ) ) . '</th>';
-		}
-		$cal .= '</tr></thead><tbody>';
-		for ( $d = $start; $d <= $end; $d = $d->modify( '+1 day' ) ) {
-			if ( 1 === (int) $d->format( 'N' ) ) {
-				$cal .= '<tr>';
-			}
-			$ymd   = $d->format( 'Y-m-d' );
-			$cls   = ( $d->format( 'Y-m' ) !== $first->format( 'Y-m' ) ? ' is-out' : '' ) . ( $ymd === $today->format( 'Y-m-d' ) ? ' is-today' : '' ) . ( (int) $d->format( 'N' ) >= 6 ? ' is-weekend' : '' ) . ( ! empty( $by_day[ $ymd ] ) ? ' has-ev' : '' );
-			$cal  .= '<td class="cfc-day' . $cls . '"' . ( $ymd === $today->format( 'Y-m-d' ) ? ' aria-current="date"' : '' ) . '><span class="cfc-num">' . esc_html( $d->format( 'j' ) ) . '</span>';
-			$items = $by_day[ $ymd ] ?? array();
-			foreach ( array_slice( $items, 0, 2 ) as $e ) {
-				$cal .= self::plan_chip( $e );
-			}
-			if ( count( $items ) > 2 ) {
-				/* translators: %d: liczba dalszych wydarzeń */
-				$cal .= '<span class="cfc-more">' . esc_html( sprintf( __( '+%d więcej', 'colorify-by-inyfinn' ), count( $items ) - 2 ) ) . '</span>';
-			}
-			$cal .= '</td>';
-			if ( 7 === (int) $d->format( 'N' ) ) {
-				$cal .= '</tr>';
-			}
-		}
-		$cal .= '</tbody></table>';
-		$cal .= '<ul class="cfc-legend" aria-label="' . esc_attr__( 'Legenda', 'colorify-by-inyfinn' ) . '">';
-		foreach ( array( 'wesele', 'kontakt', 'oddanie', 'blokada' ) as $t ) {
-			$cal .= '<li><i class="cfc-dot cfc-dot--' . esc_attr( $t ) . '"></i>' . esc_html( self::plan_type_label( $t ) ) . '</li>';
-		}
-		$cal .= '</ul>';
-		if ( $provider && ! $in_month ) {
-			$cal .= '<p class="cfd-empty">' . esc_html__( 'W tym miesiącu nie ma nic w terminarzu.', 'colorify-by-inyfinn' ) . '</p>';
-		}
-		$cal .= '</section>';
-
-		// Najbliższe wydarzenia (od dziś, 120 dni), bez blokad.
-		$ahead = array_values( array_filter( self::plan_events( $today->format( 'Y-m-d' ), $today->modify( '+120 days' )->format( 'Y-m-d' ) ), static function ( $e ) {
-			return 'blokada' !== $e['type'];
-		} ) );
-		$side  = self::plan_upcoming( __( 'Najbliższe', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 8 ), $provider ? __( 'Nic nie jest zaplanowane na najbliższe miesiące.', 'colorify-by-inyfinn' ) : '' );
-		if ( ! $provider ) {
-			$side = self::plan_hint();
-		}
-		return $out . '<div class="cfc">' . $cal . '<div class="cfd-stack">' . $side . '</div></div>';
-	}
-
-	/** Pojedyncze wydarzenie w komórce dnia. @param array<string,mixed> $e */
-	private static function plan_chip( array $e ): string {
-		$tip = trim( $e['title'] . ( '' !== $e['meta'] ? ' · ' . $e['meta'] : '' ) . ( null !== $e['amount'] && $e['amount'] > 0 ? ' · ' . self::plan_money( (float) $e['amount'] ) : '' ) );
-		$cls = 'cfc-ev cfc-ev--' . self::plan_type_class( (string) $e['type'] );
-		return '' !== $e['url']
-			? '<a class="' . esc_attr( $cls ) . '" href="' . esc_url( $e['url'] ) . '" title="' . esc_attr( $tip ) . '">' . esc_html( $e['title'] ) . '</a>'
-			: '<span class="' . esc_attr( $cls ) . '" title="' . esc_attr( $tip ) . '">' . esc_html( $e['title'] ) . '</span>';
+	/** Wiersz etykieta/wartość; wartość to przycisk kopiujący ją do schowka (ikonka pokazuje się przy najechaniu i fokusie). */
+	private static function plan_kv( string $label, string $value ): string {
+		$wide = mb_strlen( $value ) > 46 || false !== strpos( $value, "\n" );
+		/* translators: %s: nazwa pola */
+		$aria = sprintf( __( 'Skopiuj: %s', 'colorify-by-inyfinn' ), $label );
+		return '<div class="cfb-kv' . ( $wide ? ' is-wide' : '' ) . '"><dt>' . esc_html( $label ) . '</dt><dd><button type="button" class="cfb-val" data-cfb-val="' . esc_attr( $value ) . '" aria-label="' . esc_attr( $aria ) . '"><span>' . esc_html( $value ) . '</span><i class="cfb-val__i" aria-hidden="true">' . self::icon_svg( 'copy' ) . '</i></button></dd></div>';
 	}
 
 	/**
-	 * Karta z listą nadchodzących wydarzeń (data jako plakietka, tytuł, opis, kwota i status).
+	 * Kafel z listą: pierwsze $limit pozycji, reszta pod przyciskiem "Pokaż wszystkie" (bez przewijania w kafelku).
 	 *
-	 * @param array<int,array<string,mixed>> $events Wydarzenia.
+	 * @param array<int,string> $items Gotowe elementy <li>.
+	 */
+	private static function plan_list_tile( string $title, string $note, array $items, string $empty, string $class = '', int $limit = 6 ): string {
+		$out = '<section class="cfd-card cfb-tile ' . esc_attr( $class ) . '"><div class="cfb-tile__bar"><h2 class="cfb-tile__title">' . esc_html( $title ) . '</h2>' . ( '' !== $note ? '<span class="cfb-tile__note">' . esc_html( $note ) . '</span>' : '' ) . '</div>';
+		if ( ! $items ) {
+			return $out . '<p class="cfb-empty">' . esc_html( $empty ) . '</p></section>';
+		}
+		$out .= '<ol class="cfb-li-list">';
+		foreach ( $items as $i => $li ) {
+			$out .= $i >= $limit ? str_replace( '<li>', '<li data-extra hidden>', $li ) : $li;
+		}
+		$out .= '</ol>';
+		if ( count( $items ) > $limit ) {
+			/* translators: %d: liczba pozycji */
+			$all_label = sprintf( __( 'Pokaż wszystkie (%d)', 'colorify-by-inyfinn' ), count( $items ) );
+			$out      .= '<button type="button" class="cfb-showall" data-cfb-showall aria-expanded="false" data-all="' . esc_attr( $all_label ) . '" data-less="' . esc_attr__( 'Pokaż mniej', 'colorify-by-inyfinn' ) . '">' . esc_html( $all_label ) . '</button>';
+		}
+		return $out . '</section>';
+	}
+
+	/** Para z imieniem i resztą tytułu przypomnienia ("Imiona: co zrobić"). @return array{0:string,1:string} */
+	private static function plan_split_title( string $title ): array {
+		$pos = strpos( $title, ': ' );
+		return false === $pos ? array( $title, '' ) : array( substr( $title, 0, $pos ), substr( $title, $pos + 2 ) );
+	}
+
+	/** Jeden wiersz listy (data, para, rodzaj, status). Wiersz otwiera kartę szczegółów. @param array<string,mixed> $e */
+	private static function plan_li( array $e, DateTimeImmutable $today ): string {
+		$type = self::plan_type_key( (string) $e['type'] );
+		$ts   = strtotime( $e['date'] . ' 12:00:00' );
+		$who  = self::plan_split_title( (string) $e['title'] )[0];
+		$sub  = esc_html( self::plan_type_label( $type ) . ' · ' . wp_date( 'l', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) );
+		return '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog">'
+			. self::plan_date_badge( $e['date'] )
+			. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $who ) . '</strong><span class="cfb-li__sub"><span class="cfb-tico cfb-tico--' . esc_attr( $type ) . '">' . self::icon_svg( self::plan_type_icon( $type ) ) . '</span>' . $sub . '</span></span>'
+			. self::plan_pill( $e ) . '</button></li>';
+	}
+
+	/** Duży kafel: najbliższe wesele (albo wydarzenie) ze wszystkimi szczegółami, bez przewijania. @param array<string,mixed>|null $next */
+	private static function plan_next_tile( ?array $next, array $all, DateTimeImmutable $today ): string {
+		if ( ! $next ) {
+			return '<section class="cfd-card cfb-next"><div class="cfb-next__in is-empty"><h2 class="cfb-tile__title">' . esc_html__( 'Najbliższe wydarzenie', 'colorify-by-inyfinn' ) . '</h2><p class="cfb-empty">' . esc_html__( 'Nic nie jest zaplanowane. Nowe zlecenia pojawią się tutaj.', 'colorify-by-inyfinn' ) . '</p></div></section>';
+		}
+		$p     = self::plan_payload( $next, $today );
+		$title = 'wesele' === $p['type'] ? __( 'Najbliższe wesele', 'colorify-by-inyfinn' ) : __( 'Najbliższe wydarzenie', 'colorify-by-inyfinn' );
+		$ts    = strtotime( $next['date'] . ' 12:00:00' );
+		$out   = '<section class="cfd-card cfb-next" aria-label="' . esc_attr( $title ) . '"><div class="cfb-next__in"><div class="cfb-next__side">';
+		$out  .= '<div class="cfb-tile__bar"><h2 class="cfb-tile__title">' . esc_html( $title ) . '</h2>' . self::plan_pill( $next ) . '</div>';
+		$out  .= '<div class="cfb-next__hero"><span class="cfb-next__day"><b>' . esc_html( wp_date( 'j', $ts ) ) . '</b><i>' . esc_html( wp_date( 'M', $ts ) ) . '</i></span>'
+			. '<span class="cfb-next__who"><strong>' . esc_html( $p['title'] ) . '</strong><span>' . esc_html( $p['long'] . ' · ' . $p['rel'] ) . '</span></span></div>';
+		$out  .= '<div class="cfb-actions">'
+			. '<button type="button" class="cfb-btn is-main" data-cfb-copy="' . (int) $next['i'] . '">' . self::icon_svg( 'copy' ) . '<span>' . esc_html__( 'Skopiuj informacje', 'colorify-by-inyfinn' ) . '</span></button>'
+			. ( '' !== $p['url'] ? '<a class="cfb-btn" href="' . esc_url( $p['url'] ) . '">' . self::icon_svg( 'ext' ) . '<span>' . esc_html__( 'Otwórz zlecenie', 'colorify-by-inyfinn' ) . '</span></a>' : '' )
+			. ( '' !== $p['phone'] ? '<a class="cfb-btn" href="tel:' . esc_attr( preg_replace( '/[^\d+]/', '', $p['phone'] ) ) . '">' . self::icon_svg( 'phone' ) . '<span>' . esc_html__( 'Zadzwoń', 'colorify-by-inyfinn' ) . '</span></a>' : '' )
+			. ( '' !== $p['route'] ? '<a class="cfb-btn" href="' . esc_url( $p['route'] ) . '" target="_blank" rel="noopener noreferrer">' . self::icon_svg( 'route' ) . '<span>' . esc_html__( 'Trasa', 'colorify-by-inyfinn' ) . '</span></a>' : '' )
+			. '</div>';
+		// Przypomnienia związane z tym zleceniem.
+		$rem = array();
+		if ( $next['id'] > 0 ) {
+			foreach ( $all as $e ) {
+				if ( $e['id'] === $next['id'] && 'wesele' !== $e['type'] && 'blokada' !== $e['type'] && ! $e['done'] && $e['i'] !== $next['i'] ) {
+					$rem[] = $e;
+				}
+			}
+		}
+		if ( $rem ) {
+			$out .= '<div class="cfb-rem"><p class="cfb-rem__t">' . esc_html__( 'Przy tym zleceniu', 'colorify-by-inyfinn' ) . '</p><ol class="cfb-li-list is-compact">';
+			foreach ( array_slice( $rem, 0, 5 ) as $e ) {
+				$t     = self::plan_type_key( (string) $e['type'] );
+				$late  = $e['date'] < $today->format( 'Y-m-d' );
+				$label = self::plan_split_title( (string) $e['title'] );
+				$out  .= '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span><span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $label[1] ? $label[1] : $label[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( wp_date( 'l, j.m', strtotime( $e['date'] . ' 12:00:00' ) ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+			}
+			$out .= '</ol></div>';
+		}
+		$out .= '</div>'; // .cfb-next__side
+		if ( $p['rows'] ) {
+			$out .= '<dl class="cfb-dl cfb-next__dl">';
+			foreach ( $p['rows'] as $r ) {
+				$out .= self::plan_kv( $r[0], $r[1] );
+			}
+			$out .= '</dl>';
+		}
+		return $out . '</div></section>';
+	}
+
+	/** Dane, ikony i teksty dla skryptu; karta szczegółów jest jedna na stronie. */
+	private static function plan_boot( string $month ): string {
+		global $wp_locale;
+		$today   = new DateTimeImmutable( 'today', wp_timezone() );
+		$payload = array();
+		foreach ( self::plan_all() as $e ) {
+			$payload[] = self::plan_payload( $e, $today );
+		}
+		$icons = array();
+		foreach ( array( 'ring', 'phone', 'box', 'lock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
+			$icons[ $n ] = self::icon_svg( $n );
+		}
+		$months = array();
+		$short  = array();
+		for ( $m = 1; $m <= 12; $m++ ) {
+			$months[] = $wp_locale->get_month( $m );
+			$short[]  = $wp_locale->get_month_abbrev( $wp_locale->get_month( $m ) );
+		}
+		$dows = array();
+		foreach ( array( 1, 2, 3, 4, 5, 6, 0 ) as $wd ) {
+			$dows[] = $wp_locale->get_weekday_abbrev( $wp_locale->get_weekday( $wd ) );
+		}
+		$cfg = array(
+			'today'  => $today->format( 'Y-m-d' ),
+			'month'  => $month,
+			'events' => $payload,
+			'icons'  => $icons,
+			'months' => $months,
+			'short'  => $short,
+			'dows'   => $dows,
+			'base'   => admin_url( 'index.php' ),
+			'i18n'   => array(
+				'prevMonth' => __( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ),
+				'nextMonth' => __( 'Następny miesiąc', 'colorify-by-inyfinn' ),
+				'prevYear'  => __( 'Poprzedni rok', 'colorify-by-inyfinn' ),
+				'nextYear'  => __( 'Następny rok', 'colorify-by-inyfinn' ),
+				'year'      => __( 'Rok', 'colorify-by-inyfinn' ),
+				'today'     => __( 'Dziś', 'colorify-by-inyfinn' ),
+				'more'      => __( '+%d więcej', 'colorify-by-inyfinn' ),
+				'copy'      => __( 'Skopiuj informacje', 'colorify-by-inyfinn' ),
+				'copied'    => __( 'Skopiowano', 'colorify-by-inyfinn' ),
+				'copyFail'  => __( 'Nie udało się skopiować', 'colorify-by-inyfinn' ),
+				'open'      => __( 'Otwórz zlecenie', 'colorify-by-inyfinn' ),
+				'call'      => __( 'Zadzwoń', 'colorify-by-inyfinn' ),
+				'route'     => __( 'Trasa', 'colorify-by-inyfinn' ),
+				'prev'      => __( 'Poprzednie', 'colorify-by-inyfinn' ),
+				'next'      => __( 'Następne', 'colorify-by-inyfinn' ),
+				'close'     => __( 'Zamknij', 'colorify-by-inyfinn' ),
+				'details'   => __( 'Szczegóły wydarzenia', 'colorify-by-inyfinn' ),
+				'pickLabel' => __( 'Wybierz miesiąc i rok', 'colorify-by-inyfinn' ),
+				'hasEv'     => __( 'wydarzeń: %d', 'colorify-by-inyfinn' ),
+				'less'      => __( 'Zwiń', 'colorify-by-inyfinn' ),
+				'noEvents'  => __( 'W tym miesiącu nie ma wydarzeń.', 'colorify-by-inyfinn' ),
+				'copyValue' => __( 'Skopiuj: %s', 'colorify-by-inyfinn' ),
+			),
+		);
+		wp_add_inline_script( 'colorify-planner', 'window.colorifyPlanner=' . wp_json_encode( $cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . ';', 'before' );
+		return '<div class="cfb-card" id="cfb-card" role="dialog" aria-modal="false" aria-label="' . esc_attr__( 'Szczegóły wydarzenia', 'colorify-by-inyfinn' ) . '" tabindex="-1" hidden></div><div class="cfb-live screen-reader-text" aria-live="polite"></div>';
+	}
+
+	private static function calendar( int $days ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		$tz       = wp_timezone();
+		$first    = self::plan_month();
+		$today    = new DateTimeImmutable( 'today', $tz );
+		$tstr     = $today->format( 'Y-m-d' );
+		$last     = $first->modify( 'last day of this month' );
+		$all      = self::plan_all();
+		$provider = self::plan_has_provider();
+		$in_month = array_values( array_filter( $all, static function ( $e ) use ( $first, $last ) {
+			return $e['date'] >= $first->format( 'Y-m-d' ) && $e['date'] <= $last->format( 'Y-m-d' );
+		} ) );
+
+		$head  = self::head( __( 'Terminarz zleceń', 'colorify-by-inyfinn' ), 30, false );
+		$strip = self::plan_strip( self::plan_kpis(), $in_month, (int) $last->format( 'j' ) );
+
+		if ( ! $provider ) {
+			return '<div class="cfb">' . $head . $strip . self::plan_hint() . '</div>';
+		}
+
+		// Kalendarz (siatkę miesiąca rysuje skrypt: miesiące i lata przełączają się bez przeładowania).
+		$types = array();
+		$stats = array();
+		foreach ( $all as $e ) {
+			$types[ self::plan_type_key( (string) $e['type'] ) ] = 1;
+			if ( 'blokada' !== $e['type'] && '' !== $e['status'] && 'anulowane' !== $e['status'] ) {
+				$stats[ self::plan_status_key( (string) $e['status'] ) ] = '' !== $e['status_label'] ? $e['status_label'] : self::plan_status( (string) $e['status'] )[0];
+			}
+		}
+		$legend = '<ul class="cfb-legend" aria-label="' . esc_attr__( 'Legenda', 'colorify-by-inyfinn' ) . '">';
+		foreach ( array( 'wesele', 'kontakt', 'oddanie', 'przygotowanie', 'blokada' ) as $t ) {
+			if ( 'przygotowanie' === $t && empty( $types['przygotowanie'] ) ) {
+				continue;
+			}
+			$legend .= '<li><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span>' . esc_html( self::plan_type_label( $t ) ) . '</li>';
+		}
+		foreach ( $stats as $k => $label ) {
+			$legend .= '<li><i class="cfb-dot cfb-dot--' . esc_attr( $k ) . '"></i>' . esc_html( $label ) . '</li>';
+		}
+		$legend .= '</ul>';
+		$cal  = '<section class="cfd-card cfb-cal" aria-label="' . esc_attr__( 'Kalendarz', 'colorify-by-inyfinn' ) . '" data-cfb-cal>'
+			. '<div class="cfb-cal__bar"><div class="cfb-cal__head"><button type="button" class="cfb-title" data-cfb-pick aria-haspopup="dialog" aria-expanded="false"><span data-cfb-label>' . esc_html( wp_date( 'F Y', $first->getTimestamp() ) ) . '</span>' . self::icon_svg( 'chev' ) . '</button><div class="cfb-pick" data-cfb-picker role="dialog" aria-label="' . esc_attr__( 'Wybierz miesiąc i rok', 'colorify-by-inyfinn' ) . '" hidden></div></div>'
+			. '<div class="cfb-nav" role="group" aria-label="' . esc_attr__( 'Miesiąc', 'colorify-by-inyfinn' ) . '"><button type="button" class="cfb-nav__a" data-cfb-nav="-1" aria-label="' . esc_attr__( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'prev' ) . '</button><button type="button" class="cfb-nav__a cfb-nav__today" data-cfb-today>' . esc_html__( 'Dziś', 'colorify-by-inyfinn' ) . '</button><button type="button" class="cfb-nav__a" data-cfb-nav="1" aria-label="' . esc_attr__( 'Następny miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'next' ) . '</button></div></div>'
+			. '<div class="cfb-grid-wrap" data-cfb-grid></div>' . $legend
+			. '<p class="cfb-keys">' . esc_html__( 'Strzałki ← → zmieniają miesiąc, Shift + strzałki rok. Najedź na wydarzenie albo kliknij je, żeby zobaczyć szczegóły.', 'colorify-by-inyfinn' ) . '</p>'
+			. '</section>';
+
+		// Najbliższe wesele (albo wydarzenie), od dziś.
+		$ahead = array_values( array_filter( $all, static function ( $e ) use ( $tstr ) {
+			return $e['date'] >= $tstr && 'blokada' !== $e['type'] && 'anulowane' !== $e['status'];
+		} ) );
+		$next  = null;
+		foreach ( $ahead as $e ) {
+			if ( 'wesele' === $e['type'] ) {
+				$next = $e;
+				break;
+			}
+		}
+		$next = $next ?? ( $ahead[0] ?? null );
+
+		// Najbliższe: zwięźle, data + para + rodzaj.
+		$items = array();
+		foreach ( array_slice( $ahead, 0, 40 ) as $e ) {
+			$items[] = self::plan_li( $e, $today );
+		}
+		$tile_next = self::plan_list_tile( __( 'Najbliższe', 'colorify-by-inyfinn' ), '', $items, __( 'Nic nie jest zaplanowane na najbliższe miesiące.', 'colorify-by-inyfinn' ), 'cfb-upc' );
+
+		// Do zrobienia w tym tygodniu: przypomnienia po terminie i na 7 dni do przodu.
+		$week   = $today->modify( '+7 days' )->format( 'Y-m-d' );
+		$todo   = array_values( array_filter( $all, static function ( $e ) use ( $tstr, $week ) {
+			return in_array( $e['type'], array( 'kontakt', 'oddanie', 'przypomnienie', 'przygotowanie' ), true ) && ! $e['done'] && 'anulowane' !== $e['status'] && $e['date'] <= $week && $e['date'] >= gmdate( 'Y-m-d', strtotime( $tstr . ' -45 days' ) );
+		} ) );
+		$titems = array();
+		foreach ( $todo as $e ) {
+			$late     = $e['date'] < $tstr;
+			$type     = self::plan_type_key( (string) $e['type'] );
+			$ts       = strtotime( $e['date'] . ' 12:00:00' );
+			$parts    = self::plan_split_title( (string) $e['title'] );
+			$titems[] = '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $type ) . ' is-lg">' . self::icon_svg( self::plan_type_icon( $type ) ) . '</span>'
+				. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $parts[1] ? $parts[1] : $parts[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( ( '' !== $parts[1] ? $parts[0] . ' · ' : '' ) . wp_date( 'l, j.m', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+		}
+		$tile_todo = self::plan_list_tile( __( 'Do zrobienia w tym tygodniu', 'colorify-by-inyfinn' ), $todo ? self::num( count( $todo ) ) : '', $titems, __( 'Nic nie czeka. Spokojny tydzień.', 'colorify-by-inyfinn' ), 'cfb-todo', 5 );
+
+		// Zadatki do wpłaty: umowa podpisana, zadatku jeszcze nie ma. Kafel tylko wtedy, gdy wtyczka zna takie etapy.
+		$tile_dep = '';
+		if ( isset( $stats['umowa'] ) || isset( $stats['zadatek'] ) ) {
+			$dep  = array_values( array_filter( $ahead, static function ( $e ) {
+				return 'wesele' === $e['type'] && 'umowa' === $e['status'];
+			} ) );
+			$sum  = 0;
+			$ditm = array();
+			foreach ( $dep as $e ) {
+				$sum    += max( 0, (int) $e['amount'] );
+				$ts      = strtotime( $e['date'] . ' 12:00:00' );
+				$ditm[]  = '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog">' . self::plan_date_badge( $e['date'] )
+					. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $e['title'] ) . '</strong><span class="cfb-li__sub">' . esc_html( wp_date( 'l, j.m', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span>'
+					. ( null !== $e['amount'] && $e['amount'] > 0 ? '<span class="cfb-li__amt">' . esc_html( self::plan_money( (float) $e['amount'] ) ) . '</span>' : '' ) . '</button></li>';
+			}
+			$tile_dep = self::plan_list_tile( __( 'Zadatki do wpłaty', 'colorify-by-inyfinn' ), $sum > 0 ? self::plan_money( (float) $sum ) : '', $ditm, __( 'Wszystkie zadatki są wpłacone.', 'colorify-by-inyfinn' ), 'cfb-dep' );
+		}
+
+		$boot = self::plan_boot( $first->format( 'Y-m' ) );
+
+		// Bento (CSS grid z nazwanymi obszarami, układ zależy od szerokości): liczby, kalendarz, najbliższe wesele, do zrobienia,
+		// najbliższe, zadatki. Kolejność w kodzie = kolejność na telefonie (najbliższe wesele i zadania przed kalendarzem).
+		return '<div class="cfb" data-cfb>' . $head
+			. '<div class="cfb-bento' . ( '' === $tile_dep ? ' no-dep' : '' ) . '">' . $strip . self::plan_next_tile( $next, $all, $today ) . $tile_todo . $cal . $tile_next . $tile_dep . '</div>'
+			. $boot . '</div>';
+	}
+
+	/**
+	 * Kafel z listą nadchodzących wydarzeń (styl Rezerwacje). Wiersz otwiera kartę szczegółów.
+	 *
+	 * @param array<int,array<string,mixed>> $events Wydarzenia z plan_all().
 	 */
 	private static function plan_upcoming( string $title, array $events, string $empty ): string {
-		$out = '<section class="cfd-card"><div class="cfd-card__bar"><p class="cfd-card__title">' . esc_html( $title ) . '</p></div>';
-		if ( ! $events ) {
-			return $out . ( '' !== $empty ? '<p class="cfd-empty">' . esc_html( $empty ) . '</p>' : '' ) . '</section>';
-		}
-		$out .= '<ol class="cfd-rows cfc-up">';
+		$today = new DateTimeImmutable( 'today', wp_timezone() );
+		$items = array();
 		foreach ( $events as $e ) {
-			$ts     = strtotime( $e['date'] . ' 12:00:00' );
-			$status = self::plan_status( (string) $e['status'] );
-			$sub    = trim( $e['meta'] );
-			$aside  = ( null !== $e['amount'] && $e['amount'] > 0 ? '<span class="cfc-up__amt">' . esc_html( self::plan_money( (float) $e['amount'] ) ) . '</span>' : '' )
-				. ( '' !== $status[0] ? '<span class="cfd-pill cfd-pill--' . esc_attr( $status[1] ) . '">' . esc_html( $status[0] ) . '</span>' : '' );
-			$inner  = '<span class="cfc-date"><b>' . esc_html( wp_date( 'j', $ts ) ) . '</b><i>' . esc_html( wp_date( 'M', $ts ) ) . '</i></span>'
-				. '<span class="cfc-up__main"><span class="cfd-rows__main">' . esc_html( $e['title'] ) . '</span>' . ( '' !== $sub ? '<span class="cfd-rows__sub">' . esc_html( $sub ) . '</span>' : '' ) . '</span>';
-			$out   .= '<li>' . ( '' !== $e['url'] ? '<a href="' . esc_url( $e['url'] ) . '">' . $inner . '</a>' : '<span class="cfc-up__a">' . $inner . '</span>' )
-				. ( '' !== $aside ? '<span class="cfc-up__aside">' . $aside . '</span>' : '' ) . '</li>';
+			$items[] = self::plan_li( $e, $today );
 		}
-		return $out . '</ol></section>';
+		return self::plan_list_tile( $title, '', $items, $empty );
 	}
+
 
 	/* ===================== Motyw: Rezerwacje ===================== */
 
@@ -317,9 +668,9 @@ trait Colorify_Dashboard_Planner {
 		$tz    = wp_timezone();
 		$today = new DateTimeImmutable( 'today', $tz );
 		$year0 = $today->modify( 'first day of january this year' );
-		$all   = self::plan_events( $year0->format( 'Y-m-d' ), $year0->modify( '+2 years' )->modify( '-1 day' )->format( 'Y-m-d' ) );
-		$work  = array_values( array_filter( $all, static function ( $e ) {
-			return 'blokada' !== $e['type'] && 'kontakt' !== $e['type'];
+		$all   = self::plan_all();
+		$work  = array_values( array_filter( $all, static function ( $e ) use ( $year0 ) {
+			return $e['date'] >= $year0->format( 'Y-m-d' ) && ! in_array( $e['type'], array( 'blokada', 'kontakt', 'oddanie', 'przypomnienie', 'przygotowanie' ), true );
 		} ) );
 		$ahead = array_values( array_filter( $work, static function ( $e ) use ( $today ) {
 			return $e['date'] >= $today->format( 'Y-m-d' ) && 'anulowane' !== $e['status'];
@@ -390,7 +741,7 @@ trait Colorify_Dashboard_Planner {
 		$out  .= '<div class="cfd-row cfd-row--even">'
 			. self::plan_upcoming( __( 'Kolejne zlecenia', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 6 ), self::plan_has_provider() ? __( 'Nic nie jest zaplanowane.', 'colorify-by-inyfinn' ) : '' )
 			. '</div>';
-		return $out;
+		return $out . self::plan_boot( $today->format( 'Y-m' ) );
 	}
 
 	/* ===================== Motyw: Portfolio ===================== */
@@ -461,77 +812,12 @@ trait Colorify_Dashboard_Planner {
 		return $out;
 	}
 
-	/* ===================== Wygląd ===================== */
 
-	/** Reguły trzech nowych styli (dopisywane po arkuszu głównym kokpitu). */
-	public static function planner_css(): void {
-		?>
-<style id="colorify-dashboard-planner-css">
-.cfd-strip--n{grid-template-columns:repeat(var(--cfd-n,4),minmax(0,1fr))}
-.cfd-strip--n .cfd-stat__top{min-height:42px;align-items:flex-start}
-.cfd-ico--calendar,.cfd-ico--pin{background:#e3eefc;color:#2a6fd6}.cfd-ico--image,.cfd-ico--film{background:#efe7fb;color:#7046c2}
-.cfc{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:20px;align-items:start}
-.cfc-cal{padding:22px 22px 18px}
-.cfc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.cfc-title{margin:0;padding:0;font-size:20px;line-height:1.2;font-weight:700;letter-spacing:-.01em;text-transform:capitalize;color:var(--t)}
-.cfc-nav{display:inline-flex;gap:4px}
-.cfc-nav__a{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:0 12px;border-radius:12px;background:color-mix(in srgb,var(--t) 5%,var(--s));color:var(--t);text-decoration:none;font-size:16px;font-weight:600}
-.cfc-nav__a:hover{background:color-mix(in srgb,var(--a) 14%,var(--s));color:var(--a)}
-.cfc-nav__today{font-size:13px}
-.cfc-grid{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:4px;margin:0 -4px;width:calc(100% + 8px)}
-.cfc-grid th{padding:4px 6px;font-size:12px;font-weight:500;text-align:left;color:var(--m);text-transform:lowercase}
-.cfc-day{height:116px;padding:6px 6px 4px;vertical-align:top;border-radius:12px;background:color-mix(in srgb,var(--t) 3.5%,var(--s));overflow:hidden}
-.cfc-day.is-weekend{background:color-mix(in srgb,var(--t) 6%,var(--s))}
-.cfc-day.is-out{background:transparent;opacity:.5}
-.cfc-day.is-today{box-shadow:inset 0 0 0 1.5px var(--a)}
-.cfc-num{display:block;margin-bottom:3px;font-size:12px;font-weight:600;color:var(--m)}
-.is-today .cfc-num{display:inline-block;min-width:22px;margin:-1px 0 3px -2px;padding:1px 6px;border-radius:99px;background:var(--a);color:var(--on);text-align:center}
-.cfc-ev{display:block;margin-top:3px;padding:2px 6px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
-a.cfc-ev:hover{filter:brightness(.94)}
-.cfc-ev--wesele{background:var(--a);color:var(--on)}
-.cfc-ev--kontakt{background:color-mix(in srgb,var(--a) 16%,var(--s));color:var(--a)}
-.cfc-ev--oddanie{background:var(--colorify-tag-warn-bg,#fdf1d8);color:var(--colorify-tag-warn-fg,#8a5a00)}
-.cfc-ev--blokada{background:color-mix(in srgb,var(--t) 10%,transparent);color:var(--m)}
-.cfc-more{display:block;margin-top:3px;font-size:11px;color:var(--m)}
-.cfc-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;padding:0;list-style:none;font-size:12px;color:var(--m)}
-.cfc-legend li{display:inline-flex;align-items:center;gap:6px}
-.cfc-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
-.cfc-dot--wesele{background:var(--a)}.cfc-dot--kontakt{background:color-mix(in srgb,var(--a) 30%,var(--s))}.cfc-dot--oddanie{background:#e0b040}.cfc-dot--blokada{background:color-mix(in srgb,var(--t) 22%,transparent)}
-.cfc-up li{align-items:flex-start}
-.cfc-up a,.cfc-up__a{flex:1;min-width:0;display:flex;flex-direction:row;align-items:center;gap:12px;color:var(--t);text-decoration:none}
-.cfc-up__main{display:flex;flex-direction:column;gap:2px;min-width:0}
-.cfc-up a:hover .cfd-rows__main{color:var(--a)}
-.cfc-date{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:46px;height:50px;border-radius:12px;background:color-mix(in srgb,var(--a) 10%,var(--s));color:var(--a);line-height:1}
-.cfc-date b{font-size:18px;font-weight:700}.cfc-date i{margin-top:3px;font-size:11px;font-style:normal;font-weight:600;text-transform:lowercase}
-.cfc-up__aside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;align-self:center}
-.cfc-up__amt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--t)}
-.cfb-stages{margin:6px 0 0;padding:0;list-style:none}
-.cfb-stages li{display:grid;grid-template-columns:128px minmax(0,1fr) 36px minmax(70px,auto);align-items:center;gap:14px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
-.cfb-stages li:first-child{border-top:0}
-.cfb-stage__bar{height:8px;border-radius:99px;background:color-mix(in srgb,var(--t) 8%,transparent);overflow:hidden}
-.cfb-stage__bar i{display:block;height:100%;width:var(--w);border-radius:99px;background:var(--a)}
-.cfb-stage__n{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
-.cfb-stage__sum{color:var(--m);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.cfp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 0;padding:0;list-style:none}
-.cfp-grid a{display:block;aspect-ratio:1;border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--t) 6%,var(--s))}
-.cfp-img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .2s ease}
-.cfp-grid a:hover .cfp-img{transform:scale(1.04)}
-@media (max-width:1100px){.cfc{grid-template-columns:minmax(0,1fr)}.cfd-strip--n{grid-template-columns:repeat(2,minmax(0,1fr))}.cfd-strip--n .cfd-stat:nth-child(odd){border-left:0}}
-@media (max-width:700px){
-.cfc-cal{padding:16px 12px 14px}
-.cfc-title{font-size:17px}
-.cfc-grid{border-spacing:2px;width:calc(100% + 4px);margin:0 -2px}
-.cfc-grid th{padding:2px 2px;font-size:11px}
-.cfc-day{height:auto;min-height:48px;padding:4px 3px;border-radius:9px;text-align:center}
-.cfc-num{margin-bottom:2px;font-size:12px}
-.cfc-ev{display:inline-block;width:8px;height:8px;margin:1px;padding:0;border-radius:50%;font-size:0;line-height:0;vertical-align:middle}
-.cfc-ev--kontakt{background:color-mix(in srgb,var(--a) 45%,var(--s))}
-.cfc-more{display:none}
-.cfb-stages li{grid-template-columns:96px minmax(0,1fr) 28px;gap:10px}
-.cfb-stage__sum{grid-column:2 / -1;text-align:left;font-size:12px}
-.cfp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-</style>
-		<?php
+	/* ===================== Wygląd i skrypt ===================== */
+
+	/** Arkusz i skrypt trzech styli planera (kalendarz, rezerwacje, portfolio); dane skryptu dokłada plan_boot(). */
+	public static function planner_assets(): void {
+		wp_enqueue_style( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.css', array(), COLORIFY_PLUGIN_VERSION );
+		wp_enqueue_script( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.js', array(), COLORIFY_PLUGIN_VERSION, true );
 	}
 }

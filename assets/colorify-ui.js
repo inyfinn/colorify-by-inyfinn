@@ -1245,19 +1245,44 @@
 			}
 		}
 
-		// Przycisk strony (do rogów): pierwszy widoczny z własnym tłem, poza nakładkami.
-		var button = null;
+		// Przyciski strony (do rogów): do 12 widocznych z własnym tłem albo obrysem, poza nakładkami. Liczy się najczęstszy
+		// kształt, a nie pierwszy z brzegu (jeden przycisk w menu nie decyduje o całej stronie).
+		var shapes = [];
 		Array.prototype.some.call(
 			doc.querySelectorAll( '.elementor-button, .wp-block-button__link, .ast-button, .ast-custom-button, .btn, a.button, button[type="submit"], input[type="submit"], [class*="button"], [class*="btn"]' ),
 			function ( el ) {
-				var bg = shown( el ) && ! foreign( el ) ? parseColor( win.getComputedStyle( el ).backgroundColor ) : null;
-				if ( bg && bg.alpha > 0.5 && bg.lum < 0.85 ) {
-					button = el;
-					return true;
+				if ( ! shown( el ) || foreign( el ) ) {
+					return false;
 				}
-				return false;
+				var cs = win.getComputedStyle( el );
+				var bg = parseColor( cs.backgroundColor );
+				var filled = bg && bg.alpha > 0.5 && bg.lum < 0.85;
+				var bordered = parseFloat( cs.borderTopWidth ) >= 1 && cs.borderTopStyle !== 'none' && parseColor( cs.borderTopColor ) && parseColor( cs.borderTopColor ).alpha > 0.3;
+				if ( filled || bordered ) {
+					var rect = el.getBoundingClientRect();
+					var raw = cs.borderTopLeftRadius;
+					var px = parseFloat( raw ) || 0;
+					if ( /%/.test( raw ) ) {
+						px = px / 100 * Math.min( rect.width, rect.height );
+					}
+					// Pigułka: róg co najmniej połowa wysokości. Reszta to zwykły róg w pikselach.
+					shapes.push( rect.height > 0 && px >= rect.height / 2 - 1 && px > 6 ? -1 : Math.round( px ) );
+				}
+				return shapes.length >= 12;
 			}
 		);
+		var corner = 4;
+		if ( shapes.length ) {
+			var tally = {};
+			var topN = 0;
+			shapes.forEach( function ( v ) {
+				tally[ v ] = ( tally[ v ] || 0 ) + 1;
+				if ( tally[ v ] > topN || ( tally[ v ] === topN && v < corner ) ) {
+					topN = tally[ v ];
+					corner = v;
+				}
+			} );
+		}
 
 		// Zmienne CSS strony (:root { --color-primary: ... }): motywy trzymają tam swoją paletę, także kolory ciemne
 		// i stonowane (brąz, granat), które w samych elementach giną wśród setek odcieni tekstu i teł.
@@ -1397,12 +1422,13 @@
 		// Szary tekst albo szara stopka to za jasne tło dla menu: przyciemniamy do grafitu w tym samym odcieniu.
 		ink = ink.lum > 0.03 ? mixHex( ink.hex, 0, 0.6 ) : ink.hex;
 
-		var radius = button ? parseFloat( win.getComputedStyle( button ).borderTopLeftRadius ) || 0 : 4;
+		var radius = corner < 0 ? 10 : corner;
 
 		return {
 			heading: heading,
 			body: bodyCs.fontFamily,
 			radius: Math.round( Math.min( 10, radius ) ),
+			corner: corner < 0 ? -1 : Math.min( 40, corner ),
 			faces: collectFaces( doc, [ firstFamily( heading ), firstFamily( bodyCs.fontFamily ) ] ),
 			source: accent && vars.some( function ( x ) {
 				return x.c.hex === accent.hex;
@@ -1466,7 +1492,7 @@
 			}
 			row( cfg.i18n.matchHeading, fontLabel( look.heading ) );
 			row( cfg.i18n.matchBody, fontLabel( look.body ) );
-			row( cfg.i18n.matchRadius, look.radius + ' px' );
+			row( cfg.i18n.matchRadius, look.corner < 0 ? cfg.i18n.matchCornerRound : ( look.corner === 0 ? cfg.i18n.matchCornerSharp : look.corner + ' px' ) );
 
 			// Co zastosować: kolory i czcionki osobno. Czcionki strony, które nie dają się wczytać z tego serwera, zostają
 			// odznaczone, a panel zachowuje czytelną czcionkę WordPressa.
@@ -1484,6 +1510,7 @@
 			}
 			var useColors = option( cfg.i18n.matchUseColors, !! look.colors, ! look.colors );
 			var useFonts = option( cfg.i18n.matchUseFonts, look.faces.length > 0, false );
+			var useCorners = option( cfg.i18n.matchUseCorners, true, false );
 
 			var apply = el( 'button', 'button button-primary', cfg.i18n.matchApply );
 			apply.type = 'button';
