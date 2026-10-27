@@ -2544,10 +2544,20 @@
         return {h: hx, s: sx, l: lx, a};
     }
     const MAX_BG_LIGHTNESS = 0.4;
+    // COLORIFY PATCH (2.10.2): "ciepła biel" (krem, beż, papier: jasność > 80 %, odcień 20-65°, chroma < 12 %)
+    // jest dla oka bielą, ale ma wysokie nasycenie HSL (#F6EFE0 = 58 %, #FFFCF4 = 100 %), więc silnik zostawiał jej
+    // odcień i nasycenie przy jasności ~10 % i tło wychodziło oliwkowo-musztardowe (#3a2a08). Taki kolor jest teraz
+    // neutralny (idzie w barwę bieguna tła z palety), a ciepłe odcienie w ciemnej wersji mają nasycenie najwyżej 40 %.
+    function colorifyIsWarmWhite(h, s, l) {
+        return l > 0.8 && h >= 20 && h <= 65 && s * (1 - Math.abs(2 * l - 1)) < 0.12;
+    }
+    function colorifyWarmSat(h, s, lx) {
+        return h >= 20 && h <= 65 && lx < 0.3 ? Math.min(s, 0.4) : s;
+    }
     function modifyBgHSL({h, s, l, a}, pole) {
         const isDark = l < 0.5;
         const isBlue = h > 200 && h < 280;
-        const isNeutral = s < 0.12 || (l > 0.8 && isBlue);
+        const isNeutral = s < 0.12 || (l > 0.8 && isBlue) || colorifyIsWarmWhite(h, s, l);
         if (isDark) {
             const lx = scale(l, 0, 0.5, 0, MAX_BG_LIGHTNESS);
             if (isNeutral) {
@@ -2555,7 +2565,7 @@
                 const sx = pole.s;
                 return {h: hx, s: sx, l: lx, a};
             }
-            return {h, s, l: lx, a};
+            return {h, s: colorifyWarmSat(h, s, lx), l: lx, a};
         }
         let lx = scale(l, 0.5, 1, MAX_BG_LIGHTNESS, pole.l);
         if (isNeutral) {
@@ -2576,7 +2586,7 @@
         if (hx > 40 && hx < 80) {
             lx *= 0.75;
         }
-        return {h: hx, s, l: lx, a};
+        return {h: hx, s: colorifyWarmSat(hx, s, lx), l: lx, a};
     }
     function _modifyBackgroundColor(rgb, theme) {
         if (theme.mode === 0) {

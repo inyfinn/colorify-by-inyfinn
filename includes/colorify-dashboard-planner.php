@@ -76,8 +76,45 @@ trait Colorify_Dashboard_Planner {
 	}
 
 	/**
+	 * Statusy do wyboru w karcie: lista [ wartość, etykieta ] (albo [ 'value' => ..., 'label' => ... ]).
+	 *
+	 * @param mixed $raw Surowe 'status_options' z filtra.
+	 * @return array<int,array{0:string,1:string}>
+	 */
+	private static function plan_status_options( $raw ): array {
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$value = sanitize_key( (string) ( $row['value'] ?? ( $row[0] ?? '' ) ) );
+			$label = trim( wp_strip_all_tags( (string) ( $row['label'] ?? ( $row[1] ?? '' ) ) ) );
+			if ( '' !== $value && '' !== $label ) {
+				$out[] = array( $value, mb_substr( $label, 0, 60 ) );
+			}
+		}
+		return array_slice( $out, 0, 20 );
+	}
+
+	/**
+	 * Akcja AJAX zapisu statusu: [ 'action' => nazwa wp_ajax_*, 'nonce' => nonce tej akcji ]. Bez obu pól: null (status tylko do odczytu).
+	 *
+	 * @param mixed $raw Surowe 'status_action' z filtra.
+	 * @return array{action:string,nonce:string}|null
+	 */
+	private static function plan_status_action( $raw ): ?array {
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$action = sanitize_key( (string) ( $raw['action'] ?? '' ) );
+		$nonce  = preg_replace( '/[^a-zA-Z0-9]/', '', (string) ( $raw['nonce'] ?? '' ) );
+		return '' !== $action && '' !== $nonce ? array( 'action' => $action, 'nonce' => $nonce ) : null;
+	}
+
+	/**
 	 * Wydarzenia z filtra, tylko poprawne (data, tytuł), posortowane po dacie.
-	 * Poza polami podstawowymi wtyczka może podać: id, phone, email, route_url, status_label, reminder_done, details.
+	 * Poza polami podstawowymi wtyczka może podać: id, phone, email, route_url, status_label, reminder_done, details,
+	 * status_options i status_action (status zmieniany z karty szczegółów, zapis przez admin-ajax wtyczki).
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
@@ -112,6 +149,8 @@ trait Colorify_Dashboard_Planner {
 				'status_label' => trim( wp_strip_all_tags( (string) $slab ) ),
 				'done'         => ! empty( $e['reminder_done'] ),
 				'details'      => self::plan_details( $e['details'] ?? array() ),
+				'status_opts'  => self::plan_status_options( $e['status_options'] ?? null ),
+				'status_act'   => self::plan_status_action( $e['status_action'] ?? null ),
 			);
 		}
 		usort(
@@ -294,6 +333,7 @@ trait Colorify_Dashboard_Planner {
 			'type'   => $type,
 			'tl'     => self::plan_type_label( $type ),
 			'st'     => self::plan_status_key( (string) $e['status'] ),
+			'sv'     => (string) $e['status'],
 			'sl'     => 'blokada' === $type ? '' : $slabel,
 			'amount' => $amount,
 			'url'    => $e['url'],
@@ -313,7 +353,8 @@ trait Colorify_Dashboard_Planner {
 		}
 		$st    = self::plan_status( (string) $e['status'] );
 		$label = '' !== $e['status_label'] ? $e['status_label'] : $st[0];
-		return '' !== $label ? '<span class="cfd-pill cfd-pill--' . esc_attr( $st[1] ) . '">' . esc_html( $label ) . '</span>' : '';
+		$attr  = ! empty( $e['id'] ) ? ' data-cfb-pill="' . (int) $e['id'] . '"' : ''; // skrypt odświeża plakietkę po zmianie statusu w karcie
+		return '' !== $label ? '<span class="cfd-pill cfd-pill--' . esc_attr( $st[1] ) . '"' . $attr . '>' . esc_html( $label ) . '</span>' : '';
 	}
 
 	/** Data jako plakietka (dzień i miesiąc). */
@@ -483,8 +524,19 @@ trait Colorify_Dashboard_Planner {
 		global $wp_locale;
 		$today   = new DateTimeImmutable( 'today', wp_timezone() );
 		$payload = array();
+		$sets    = array(); // zestawy statusów do wyboru (zwykle jeden na wtyczkę), wydarzenie wskazuje indeks 'sx'
+		$set_idx = array();
 		foreach ( self::plan_all() as $e ) {
-			$payload[] = self::plan_payload( $e, $today );
+			$p = self::plan_payload( $e, $today );
+			if ( $e['status_opts'] && $e['status_act'] && $e['id'] > 0 && 'blokada' !== $p['type'] ) {
+				$key = md5( (string) wp_json_encode( array( $e['status_opts'], $e['status_act'] ) ) );
+				if ( ! isset( $set_idx[ $key ] ) ) {
+					$set_idx[ $key ] = count( $sets );
+					$sets[]          = array( 'opts' => $e['status_opts'], 'action' => $e['status_act']['action'], 'nonce' => $e['status_act']['nonce'] );
+				}
+				$p['sx'] = $set_idx[ $key ];
+			}
+			$payload[] = $p;
 		}
 		$icons = array();
 		foreach ( array( 'ring', 'phone', 'box', 'lock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
@@ -509,6 +561,8 @@ trait Colorify_Dashboard_Planner {
 			'short'  => $short,
 			'dows'   => $dows,
 			'base'   => admin_url( 'index.php' ),
+			'ajax'   => admin_url( 'admin-ajax.php' ),
+			'statusSets' => $sets,
 			'i18n'   => array(
 				'prevMonth' => __( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ),
 				'nextMonth' => __( 'Następny miesiąc', 'colorify-by-inyfinn' ),
@@ -532,6 +586,9 @@ trait Colorify_Dashboard_Planner {
 				'less'      => __( 'Zwiń', 'colorify-by-inyfinn' ),
 				'noEvents'  => __( 'W tym miesiącu nie ma wydarzeń.', 'colorify-by-inyfinn' ),
 				'copyValue' => __( 'Skopiuj: %s', 'colorify-by-inyfinn' ),
+				'stChange'  => __( 'Zmień status', 'colorify-by-inyfinn' ),
+				'stSaved'   => __( 'Zapisano status: %s', 'colorify-by-inyfinn' ),
+				'stFail'    => __( 'Nie udało się zapisać statusu. Spróbuj jeszcze raz.', 'colorify-by-inyfinn' ),
 			),
 		);
 		wp_add_inline_script( 'colorify-planner', 'window.colorifyPlanner=' . wp_json_encode( $cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . ';', 'before' );

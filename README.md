@@ -70,7 +70,7 @@ Zwykłe wydanie oznaczone na GitHubie jako Latest jest oferowane stronom. Pre-re
 
 ### Kokpit "Kalendarz zleceń" (2.10.0)
 
-Bento na 100% szerokości (CSS grid z nazwanymi obszarami: ≥1600 px, ≥1100 px, tablet, telefon): liczby w równych kafelkach, kalendarz miesiąca na całą szerokość, duży kafel "Najbliższe wesele" ze wszystkimi szczegółami (każda wartość kopiuje się kliknięciem), "Do zrobienia w tym tygodniu", "Najbliższe" i "Zadatki do wpłaty" (listy po 6 pozycji i "Pokaż wszystkie", bez przewijania w kafelkach). Wydarzenia mają ikony rodzaju i kolor statusu; najechanie, fokus albo dotyk otwiera kartę szczegółów (znika po 0,5 s po opuszczeniu, nie znika po powrocie), z przyciskami "Skopiuj informacje" (tekst do Messengera), "Otwórz zlecenie", "Zadzwoń", "Trasa" i "Poprzednie/Następne" po wydarzeniach w czasie. Miesiąc i rok zmieniasz kliknięciem w nagłówek (siatka miesięcy + pole roku), strzałkami ←/→ (miesiąc) i Shift + ←/→ (rok). Na telefonie siatka zastępowana jest listą dni (agenda).
+Bento na 100% szerokości (CSS grid z nazwanymi obszarami: ≥1600 px, ≥1100 px, tablet, telefon): liczby w równych kafelkach, kalendarz miesiąca na całą szerokość (na komputerze najwyżej 600 px wysokości, od 2.10.2), duży kafel "Najbliższe wesele" ze wszystkimi szczegółami (każda wartość kopiuje się kliknięciem), "Do zrobienia w tym tygodniu", "Najbliższe" i "Zadatki do wpłaty" (listy po 6 pozycji i "Pokaż wszystkie", bez przewijania w kafelkach). Wydarzenia mają ikony rodzaju i kolor statusu; najechanie, fokus albo dotyk otwiera kartę szczegółów (znika po 0,5 s po opuszczeniu, nie znika po powrocie), z przyciskami "Skopiuj informacje" (tekst do Messengera), "Otwórz zlecenie", "Zadzwoń", "Trasa" i "Poprzednie/Następne" po wydarzeniach w czasie. Status w karcie jest listą do wyboru, gdy wtyczka poda `status_options` i `status_action` (2.10.2). Miesiąc i rok zmieniasz kliknięciem w nagłówek (siatka miesięcy + pole roku), strzałkami ←/→ (miesiąc) i Shift + ←/→ (rok). Na telefonie siatka zastępowana jest listą dni (agenda).
 
 ## Filtry
 
@@ -78,12 +78,13 @@ Bento na 100% szerokości (CSS grid z nazwanymi obszarami: ≥1600 px, ≥1100 p
 |-------|-----------|----------|
 | `colorify_contrast_guard` | `true` | `false` wyłącza strażnika kontrastu w trybie ciemnym. |
 | `colorify_dark_engine_screens` | pusta lista | Identyfikatory ekranów (np. `post`), na których silnik trybu ciemnego się nie włącza: ekran zostaje jasny i czytelny, reszta panelu jest ciemna. Wyjście awaryjne, gdy ciemny tryb zwalnia ciężki ekran. |
-| `colorify_calendar_events` | pusta lista | Wydarzenia dla kokpitu "Kalendarz zleceń" i "Rezerwacje". Argumenty: `$events`, `$from` (Y-m-d), `$to` (Y-m-d). Element: `date` (Y-m-d), `title`, `url`, `type` (`wesele`, `kontakt`, `oddanie`, `przygotowanie`, `blokada` albo własny), `status` (np. `nowe`, `wstepnie`, `umowa`, `zadatek`, `zrealizowane`), `amount` (liczba lub null), `meta`. Opcjonalnie, dla pełnej karty szczegółów: `id` (zlecenia; łączy przypomnienia ze zleceniem), `phone`, `email`, `route_url`, `status_label`, `reminder_done`, `details` (lista `[ 'label' => ..., 'value' => ... ]`: Miejsce, Sala, Dojazd, Pakiet, Kwota...; każda wartość da się skopiować jednym kliknięciem). |
+| `colorify_calendar_events` | pusta lista | Wydarzenia dla kokpitu "Kalendarz zleceń" i "Rezerwacje". Argumenty: `$events`, `$from` (Y-m-d), `$to` (Y-m-d). Element: `date` (Y-m-d), `title`, `url`, `type` (`wesele`, `kontakt`, `oddanie`, `przygotowanie`, `blokada` albo własny), `status` (np. `nowe`, `wstepnie`, `umowa`, `zadatek`, `zrealizowane`), `amount` (liczba lub null), `meta`. Opcjonalnie, dla pełnej karty szczegółów: `id` (zlecenia; łączy przypomnienia ze zleceniem), `phone`, `email`, `route_url`, `status_label`, `reminder_done`, `details` (lista `[ 'label' => ..., 'value' => ... ]`: Miejsce, Sala, Dojazd, Pakiet, Kwota...; każda wartość da się skopiować jednym kliknięciem). Status do zmiany z karty (2.10.2): `status_options` (lista `[ wartość, etykieta ]`) i `status_action` (`[ 'action' => 'moja_akcja', 'nonce' => wp_create_nonce( ... ) ]`); wybór wysyła POST `action`, `nonce`, `id`, `status` do admin-ajax.php i czeka na `wp_send_json_success()`. Akcja sama sprawdza nonce i uprawnienia. |
 | `colorify_dashboard_kpis` | pusta lista | Liczby dla kokpitu "Kalendarz zleceń" i "Rezerwacje": lista elementów `label`, `value`, `hint`, `url`. |
 | `colorify_calendar_capability` | `edit_posts` | Uprawnienie, które pozwala zobaczyć dane zleceń (imiona, telefon, e-mail) w kokpicie kalendarza. |
 | `colorify_scrollbar_color` | `''` | Kolor uchwytu cienkiego paska przewijania w panelu (np. `#B8955A`); domyślnie akcent schematu. Można też ustawić zmienną CSS `--colorify-scrollbar-thumb`. |
 | `colorify_about_redirect_pages` | `about.php`, `credits.php`, `freedoms.php`, `contribute.php` | Ekrany "Witaj" WordPressa, które przekierowują na kokpit (opcja w Ustawienia, Colorify: "Ekran powitalny WordPressa"). |
 | `colorify_hide_wp_logo` | `true` | `false` zostawia logo WordPressa na pasku administratora. |
+| `colorify_dark_ignored_stylesheets` | `colorify-chrome`, `colorify-ui`, `colorify-login` | Fragmenty adresów arkuszy, których tryb ciemny nie przelicza. Wtyczka strony z własnymi kolorami trybu ciemnego (np. pod `body.colorify-dark`) dopisuje swój arkusz. |
 | `colorify_dark_literal_color_selectors` | próbki kolorów (`.wp-color-result` i podobne) | Selektory elementów, których kolory z atrybutu `style` tryb ciemny zostawia dosłownie (próbki kolorów nie mogą się przekolorować). |
 
 ## Znane ograniczenia
@@ -134,7 +135,7 @@ Czego nie robić przy wydaniach:
 ## Licencje
 
 - Colorify: GPL-2.0-or-later.
-- Dark Reader (`assets/vendor/darkreader.js`): MIT, patrz `assets/vendor/darkreader.LICENSE.txt`.
+- Dark Reader (`assets/vendor/darkreader.js`): MIT, patrz `assets/vendor/darkreader.LICENSE.txt`. Wersja 4.9.133 z jedną poprawką Colorify (ciepła biel w trybie ciemnym, blok "COLORIFY PATCH" w `modifyBgHSL`); przy aktualizacji silnika przenieś ją albo sprawdź, czy upstream nie rozwiązał tego sam.
 - EB Garamond i IBM Plex Sans (`assets/fonts/`): SIL Open Font License 1.1, patrz `assets/fonts/EBGaramond-OFL.txt`
   i `assets/fonts/IBMPlexSans-OFL.txt`.
 

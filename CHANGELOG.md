@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.10.2
+
+- Kokpit "Kalendarz zleceń": kalendarz miesiąca na komputerze ma najwyżej 600 px wysokości (6 tygodni po 65 px). W dniu do dwóch wydarzeń w jednej linii (jedno wydarzenie: dwie linie), reszta pod "+N więcej"; pełna nazwa jest w karcie szczegółów. Telefon i tablet bez zmian (lista dni). Od 1600 px kafel "Najbliższe wesele" schodzi obok listy "Najbliższe", więc pod krótszym kalendarzem nie ma pustego miejsca.
+- Karta szczegółów: status zlecenia zmienia się z karty. Gdy wtyczka poda przy wydarzeniu `status_options` (lista `[ wartość, etykieta ]`) i `status_action` (`[ 'action' => nazwa akcji wp_ajax_*, 'nonce' => nonce ]`), plakietka statusu jest listą do wyboru; wybór od razu wysyła `action`, `nonce`, `id` i `status` do admin-ajax.php, a karta, kalendarz i plakietki na listach odświeżają się bez przeładowania. Bez tych pól status jest tylko do odczytu jak dotąd. Klawiatura: strzałki, Enter, Escape (zamyka listę, karta zostaje).
+- Tryb ciemny: kremowe i beżowe tła (ciepła biel, np. `#F6EFE0`, `#FFFCF4`) nie wychodzą już oliwkowo-musztardowe. Silnik (Dark Reader 4.9.133, dołączony) uznawał za neutralne tylko kolory o nasyceniu HSL poniżej 12%, a krem ma 58-100%, więc zachowywał jego odcień przy jasności ok. 10%. Poprawka w `assets/vendor/darkreader.js` (oznaczona "COLORIFY PATCH"): ciepła biel (jasność > 80%, odcień 20-65°, chroma < 12%) przyjmuje barwę bieguna tła z palety (np. czekoladę), a ciepłe odcienie w ciemnej wersji mają nasycenie najwyżej 40%.
+- Nowy filtr `colorify_dark_ignored_stylesheets`: wtyczka strony z własnymi, ręcznie dobranymi kolorami trybu ciemnego wyłącza swój arkusz z przeliczania (fragment adresu URL).
+
 ## 2.10.1
 
 - Kafle na listach (Zlecenia, Opinie, Wpisy...): przyciski, pigułki, przełącznik Kafle/Lista, suwak i znaczniki stanu dziedziczą kształt z ustawień Colorify (kanciasty kształt strony = kanciaste wszędzie), główne przyciski (Edytuj, kosz, aktywny widok) mają kolor akcentu palety zamiast czerni tekstu, pierścień fokusu i obrys dodawania 1 px, padding wewnątrz kafli i panelu pól o 8 px większy.

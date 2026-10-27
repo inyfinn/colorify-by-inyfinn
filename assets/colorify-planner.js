@@ -4,7 +4,9 @@
  *    wybór miesiąca/roku (klik albo wpisanie), strzałki ←/→ (miesiąc) i Shift+←/→ (rok);
  *  - jedna karta szczegółów dla wszystkich wydarzeń (kalendarz, listy, kafel najbliższego): pokazuje się po najechaniu
  *    albo fokusie, znika po 0,5 s, gdy kursor jej opuści, i nie znika, gdy kursor wróci na wydarzenie albo wejdzie na kartę;
- *    klik/dotyk/Enter przypina kartę; w karcie: Skopiuj informacje, Otwórz zlecenie, Zadzwoń, Trasa, Poprzednie/Następne.
+ *    klik/dotyk/Enter przypina kartę; w karcie: Skopiuj informacje, Otwórz zlecenie, Zadzwoń, Trasa, Poprzednie/Następne;
+ *  - status w karcie jest listą do wyboru, gdy wtyczka podała status_options i status_action: wybór zapisuje się
+ *    od razu (admin-ajax wtyczki), a kalendarz, karta i plakietki na listach odświeżają się bez przeładowania.
  * Tekst wstawiamy zawsze przez textContent; innerHTML tylko dla ikon z serwera.
  */
 ( function () {
@@ -84,7 +86,13 @@
 	}
 
 	function pillClass( st ) {
-		return { nowe: 'info', wstepnie: 'warn', umowa: 'info', zadatek: 'up' }[ st ] || 'flat';
+		return { nowe: 'info', wstepnie: 'warn', umowa: 'info', zadatek: 'up', anulowane: 'down' }[ st ] || 'flat';
+	}
+
+	var KNOWN_ST = [ 'nowe', 'wstepnie', 'umowa', 'zadatek', 'zrealizowane', 'anulowane' ];
+
+	function statusKey( v ) {
+		return KNOWN_ST.indexOf( v ) > -1 ? v : 'other';
 	}
 
 	/* ---------- Kalendarz ---------- */
@@ -495,6 +503,165 @@
 		}
 	} );
 
+	/* ---------- Status zmieniany z karty ---------- */
+
+	/** Nowy status we wszystkich wydarzeniach zlecenia (wesele i przypomnienia), w karcie, kalendarzu i plakietkach list. */
+	function applyStatus( id, value, label ) {
+		events.forEach( function ( ev ) {
+			if ( ev.id !== id ) {
+				return;
+			}
+			var old = ev.sl;
+			ev.sv = value;
+			ev.st = statusKey( value );
+			ev.sl = label;
+			( ev.rows || [] ).forEach( function ( r ) {
+				if ( 'Status' === r[ 0 ] ) {
+					r[ 1 ] = label;
+				}
+			} );
+			if ( old ) {
+				ev.copy = String( ev.copy ).split( 'Status: ' + old ).join( 'Status: ' + label );
+			}
+		} );
+		root.querySelectorAll( '[data-cfb-pill="' + id + '"]' ).forEach( function ( p ) {
+			p.className = 'cfd-pill cfd-pill--' + pillClass( statusKey( value ) );
+			p.textContent = label;
+		} );
+		if ( cal ) {
+			renderGrid();
+		}
+		if ( null !== state.i ) {
+			var keep = state.i;
+			show( keep, findAnchor( keep ) || state.anchor, true );
+			var b = card.querySelector( '.cfb-st__btn' );
+			if ( b ) {
+				b.focus( { preventScroll: true } );
+			}
+		}
+	}
+
+	function statusControl( e, set ) {
+		var wrap = el( 'span', 'cfb-st' );
+		var btn = el( 'button', 'cfd-pill cfd-pill--' + pillClass( e.st ) + ' cfb-st__btn' );
+		btn.type = 'button';
+		btn.setAttribute( 'aria-haspopup', 'listbox' );
+		btn.setAttribute( 'aria-expanded', 'false' );
+		btn.setAttribute( 'aria-label', ( T.stChange || '' ) + ': ' + ( e.sl || '' ) );
+		btn.appendChild( el( 'span', '', e.sl || T.stChange ) );
+		btn.appendChild( icon( 'chev' ) );
+		var menu = el( 'ul', 'cfb-st__menu' );
+		menu.setAttribute( 'role', 'listbox' );
+		menu.setAttribute( 'aria-label', T.stChange || '' );
+		menu.hidden = true;
+		set.opts.forEach( function ( o ) {
+			var li = el( 'li' );
+			li.setAttribute( 'role', 'presentation' );
+			var ob = el( 'button', 'cfb-st__opt' );
+			ob.type = 'button';
+			ob.setAttribute( 'role', 'option' );
+			ob.setAttribute( 'aria-selected', o[ 0 ] === e.sv ? 'true' : 'false' );
+			ob.appendChild( el( 'i', 'cfb-dot cfb-dot--' + statusKey( o[ 0 ] ) ) );
+			ob.appendChild( el( 'span', '', o[ 1 ] ) );
+			ob.addEventListener( 'click', function () {
+				close( false );
+				if ( o[ 0 ] === e.sv ) {
+					return;
+				}
+				save( o[ 0 ], o[ 1 ] );
+			} );
+			li.appendChild( ob );
+			menu.appendChild( li );
+		} );
+		function opts() {
+			return Array.prototype.slice.call( menu.querySelectorAll( '.cfb-st__opt' ) );
+		}
+		function open() {
+			state.pinned = true; // otwarta lista nie może zniknąć razem z kartą po zjechaniu kursorem
+			menu.hidden = false;
+			btn.setAttribute( 'aria-expanded', 'true' );
+			var cur = menu.querySelector( '[aria-selected="true"]' ) || opts()[ 0 ];
+			if ( cur ) {
+				cur.focus( { preventScroll: true } );
+			}
+		}
+		function close( refocus ) {
+			menu.hidden = true;
+			btn.setAttribute( 'aria-expanded', 'false' );
+			if ( refocus ) {
+				btn.focus( { preventScroll: true } );
+			}
+		}
+		function save( value, label ) {
+			var fd = new FormData();
+			fd.append( 'action', set.action );
+			fd.append( 'nonce', set.nonce );
+			fd.append( 'id', String( e.id ) );
+			fd.append( 'status', value );
+			btn.setAttribute( 'aria-busy', 'true' );
+			btn.disabled = true;
+			window.fetch( cfg.ajax, { method: 'POST', credentials: 'same-origin', body: fd } )
+				.then( function ( r ) {
+					return r.json();
+				} )
+				.then( function ( r ) {
+					if ( ! r || ! r.success ) {
+						throw new Error( 'status' );
+					}
+					applyStatus( e.id, value, label );
+					announce( ( T.stSaved || '%s' ).replace( '%s', label ) );
+				} )
+				.catch( function () {
+					btn.removeAttribute( 'aria-busy' );
+					btn.disabled = false;
+					announce( T.stFail || '' );
+					var err = card.querySelector( '.cfb-st__err' ) || el( 'p', 'cfb-st__err' );
+					err.textContent = T.stFail || '';
+					err.setAttribute( 'role', 'alert' );
+					if ( ! err.parentNode ) {
+						card.insertBefore( err, card.children[ 1 ] || null );
+					}
+				} );
+		}
+		btn.addEventListener( 'click', function () {
+			if ( menu.hidden ) {
+				open();
+			} else {
+				close( true );
+			}
+		} );
+		menu.addEventListener( 'keydown', function ( ev ) {
+			var list = opts();
+			var k = list.indexOf( document.activeElement );
+			if ( 'ArrowDown' === ev.key || 'ArrowUp' === ev.key ) {
+				ev.preventDefault();
+				var n = list[ ( k + ( 'ArrowDown' === ev.key ? 1 : -1 ) + list.length ) % list.length ];
+				if ( n ) {
+					n.focus();
+				}
+			} else if ( 'Escape' === ev.key ) {
+				ev.preventDefault();
+				ev.stopPropagation(); // zamyka tylko listę, karta zostaje
+				close( true );
+			} else if ( 'Tab' === ev.key ) {
+				close( false );
+			}
+		} );
+		wrap.appendChild( btn );
+		wrap.appendChild( menu );
+		return wrap;
+	}
+
+	// klik poza listą statusów zamyka ją (jeden nasłuch na stronę, karta rysuje się od nowa przy każdym wydarzeniu)
+	document.addEventListener( 'click', function ( ev ) {
+		card.querySelectorAll( '.cfb-st__menu:not([hidden])' ).forEach( function ( m ) {
+			if ( ! m.parentNode.contains( ev.target ) ) {
+				m.hidden = true;
+				m.parentNode.querySelector( '.cfb-st__btn' ).setAttribute( 'aria-expanded', 'false' );
+			}
+		} );
+	} );
+
 	function renderCard( e ) {
 		card.textContent = '';
 		var top = el( 'div', 'cfb-card__top' );
@@ -502,7 +669,10 @@
 		ti.appendChild( icon( { wesele: 'ring', kontakt: 'phone', oddanie: 'box', blokada: 'lock', przygotowanie: 'list', przypomnienie: 'bell' }[ e.type ] || 'bell' ) );
 		top.appendChild( ti );
 		top.appendChild( el( 'span', 'cfb-card__type', e.tl ) );
-		if ( e.sl ) {
+		var set = undefined !== e.sx && cfg.statusSets ? cfg.statusSets[ e.sx ] : null;
+		if ( set && e.id ) {
+			top.appendChild( statusControl( e, set ) );
+		} else if ( e.sl ) {
 			top.appendChild( el( 'span', 'cfd-pill cfd-pill--' + pillClass( e.st ), e.sl ) );
 		}
 		var x = el( 'button', 'cfb-card__x' );

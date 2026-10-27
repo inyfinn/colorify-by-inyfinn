@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Wersja dołączonego Dark Readera (do cache przeglądarki i testów).
  */
-const COLORIFY_DARKREADER_VERSION = '4.9.133';
+const COLORIFY_DARKREADER_VERSION = '4.9.133-colorify1'; // 4.9.133 z poprawką ciepłej bieli (assets/vendor/darkreader.js, "COLORIFY PATCH")
 
 /**
  * Arkusze, których Dark Reader nie przelicza (fragmenty adresu URL).
@@ -30,7 +30,19 @@ const COLORIFY_DARKREADER_VERSION = '4.9.133';
  * @return array<int,string>
  */
 function colorify_dark_ignored_stylesheets(): array {
-	return array( 'colorify-chrome', 'colorify-ui', 'colorify-login' );
+	$list = array( 'colorify-chrome', 'colorify-ui', 'colorify-login' );
+
+	/**
+	 * Arkusze (fragmenty adresu URL), których silnik trybu ciemnego nie przelicza. Wtyczka strony, która ma własne,
+	 * ręcznie dobrane kolory trybu ciemnego (np. pod body.colorify-dark), dopisuje tu swój arkusz.
+	 *
+	 * Arkusze Colorify zostają na liście nawet wtedy, gdy funkcja filtra zwróci tylko własne wpisy.
+	 *
+	 * @param array<int,string> $list Fragmenty adresów arkuszy.
+	 */
+	$list = array_merge( $list, (array) apply_filters( 'colorify_dark_ignored_stylesheets', $list ) );
+
+	return array_values( array_unique( array_filter( array_map( 'strval', $list ), 'strlen' ) ) );
 }
 
 /**
