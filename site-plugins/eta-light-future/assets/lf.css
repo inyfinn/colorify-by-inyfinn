@@ -123,3 +123,7 @@ body.eta-lf-page .lf { width: 100vw; margin-left: calc(50% - 50vw); }
 .lf .lf-sheet .lf-form input:focus, .lf .lf-sheet .lf-form textarea:focus { outline: 2px solid transparent; outline-offset: 0; border-color: var(--lf-navy); box-shadow: 0 0 0 3px rgba(11, 27, 61, .18); }
 .lf .lf-sheet .lf-form input, .lf .lf-sheet .lf-form textarea { box-shadow: none; }
 body.eta-lf-page .trx_addons_scroll_to_top { display: none !important; } /* zasłaniał pasek zamówienia */
+/* Fokus pól w oknie zamówienia: miękki pierścień, bez grubej czarnej ramki motywu. */
+.lf .lf-sheet .lf-form input:focus, .lf .lf-sheet .lf-form textarea:focus, .lf .lf-sheet .lf-form input:focus-visible {
+	outline: 0 !important; border: 1px solid #0b1b3d !important; box-shadow: 0 0 0 3px rgba(11, 27, 61, .14) !important;
+}

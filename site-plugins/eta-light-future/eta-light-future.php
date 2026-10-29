@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ETA - katalog Kosmetyki Light Future
  * Description: Ukryty świąteczny katalog kosmetyków Light Future (tylko z linku) i zamówienia przedwstępne bez cen. Shortcode [eta_light_future]. Zamówienia oznaczone "Kosmetyki Light Future", filtr i suma sztuk w panelu zamówień.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: INYFINN
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const ETA_LF_VERSION = '1.0.2';
+const ETA_LF_VERSION = '1.0.3';
 const ETA_LF_CAT     = 'kosmetyki-light-future';
 const ETA_LF_META    = '_eta_light_future';
 const ETA_LF_LABEL   = 'Kosmetyki Light Future';
@@ -309,12 +309,13 @@ add_filter(
 );
 add_action(
 	'woocommerce_email_before_order_table',
-	static function ( $order ) {
-		if ( eta_lf_is_lf_order( $order ) ) {
+	static function ( $order, $sent_to_admin = false ) {
+		if ( $sent_to_admin && eta_lf_is_lf_order( $order ) ) { // klient ma własny baner w szablonie maila
 			echo '<p style="margin:0 0 16px;padding:10px 14px;background:#fbe4e1;color:#8a2a24;border-radius:8px;font-weight:600">' . esc_html( ETA_LF_LABEL ) . ': zamówienie przedwstępne, bez płatności.</p>';
 		}
 	},
-	5
+	5,
+	2
 );
 
 /* ===================== Panel zamówień ===================== */
