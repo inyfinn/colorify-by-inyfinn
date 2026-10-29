@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ETA - przekierowania 301
  * Description: Stare adresy (poprzednia strona, linki z Google i z treści) prowadzą na właściwe strony zamiast na stronę 404. Wtyczka strony etainnovations.com, przechowywana w repozytorium Colorify (site-plugins/eta-przekierowania).
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: INYFINN
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -13,9 +13,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( function_exists( 'eta_redirect_target' ) ) {
-	return; // stara wersja jako mu-plugin jeszcze działa
+if ( defined( 'ETA_PRZEKIEROWANIA' ) ) {
+	return;
 }
+define( 'ETA_PRZEKIEROWANIA', '1.0.1' );
 
 add_action(
 	'template_redirect',
