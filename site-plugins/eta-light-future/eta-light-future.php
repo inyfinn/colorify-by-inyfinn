@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ETA - katalog Kosmetyki Light Future
  * Description: Ukryty świąteczny katalog kosmetyków Light Future (tylko z linku) i zamówienia przedwstępne bez cen. Shortcode [eta_light_future]. Zamówienia oznaczone "Kosmetyki Light Future", filtr i suma sztuk w panelu zamówień.
- * Version: 1.0.3
+ * Version: 1.1.0
  * Author: INYFINN
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -13,8 +13,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const ETA_LF_VERSION = '1.0.3';
+const ETA_LF_VERSION = '1.1.0';
 const ETA_LF_CAT     = 'kosmetyki-light-future';
+const ETA_LF_XMAS    = 'oferta-swiateczna'; // produkt w obu kategoriach = tylko w katalogu, bez ceny
 const ETA_LF_META    = '_eta_light_future';
 const ETA_LF_LABEL   = 'Kosmetyki Light Future';
 
@@ -38,12 +39,15 @@ function eta_lf_products(): array {
 	if ( ! function_exists( 'wc_get_products' ) ) {
 		return array();
 	}
-	return wc_get_products( array( 'category' => array( ETA_LF_CAT ), 'status' => 'publish', 'limit' => 50, 'orderby' => 'menu_order', 'order' => 'ASC' ) );
+	$all = wc_get_products( array( 'category' => array( ETA_LF_CAT ), 'status' => 'publish', 'limit' => 100, 'orderby' => 'menu_order', 'order' => 'ASC' ) );
+	return array_values( array_filter( $all, static fn( $p ) => eta_lf_is_lf_product( $p->get_id() ) ) );
 }
 
 function eta_lf_is_lf_product( $product_id ): bool {
 	$parent = wp_get_post_parent_id( (int) $product_id );
-	return has_term( ETA_LF_CAT, 'product_cat', $parent ? $parent : (int) $product_id );
+	$id = $parent ? $parent : (int) $product_id;
+	// Katalog przedwstępny: produkt musi być w OBU kategoriach. Sam "Kosmetyki Light Future" = zwykły produkt sklepu.
+	return has_term( ETA_LF_CAT, 'product_cat', $id ) && has_term( ETA_LF_XMAS, 'product_cat', $id );
 }
 
 /**
@@ -59,17 +63,75 @@ function eta_lf_typo( string $text ): string {
 
 /* ===================== Widoczność ===================== */
 
+/** Czy w "Kosmetyki Light Future" jest choć jeden zwykły produkt (bez "Oferta świąteczna"). */
+function eta_lf_has_regular_products(): bool {
+	$cached = get_transient( 'eta_lf_regular' );
+	if ( false !== $cached ) {
+		return '1' === $cached;
+	}
+	$ids = get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'fields' => 'ids', 'numberposts' => 1, 'tax_query' => array( 'relation' => 'AND', array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => ETA_LF_CAT ), array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => ETA_LF_XMAS, 'operator' => 'NOT IN' ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	set_transient( 'eta_lf_regular', $ids ? '1' : '0', HOUR_IN_SECONDS );
+	return (bool) $ids;
+}
+
+/*
+ * Widoczność w sklepie liczona z kategorii przy każdym zapisie produktu:
+ * obie kategorie = ukryty w sklepie i wyszukiwarce; usunięta "Oferta świąteczna" = zwykły produkt (widoczność wraca).
+ */
+add_action(
+	'woocommerce_after_product_object_save',
+	static function ( $product ) {
+		static $busy = false;
+		if ( $busy || ! $product instanceof WC_Product || $product->get_parent_id() ) {
+			return;
+		}
+		delete_transient( 'eta_lf_regular' );
+		$pre  = eta_lf_is_lf_product( $product->get_id() );
+		$auto = (bool) $product->get_meta( '_eta_lf_auto_hidden' );
+		$busy = true;
+		if ( $pre && 'hidden' !== $product->get_catalog_visibility() ) {
+			$product->set_catalog_visibility( 'hidden' );
+			$product->update_meta_data( '_eta_lf_auto_hidden', 1 );
+			$product->save();
+		} elseif ( ! $pre && $auto ) {
+			$product->set_catalog_visibility( 'visible' );
+			$product->delete_meta_data( '_eta_lf_auto_hidden' );
+			$product->save();
+		}
+		$busy = false;
+	}
+);
+// Zmiana samych kategorii (szybka edycja, masowa edycja) też przelicza widoczność.
+add_action(
+	'set_object_terms',
+	static function ( $object_id, $terms, $tt_ids, $taxonomy ) {
+		if ( 'product_cat' === $taxonomy && 'product' === get_post_type( $object_id ) ) {
+			$p = wc_get_product( $object_id );
+			if ( $p ) {
+				do_action( 'woocommerce_after_product_object_save', $p, null );
+			}
+		}
+	},
+	20,
+	4
+);
+
 // Kategoria nie pojawia się w listach kategorii na stronie (sklep, widżety, menu automatyczne).
 add_filter(
 	'get_terms',
-	static function ( $terms, $taxonomies ) {
-		if ( is_admin() || wp_doing_ajax() || ! in_array( 'product_cat', (array) $taxonomies, true ) || ! is_array( $terms ) ) {
+	static function ( $terms, $taxonomies, $args = array() ) {
+		// Tylko listy kategorii; pytania o kategorie konkretnego produktu (object_ids, has_term) zostają nietknięte.
+		if ( is_admin() || wp_doing_ajax() || ! empty( $args['object_ids'] ) || ! in_array( 'product_cat', (array) $taxonomies, true ) || ! is_array( $terms ) ) {
 			return $terms;
 		}
-		return array_values( array_filter( $terms, static fn( $t ) => ! ( $t instanceof WP_Term && ETA_LF_CAT === $t->slug ) ) );
+		$hide = array( ETA_LF_XMAS );
+		if ( ! eta_lf_has_regular_products() ) {
+			$hide[] = ETA_LF_CAT;
+		}
+		return array_values( array_filter( $terms, static fn( $t ) => ! ( $t instanceof WP_Term && in_array( $t->slug, $hide, true ) ) ) );
 	},
 	10,
-	2
+	3
 );
 
 // Strony z katalogiem i produkty Light Future poza wyszukiwarkami.
@@ -77,7 +139,7 @@ add_action(
 	'wp_head',
 	static function () {
 		$is_catalog = is_singular() && has_shortcode( (string) get_post_field( 'post_content', get_queried_object_id() ), 'eta_light_future' );
-		$is_lf      = ( is_singular( 'product' ) && eta_lf_is_lf_product( get_queried_object_id() ) ) || is_tax( 'product_cat', ETA_LF_CAT );
+		$is_lf      = ( is_singular( 'product' ) && eta_lf_is_lf_product( get_queried_object_id() ) ) || is_tax( 'product_cat', ETA_LF_XMAS );
 		if ( $is_catalog || $is_lf ) {
 			echo "<meta name=\"robots\" content=\"noindex, nofollow\">\n";
 		}
