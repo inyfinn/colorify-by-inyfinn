@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: ETA - katalog Kosmetyki Light Future
- * Description: Ukryty świąteczny katalog kosmetyków Light Future (tylko z linku) i zamówienia przedwstępne bez cen. Shortcode [eta_light_future]. Zamówienia oznaczone "Kosmetyki Light Future", filtr i suma sztuk w panelu zamówień.
- * Version: 1.1.0
+ * Plugin Name: ETA - katalog kosmetyków (zamówienia przedwstępne)
+ * Description: Ukryty katalog kosmetyków (tylko z linku) i zamówienia przedwstępne bez cen. Shortcode [eta_light_future]. Zamówienia oznaczone "Kosmetyki Light Future", filtr i suma sztuk w panelu zamówień.
+ * Version: 1.2.0
  * Author: INYFINN
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -13,11 +13,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const ETA_LF_VERSION = '1.1.0';
-const ETA_LF_CAT     = 'kosmetyki-light-future';
-const ETA_LF_XMAS    = 'oferta-swiateczna'; // produkt w obu kategoriach = tylko w katalogu, bez ceny
+const ETA_LF_VERSION = '1.2.0';
+// Kategorie rozpoznawane po ID, nie po nazwie ani adresie: klient może je dowolnie przemianować.
+// Produkt w obu = tylko w katalogu, bez ceny. Inne ID: filtr 'eta_lf_category_ids'.
+const ETA_LF_CAT_ID   = 228; // "Kosmetyki"
+const ETA_LF_OFFER_ID = 229; // "Oferta"
 const ETA_LF_META    = '_eta_light_future';
-const ETA_LF_LABEL   = 'Kosmetyki Light Future';
+const ETA_LF_LABEL   = 'Katalog kosmetyków';
 
 add_action(
 	'before_woocommerce_init',
@@ -30,6 +32,11 @@ add_action(
 
 /* ===================== Dane ===================== */
 
+/** @return int[] [kategoria produktów, kategoria oferty] */
+function eta_lf_cat_ids(): array {
+	return array_map( 'intval', (array) apply_filters( 'eta_lf_category_ids', array( ETA_LF_CAT_ID, ETA_LF_OFFER_ID ) ) );
+}
+
 /**
  * Produkty katalogu w kolejności menu.
  *
@@ -39,15 +46,17 @@ function eta_lf_products(): array {
 	if ( ! function_exists( 'wc_get_products' ) ) {
 		return array();
 	}
-	$all = wc_get_products( array( 'category' => array( ETA_LF_CAT ), 'status' => 'publish', 'limit' => 100, 'orderby' => 'menu_order', 'order' => 'ASC' ) );
-	return array_values( array_filter( $all, static fn( $p ) => eta_lf_is_lf_product( $p->get_id() ) ) );
+	list( $cat, $offer ) = eta_lf_cat_ids();
+	$ids = get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'fields' => 'ids', 'numberposts' => 200, 'orderby' => array( 'menu_order' => 'ASC', 'title' => 'ASC' ), 'tax_query' => array( 'relation' => 'AND', array( 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $cat, 'include_children' => false ), array( 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $offer, 'include_children' => false ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	return array_values( array_filter( array_map( 'wc_get_product', $ids ) ) );
 }
 
 function eta_lf_is_lf_product( $product_id ): bool {
 	$parent = wp_get_post_parent_id( (int) $product_id );
 	$id = $parent ? $parent : (int) $product_id;
 	// Katalog przedwstępny: produkt musi być w OBU kategoriach. Sam "Kosmetyki Light Future" = zwykły produkt sklepu.
-	return has_term( ETA_LF_CAT, 'product_cat', $id ) && has_term( ETA_LF_XMAS, 'product_cat', $id );
+	list( $cat, $offer ) = eta_lf_cat_ids();
+	return has_term( $cat, 'product_cat', $id ) && has_term( $offer, 'product_cat', $id );
 }
 
 /**
@@ -69,7 +78,8 @@ function eta_lf_has_regular_products(): bool {
 	if ( false !== $cached ) {
 		return '1' === $cached;
 	}
-	$ids = get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'fields' => 'ids', 'numberposts' => 1, 'tax_query' => array( 'relation' => 'AND', array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => ETA_LF_CAT ), array( 'taxonomy' => 'product_cat', 'field' => 'slug', 'terms' => ETA_LF_XMAS, 'operator' => 'NOT IN' ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+	list( $cat, $offer ) = eta_lf_cat_ids();
+	$ids = get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'fields' => 'ids', 'numberposts' => 1, 'tax_query' => array( 'relation' => 'AND', array( 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $cat ), array( 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $offer, 'operator' => 'NOT IN' ) ) ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
 	set_transient( 'eta_lf_regular', $ids ? '1' : '0', HOUR_IN_SECONDS );
 	return (bool) $ids;
 }
@@ -124,11 +134,12 @@ add_filter(
 		if ( is_admin() || wp_doing_ajax() || ! empty( $args['object_ids'] ) || ! in_array( 'product_cat', (array) $taxonomies, true ) || ! is_array( $terms ) ) {
 			return $terms;
 		}
-		$hide = array( ETA_LF_XMAS );
+		list( $cat, $offer ) = eta_lf_cat_ids();
+		$hide = array( $offer );
 		if ( ! eta_lf_has_regular_products() ) {
-			$hide[] = ETA_LF_CAT;
+			$hide[] = $cat;
 		}
-		return array_values( array_filter( $terms, static fn( $t ) => ! ( $t instanceof WP_Term && in_array( $t->slug, $hide, true ) ) ) );
+		return array_values( array_filter( $terms, static fn( $t ) => ! ( $t instanceof WP_Term && in_array( (int) $t->term_id, $hide, true ) ) ) );
 	},
 	10,
 	3
@@ -139,7 +150,7 @@ add_action(
 	'wp_head',
 	static function () {
 		$is_catalog = is_singular() && has_shortcode( (string) get_post_field( 'post_content', get_queried_object_id() ), 'eta_light_future' );
-		$is_lf      = ( is_singular( 'product' ) && eta_lf_is_lf_product( get_queried_object_id() ) ) || is_tax( 'product_cat', ETA_LF_XMAS );
+		$is_lf      = ( is_singular( 'product' ) && eta_lf_is_lf_product( get_queried_object_id() ) ) || is_tax( 'product_cat', eta_lf_cat_ids()[1] );
 		if ( $is_catalog || $is_lf ) {
 			echo "<meta name=\"robots\" content=\"noindex, nofollow\">\n";
 		}
@@ -178,7 +189,7 @@ add_filter(
 
 /* ===================== Katalog (shortcode) ===================== */
 
-// Klasa na body strony z katalogiem: pełna szerokość, granat od nagłówka do stopki.
+// Klasa na body strony z katalogiem: pełna szerokość, białe tło jak reszta strony.
 add_filter(
 	'body_class',
 	static function ( $classes ) {
@@ -194,7 +205,7 @@ add_shortcode(
 	static function () {
 		$products = eta_lf_products();
 		$base     = plugin_dir_url( __FILE__ ) . 'assets/';
-		wp_enqueue_style( 'eta-lf-fonts', 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Instrument+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap', array(), null );
+		wp_enqueue_style( 'eta-lf-fonts', 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap', array(), null );
 		wp_enqueue_style( 'eta-lf', $base . 'lf.css', array(), ETA_LF_VERSION );
 		wp_enqueue_script( 'eta-lf', $base . 'lf.js', array(), ETA_LF_VERSION, true );
 		wp_localize_script(
@@ -209,11 +220,10 @@ add_shortcode(
 		ob_start();
 		?>
 		<div class="lf" id="lf">
-			<canvas class="lf-snow" aria-hidden="true"></canvas>
 			<section class="lf-hero">
-				<p class="lf-eyebrow">Kolekcja świąteczna<br>Light Future</p>
-				<h1 class="lf-title">Ciepło, które<br>pachnie miodem</h1>
-				<p class="lf-lead"><?php echo eta_lf_typo( 'Dziesięć naturalnych kosmetyków na prezent i dla siebie.' ); ?><br><br><?php echo eta_lf_typo( 'Zbieramy zamówienia przedwstępne, ceny podamy przed wysyłką.' ); ?></p>
+				<p class="lf-eyebrow">Naturalne kosmetyki</p>
+				<h1 class="lf-title">Katalog kosmetyków</h1>
+				<p class="lf-lead"><?php echo eta_lf_typo( 'Kosmetyki na bazie miodu, wosku pszczelego i olejków.' ); ?><br><?php echo eta_lf_typo( 'Zbieramy zamówienia przedwstępne, ceny podamy przed wysyłką.' ); ?></p>
 			</section>
 			<div class="lf-list">
 				<?php

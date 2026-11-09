@@ -127,3 +127,32 @@ body.eta-lf-page .trx_addons_scroll_to_top { display: none !important; } /* zas�
 .lf .lf-sheet .lf-form input:focus, .lf .lf-sheet .lf-form textarea:focus, .lf .lf-sheet .lf-form input:focus-visible {
 	outline: 0 !important; border: 1px solid #0b1b3d !important; box-shadow: 0 0 0 3px rgba(11, 27, 61, .14) !important;
 }
+
+/* ===== 1.2.0: zwykły, biały katalog (bez motywu świątecznego), w stylu reszty strony ETA ===== */
+.lf {
+	--lf-bg: #ffffff; --lf-ink: #0b1b3d; --lf-gold: #4a5670; --lf-cream: #eef2f7; --lf-navy: #0b1b3d;
+	--lf-serif: "Instrument Sans", system-ui, sans-serif;
+	background: var(--lf-bg); color: var(--lf-ink);
+}
+body.eta-lf-page .page_content_wrap { background: #ffffff; }
+.lf-hero { background: none; padding: 72px 24px 32px; }
+.lf-eyebrow { color: #4a5670; }
+.lf .lf-title { font: 700 clamp(36px, 5vw, 56px)/1.08 var(--lf-ui); letter-spacing: -.02em; margin: 12px 0 16px; }
+.lf-lead { color: #4a5670; opacity: 1; font-size: 17px; line-height: 1.6; }
+.lf-item { border-bottom-color: #e6eaf0; }
+.lf-ph .lf-img { box-shadow: 0 1px 2px rgba(11, 27, 61, .06), 0 12px 32px rgba(11, 27, 61, .10); border-radius: 20px; }
+.lf-num { font: 600 13px var(--lf-ui); color: #7a8499; letter-spacing: .04em; }
+.lf .lf-name { font: 700 28px/1.2 var(--lf-ui); letter-spacing: -.01em; color: #0b1b3d; }
+.lf-desc { color: #4a5670; opacity: 1; }
+.lf-more summary { color: #0b1b3d; }
+.lf-more div { color: #4a5670; opacity: 1; }
+.lf-pill { border-color: #d5dce7; color: #4a5670; background: #fff; }
+.lf-st { background: #eef2f7; color: #0b1b3d; }
+.lf-item.is-on .lf-st { background: #0b1b3d; color: #fff; }
+.lf .lf-st :focus-visible { outline-color: #2563eb; }
+.lf-bar { background: #fff; color: #0b1b3d; box-shadow: 0 12px 36px rgba(11, 27, 61, .18); border: 1px solid #e6eaf0; }
+.lf-sheet { background: #fff; }
+.lf .lf-sheet h2 { font: 700 26px/1.2 var(--lf-ui); }
+.lf .lf-cta:focus-visible { outline-color: #2563eb; }
+@media (max-width: 900px) { .lf .lf-name { font-size: 24px; } }
+@media (max-width: 600px) { .lf-hero { padding: 48px 16px 16px; } }
