@@ -3,7 +3,7 @@
  * Kolory i rogi ze zmiennych kokpitu (.cfd: --s --t --m --a --on --line --r --rc --rp), więc schemat strony i kształt przycisków
  * (Ustawienia, Colorify, Dopasuj do mojej strony) zmieniają ten ekran bez własnych kolorów poza znacznikami statusu.
  * Ten arkusz ładuje się przed arkuszem kokpitu, dlatego reguły zaczynają się od ".cfd" (wyższa specyficzność).
- * Układ: CSS grid z nazwanymi obszarami na 100% szerokości (≥1600, ≥1100, ≥768, telefon); kafle dopasowują wnętrze
+ * Układ: CSS grid z nazwanymi obszarami na 100% szerokości (≥1600, ≥1100; poniżej jedna kolumna); kafle dopasowują wnętrze
  * zapytaniami o kontener. Nic nie przewija się wewnątrz kafli. Pismo najmniej 12 px (chipy w kalendarzu), reszta 13 px i więcej.
  * Fokus z klawiatury: obrys 1 px z odstępem. Hover nie zmienia wymiarów (nic nie skacze).
  */
@@ -31,23 +31,21 @@
 .cfd .cfb { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .cfd .cfb svg, .cfd .cfb-card svg { width: 1em; height: 1em; flex: none; }
 
-/* ---------- Siatka bento ---------- */
-.cfd .cfb-bento {
-	display: grid; gap: 20px; min-width: 0;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	grid-template-areas: "kpi kpi" "next next" "cal cal" "todo list" "dep dep";
-}
-.cfd .cfb-bento.no-dep { grid-template-areas: "kpi kpi" "next next" "cal cal" "todo list"; }
-.cfd .cfb-bento > .cfb-kpis { grid-area: kpi; }
-.cfd .cfb-bento > .cfb-next { grid-area: next; }
-.cfd .cfb-bento > .cfb-cal { grid-area: cal; }
-.cfd .cfb-bento > .cfb-todo { grid-area: todo; }
-.cfd .cfb-bento > .cfb-upc { grid-area: list; }
-.cfd .cfb-bento > .cfb-dep { grid-area: dep; }
+/* ---------- Siatka bento ----------
+ * 2.12.3: poniżej 1100 px jedna kolumna w kolejności z kodu (liczby, najbliższe wesele, do zrobienia, kalendarz, najbliższe,
+ * zadatki). Dwa kafle z listami obok siebie miały na tablecie ok. 230 px na wiersz: plakietka spadała pod datę, ikona zostawała
+ * sama w linii, a pusty kafel rozciągał się do wysokości sąsiada. */
+.cfd .cfb-bento { display: grid; gap: 20px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .cfd .cfb-bento > * { min-width: 0; }
 @media (min-width: 1100px) {
 	.cfd .cfb-bento { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "kpi kpi kpi" "cal cal cal" "next next next" "list list todo" "list list dep"; }
 	.cfd .cfb-bento.no-dep { grid-template-areas: "kpi kpi kpi" "cal cal cal" "next next next" "list list todo"; }
+	.cfd .cfb-bento > .cfb-kpis { grid-area: kpi; }
+	.cfd .cfb-bento > .cfb-next { grid-area: next; }
+	.cfd .cfb-bento > .cfb-cal { grid-area: cal; }
+	.cfd .cfb-bento > .cfb-todo { grid-area: todo; }
+	.cfd .cfb-bento > .cfb-upc { grid-area: list; }
+	.cfd .cfb-bento > .cfb-dep { grid-area: dep; }
 }
 @media (min-width: 1600px) {
 	/* kalendarz ma najwyżej 600 px, więc kafel najbliższego wesela schodzi obok listy "Najbliższe" (bez pustego miejsca pod kalendarzem) */
@@ -98,9 +96,10 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 
 /* ---------- Kalendarz (na całą szerokość kafla) ---------- */
 .cfd .cfb-cal { display: flex; flex-direction: column; padding: 32px 36px 26px; min-width: 0; }
-.cfd .cfb-cal__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+/* 2.12.3: nazwa miesiąca nie łamie się i nie wchodzi pod strzałki; gdy pasek się nie mieści, strzałki schodzą do drugiego rzędu. */
+.cfd .cfb-cal__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .cfd .cfb-cal__head { position: relative; min-width: 0; }
-.cfd .cfb-title { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 0 -10px; padding: 6px 10px; border: 0; border-radius: var(--rc); background: transparent; color: var(--t); font: inherit; font-size: 24px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; text-transform: capitalize; cursor: pointer; }
+.cfd .cfb-title { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 0 -10px; padding: 6px 10px; border: 0; border-radius: var(--rc); background: transparent; color: var(--t); font: inherit; font-size: 24px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; text-transform: capitalize; white-space: nowrap; cursor: pointer; }
 .cfd .cfb-title svg { width: 18px; height: 18px; color: var(--m); transition: transform .15s ease; }
 .cfd .cfb-title:hover, .cfd .cfb-title[aria-expanded="true"] { background: var(--cfb-tint); }
 .cfd .cfb-title[aria-expanded="true"] svg { transform: rotate(180deg); }
@@ -192,21 +191,25 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 .cfd .cfb-pick__today { width: 100%; margin-top: 10px; }
 
 /* ---------- Kafle z listami (bez przewijania; reszta pod "Pokaż wszystkie") ---------- */
-.cfd .cfb-tile { display: flex; flex-direction: column; padding: 32px 36px 28px; }
+.cfd .cfb-tile { display: flex; flex-direction: column; padding: 32px 36px 28px; container-type: inline-size; }
 .cfd .cfb-tile__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
 .cfd .cfb-tile__title { margin: 0; padding: 0; font-size: 18px; line-height: 1.3; font-weight: 700; color: var(--t); }
 .cfd .cfb-tile__note { padding: 2px 10px; border-radius: var(--rp); background: var(--cfb-tint); color: var(--a); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .cfd .cfb-li-list { margin: 0; padding: 0; list-style: none; }
 .cfd .cfb-li-list li[hidden] { display: none; }
-.cfd .cfb-li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; width: 100%; min-height: 64px; margin: 0 0 2px; padding: 8px 10px; border: 0; border-radius: var(--rc); background: transparent; color: var(--t); font: inherit; text-align: left; cursor: pointer; transition: background-color .12s ease; }
+/* 2.12.3: wiersz to siatka (znacznik, treść, plakietka albo kwota). W wąskim kaflu plakietka i kwota schodzą pod treść,
+ * zawsze w jej kolumnie (wcześniej zawijały się pod datę albo wymagały sztywnego marginesu 62 px). */
+.cfd .cfb-li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; width: 100%; min-height: 64px; margin: 0 0 2px; padding: 8px 10px; border: 0; border-radius: var(--rc); background: transparent; color: var(--t); font: inherit; text-align: left; cursor: pointer; transition: background-color .12s ease; }
 .cfd .cfb-li:hover { background: var(--cfb-tint); }
-.cfd .cfb-li__main { display: flex; flex-direction: column; gap: 3px; flex: 1 1 150px; min-width: 0; }
+.cfd .cfb-li__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .cfd .cfb-li__title { font-size: 15px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-.cfd .cfb-li__sub { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px; font-size: 13px; line-height: 1.3; color: var(--m); }
+.cfd .cfb-li__sub { display: flex; align-items: flex-start; gap: 7px; font-size: 13px; line-height: 1.3; color: var(--m); }
+.cfd .cfb-li__sub > .cfb-tico { margin-top: -2px; }
 .cfd .cfb-li__sub.is-late { color: #b42335; font-weight: 600; }
-.cfd .cfb-li__amt { flex: none; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.cfd .cfb-li .cfd-pill { flex: none; }
-@media (max-width: 767px) { .cfd .cfb-li .cfd-pill { margin-left: 62px; } }
+.cfd .cfb-li__amt { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@container (max-width: 440px) {
+	.cfd .cfb-li > .cfd-pill, .cfd .cfb-li > .cfb-li__amt { grid-column: 2; justify-self: start; }
+}
 .cfd .cfb-showall { align-self: flex-start; min-height: 44px; margin: 8px 0 -8px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--rc); background: var(--s); color: var(--a); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .cfd .cfb-showall:hover { background: var(--cfb-tint); }
 .cfd .cfb-date { display: flex; flex: none; flex-direction: column; align-items: center; justify-content: center; width: 48px; height: 52px; border-radius: var(--rc); background: var(--cfb-tint); color: var(--a); line-height: 1; }
@@ -235,13 +238,15 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 .cfd .cfb-rem .cfb-li { min-height: 52px; }
 
 /* wiersze etykieta/wartość z ikonką kopiowania */
-.cfd .cfb-dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 28px; margin: 0; align-content: start; }
-.cfd .cfb-kv { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 6px 0; }
-.cfd .cfb-kv.is-wide { grid-column: 1 / -1; }
+/* 2.12.3: dwie kolumny z zawijaniem zamiast sztywnej siatki. Wiersz z długim słowem (e-mail, adres) sam bierze całą szerokość,
+ * zamiast łamać się w środku słowa; ostatni nieparzysty wiersz też się rozciąga. */
+.cfd .cfb-dl { display: flex; flex-wrap: wrap; gap: 2px 28px; margin: 0; align-content: flex-start; }
+.cfd .cfb-kv { display: flex; flex-direction: column; gap: 2px; flex: 1 1 calc(50% - 14px); max-width: 100%; padding: 6px 0; }
+.cfd .cfb-kv.is-wide { flex-basis: 100%; }
 .cfd .cfb-dl dt { margin: 0; padding: 0 8px; font-size: 13px; line-height: 1.4; color: var(--m); }
 .cfd .cfb-dl dd { margin: 0; min-width: 0; }
 .cfd .cfb-val { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; width: 100%; min-height: 32px; margin: 0; padding: 4px 8px; border: 0; border-radius: min(10px, var(--rc)); background: transparent; color: var(--t); font: inherit; font-size: 15px; font-weight: 500; line-height: 1.4; text-align: left; cursor: copy; transition: background-color .12s ease; }
-.cfd .cfb-val > span { min-width: 0; overflow-wrap: anywhere; }
+.cfd .cfb-val > span { min-width: 0; overflow-wrap: break-word; }
 .cfd .cfb-val__i { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 22px; height: 22px; margin-top: 1px; border-radius: min(6px, var(--rc)); color: var(--m); opacity: 0; transition: opacity .12s ease; }
 .cfd .cfb-val__i svg { width: 15px; height: 15px; }
 .cfd .cfb-val:hover, .cfd .cfb-val:focus-visible { background: var(--cfb-tint); }
@@ -251,6 +256,7 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 
 .cfd .cfb-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .cfd .cfb-actions .is-main { grid-column: 1 / -1; }
+.cfd .cfb-next .cfb-actions > :last-child:nth-child(even) { grid-column: 1 / -1; } /* 2.12.3: trzeci przycisk nie zostaje sam w połowie rzędu */
 .cfd .cfb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--rc); background: var(--s); color: var(--t); font: inherit; font-size: 14px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; transition: background-color .12s ease, color .12s ease; }
 .cfd .cfb-btn svg { width: 17px; height: 17px; }
 .cfd .cfb-btn:hover { background: var(--cfb-tint); color: var(--a); }
@@ -310,8 +316,6 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 }
 @media (max-width: 767px) {
 	.cfd .cfb, .cfd .cfb-bento { gap: 12px; }
-	.cfd .cfb-bento { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; }
-	.cfd .cfb-bento > .cfb-kpis, .cfd .cfb-bento > .cfb-next, .cfd .cfb-bento > .cfb-cal, .cfd .cfb-bento > .cfb-todo, .cfd .cfb-bento > .cfb-upc, .cfd .cfb-bento > .cfb-dep { grid-area: auto; }
 	.cfd .cfb-kpis { gap: 12px; }
 	.cfd .cfb-kpis, .cfd .cfb-kpis[data-n] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.cfd .cfb-kpis > *, .cfd .cfb-kpis[data-n] > *, .cfd .cfb-kpis[data-n="5"] > :nth-child(n+4) { grid-column: auto; }
@@ -326,7 +330,7 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 	.cfd .cfb-next__in { padding: 24px 16px 22px; gap: 18px; }
 	.cfd .cfb-actions { grid-template-columns: minmax(0, 1fr); }
 	.cfd .cfb-btn { min-height: 48px; }
-	.cfd .cfb-dl { grid-template-columns: minmax(0, 1fr); }
+	.cfd .cfb-kv { flex-basis: 100%; }
 	.cfd .cfb-val { min-height: 44px; padding: 9px 8px; }
 	.cfd .cfb-showall { width: 100%; align-self: stretch; min-height: 48px; }
 	.cfd .cfb-li { min-height: 60px; padding: 8px 6px; }
@@ -339,6 +343,16 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 	.cfb-stages li { grid-template-columns: 96px minmax(0, 1fr) 28px; gap: 10px; }
 	.cfb-stage__sum { grid-column: 2 / -1; text-align: left; font-size: 13px; }
 	.cfp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* 2.12.3: wąski telefon. Strzałki miesiąca zawsze w drugim rzędzie na całą szerokość (układ nie zależy od długości nazwy
+ * miesiąca), a w karcie wydarzenia plakietka statusu schodzi pod etykietę rodzaju, żeby na siebie nie wchodziły. */
+@media (max-width: 479px) {
+	.cfd .cfb-nav { display: flex; flex: 1 1 100%; }
+	.cfd .cfb-nav__a { flex: 1 1 0; }
+	.cfd .cfb-card__top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; }
+	.cfd .cfb-card__top > .cfb-st, .cfd .cfb-card__top > .cfd-pill { grid-row: 2; grid-column: 1 / -1; justify-self: start; }
+	.cfd .cfb-card__x { grid-row: 1; grid-column: 3; }
+	.cfd .cfb-st__menu { left: 0; right: auto; }
 }
 /* ---------- Kalendarz na komputerze: najwyżej 600 px wysokości (2.10.2) ----------
  * Siatka 6 tygodni po 60 px: numer dnia, do dwóch wydarzeń w jednej linii (jedno wydarzenie: dwie linie),

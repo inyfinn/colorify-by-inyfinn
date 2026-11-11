@@ -1,5 +1,21 @@
 # Historia zmian
 
+## 2.12.3
+
+Kokpit "Kalendarz zleceń" i ekrany panelu na telefonie i tablecie: nic nie nachodzi na siebie w zakresie 320–1920 px.
+
+- Karta szczegółów na tablecie (768–1023 px) otwiera się przy wydarzeniu. Skrypt uznawał za telefon wszystko do 1023 px i nie pozycjonował karty, a arkusz dolny w CSS działa tylko do 767 px, więc karta lądowała w lewym górnym rogu, na pasku panelu. Karta nie wchodzi też już na pasek panelu na żadnej szerokości.
+- Poniżej 1100 px kafle kokpitu są w jednej kolumnie (liczby, najbliższe wesele, do zrobienia, kalendarz, najbliższe, zadatki). Dwa kafle z listami obok siebie miały na tablecie ok. 230 px na wiersz: plakietka statusu spadała pod datę, ikona zostawała sama w linii, a pusty kafel rozciągał się do wysokości sąsiada.
+- Wiersz listy to siatka (znacznik, treść, plakietka albo kwota); w wąskim kaflu plakietka i kwota schodzą pod treść, w jej kolumnie (zapytanie o kontener zamiast sztywnego marginesu 62 px).
+- Szczegóły (etykieta / wartość): dwie kolumny z zawijaniem. Wiersz z długim słowem, np. adresem e-mail, sam bierze całą szerokość, zamiast łamać się w środku słowa.
+- Pasek kalendarza: nazwa miesiąca nie łamie się i nie wchodzi pod strzałki; poniżej 480 px strzałki i "Dziś" są w drugim rzędzie na całą szerokość.
+- Karta szczegółów poniżej 480 px: plakietka statusu pod etykietą rodzaju (wcześniej na nią nachodziła), lista statusów wyrównana do lewej.
+- "Najbliższe wesele": trzeci przycisk akcji zajmuje cały rząd zamiast połowy.
+- "za 205 dni" i separator "·" mają twarde spacje: wiersz nie kończy się na "za 204" ani nie zaczyna od kropki.
+- Pasek panelu przy 320 px: pozycja Colorify bez strzałki (pasek miał 325 px, więc Colorify i awatar spadały pod pasek, na zakładkę "Pomoc" / "Opcje ekranu").
+- Kafle na listach: komunikat "ekran jest za wąski, poszerz okno" ukryty poniżej 783 px (suwak rozmiaru jest tam ukryty, więc komunikat nic nie mówił).
+- Kreator e-maili: w "Wyślij test" etykieta jest nad polem; pole adresu miało ok. 125 px i ucinało adres.
+
 ## 2.12.2
 
 - Kreator e-maili: brak opcji szablonu jest rozpoznawany poprawnie (`get_option()` zwraca `false`, nie `null`), więc zapis niezmienionych domyślnych naprawdę nic nie zapisuje; 2.12.1 łapało to tylko dla szablonów pod kluczem wspólnej opcji.

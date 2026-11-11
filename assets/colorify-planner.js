@@ -27,6 +27,9 @@
 	var navList = [];
 	var navPos = {};
 	var mobileQuery = window.matchMedia ? window.matchMedia( '(max-width: 1023px)' ) : { matches: false };
+	// Karta wydarzenia jest arkuszem dolnym tylko do 767 px (ten sam próg co w CSS). Na tablecie (768-1023 px) lista dni
+	// zostaje, ale karta musi być pozycjonowana przy wydarzeniu: bez tego otwierała się w lewym górnym rogu, na pasku panelu.
+	var sheetQuery = window.matchMedia ? window.matchMedia( '(max-width: 767px)' ) : { matches: false };
 	var live = root.querySelector( '.cfb-live' );
 
 	events.forEach( function ( e ) {
@@ -688,7 +691,7 @@
 		h.setAttribute( 'role', 'heading' );
 		h.setAttribute( 'aria-level', '3' );
 		card.appendChild( h );
-		card.appendChild( el( 'p', 'cfb-card__when', e.long + ' · ' + e.rel ) );
+		card.appendChild( el( 'p', 'cfb-card__when', e.long + '\u00a0· ' + e.rel ) );
 		if ( e.rows && e.rows.length ) {
 			var dl = el( 'dl', 'cfb-dl' );
 			e.rows.forEach( function ( r ) {
@@ -763,7 +766,7 @@
 	}
 
 	function place() {
-		if ( mobileQuery.matches ) {
+		if ( sheetQuery.matches ) {
 			card.style.left = '';
 			card.style.top = '';
 			return;
@@ -773,6 +776,7 @@
 		var vh = window.innerHeight;
 		var cw = card.offsetWidth;
 		var ch = card.offsetHeight;
+		var top = 12 + ( ( document.getElementById( 'wpadminbar' ) || {} ).offsetHeight || 0 ); // karta nie wchodzi na pasek panelu
 		var x;
 		var y;
 		if ( a ) {
@@ -791,9 +795,9 @@
 			}
 		} else {
 			x = Math.max( 12, ( vw - cw ) / 2 );
-			y = Math.max( 12, ( vh - ch ) / 3 );
+			y = Math.max( top, ( vh - ch ) / 3 );
 		}
-		y = Math.max( 12, Math.min( y, vh - ch - 12 ) );
+		y = Math.max( top, Math.min( y, vh - ch - 12 ) );
 		card.style.left = Math.round( x ) + 'px';
 		card.style.top = Math.round( y ) + 'px';
 	}

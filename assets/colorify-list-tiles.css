@@ -45,7 +45,7 @@
 body.colorify-list-tiles .wp-list-table, body.colorify-list-tiles .tablenav .bulkactions { display: none; }
 .cfl-grid { display: grid; grid-template-columns: repeat(var(--cfl-n), minmax(0, 1fr)); gap: 18px; align-items: stretch; }
 @media (max-width: 1100px) { .cfl-grid { grid-template-columns: repeat(min(var(--cfl-n), 3), minmax(0, 1fr)); } }
-@media (max-width: 782px) { .cfl-grid { grid-template-columns: repeat(min(var(--cfl-n), 2), minmax(0, 1fr)); } .cfl-size { display: none; } }
+@media (max-width: 782px) { .cfl-grid { grid-template-columns: repeat(min(var(--cfl-n), 2), minmax(0, 1fr)); } .cfl-size, .cfl-note { display: none; } } /* 2.12.3: bez suwaka komunikat "poszerz okno" nic nie mówi na telefonie */
 @media (max-width: 480px) { .cfl-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .cfl-card { container-type: inline-size; position: relative; display: flex; flex-direction: column; min-width: 0; background: var(--cfl-surface); border: 1px solid var(--cfl-line); border-radius: var(--colorify-radius-card, 20px); overflow: hidden; color: var(--cfl-muted); transition: box-shadow .2s, border-color .2s; }

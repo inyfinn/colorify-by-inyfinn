@@ -290,7 +290,8 @@ trait Colorify_Dashboard_Planner {
 			return __( 'wczoraj', 'colorify-by-inyfinn' );
 		}
 		/* translators: %d: liczba dni */
-		return $n > 0 ? sprintf( __( 'za %d dni', 'colorify-by-inyfinn' ), $n ) : sprintf( __( '%d dni temu', 'colorify-by-inyfinn' ), -$n );
+		// Twarde spacje: "za 205 dni" nie łamie się między wierszami (2.12.3; separator "·" też trzyma się poprzedniego słowa).
+		return str_replace( ' ', "\u{00A0}", $n > 0 ? sprintf( __( 'za %d dni', 'colorify-by-inyfinn' ), $n ) : sprintf( __( '%d dni temu', 'colorify-by-inyfinn' ), -$n ) );
 	}
 
 	/**
@@ -481,7 +482,7 @@ trait Colorify_Dashboard_Planner {
 		$type = self::plan_type_key( (string) $e['type'] );
 		$ts   = strtotime( $e['date'] . ' 12:00:00' );
 		$who  = self::plan_split_title( (string) $e['title'] )[0];
-		$sub  = esc_html( self::plan_type_label( $type ) . ' · ' . wp_date( 'l', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) );
+		$sub  = esc_html( self::plan_type_label( $type ) . "\u{00A0}· " . wp_date( 'l', $ts ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) );
 		return '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog">'
 			. self::plan_date_badge( $e['date'] )
 			. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $who ) . '</strong><span class="cfb-li__sub"><span class="cfb-tico cfb-tico--' . esc_attr( $type ) . '">' . self::icon_svg( self::plan_type_icon( $type ) ) . '</span>' . $sub . '</span></span>'
@@ -499,7 +500,7 @@ trait Colorify_Dashboard_Planner {
 		$out   = '<section class="cfd-card cfb-next" aria-label="' . esc_attr( $title ) . '"><div class="cfb-next__in"><div class="cfb-next__side">';
 		$out  .= '<div class="cfb-tile__bar"><h2 class="cfb-tile__title">' . esc_html( $title ) . '</h2>' . self::plan_pill( $next ) . '</div>';
 		$out  .= '<div class="cfb-next__hero"><span class="cfb-next__day"><b>' . esc_html( wp_date( 'j', $ts ) ) . '</b><i>' . esc_html( wp_date( 'M', $ts ) ) . '</i></span>'
-			. '<span class="cfb-next__who"><strong>' . esc_html( $p['title'] ) . '</strong><span>' . esc_html( $p['long'] . ' · ' . $p['rel'] ) . '</span></span></div>';
+			. '<span class="cfb-next__who"><strong>' . esc_html( $p['title'] ) . '</strong><span>' . esc_html( $p['long'] . "\u{00A0}· " . $p['rel'] ) . '</span></span></div>';
 		$out  .= '<div class="cfb-actions">'
 			. '<button type="button" class="cfb-btn is-main" data-cfb-copy="' . (int) $next['i'] . '">' . self::icon_svg( 'copy' ) . '<span>' . esc_html__( 'Skopiuj informacje', 'colorify-by-inyfinn' ) . '</span></button>'
 			. ( '' !== $p['url'] ? '<a class="cfb-btn" href="' . esc_url( $p['url'] ) . '">' . self::icon_svg( 'ext' ) . '<span>' . esc_html__( 'Otwórz zlecenie', 'colorify-by-inyfinn' ) . '</span></a>' : '' )
@@ -521,7 +522,7 @@ trait Colorify_Dashboard_Planner {
 				$t     = self::plan_type_key( (string) $e['type'] );
 				$late  = $e['date'] < $today->format( 'Y-m-d' );
 				$label = self::plan_split_title( (string) $e['title'] );
-				$out  .= '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span><span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $label[1] ? $label[1] : $label[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( wp_date( 'l, j.m', strtotime( $e['date'] . ' 12:00:00' ) ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+				$out  .= '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span><span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $label[1] ? $label[1] : $label[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( wp_date( 'l, j.m', strtotime( $e['date'] . ' 12:00:00' ) ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
 			}
 			$out .= '</ol></div>';
 		}
@@ -690,7 +691,7 @@ trait Colorify_Dashboard_Planner {
 			$ts       = strtotime( $e['date'] . ' 12:00:00' );
 			$parts    = self::plan_split_title( (string) $e['title'] );
 			$titems[] = '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $type ) . ' is-lg">' . self::icon_svg( self::plan_type_icon( $type ) ) . '</span>'
-				. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $parts[1] ? $parts[1] : $parts[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( ( '' !== $parts[1] ? $parts[0] . ' · ' : '' ) . wp_date( 'l, j.m', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+				. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $parts[1] ? $parts[1] : $parts[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( ( '' !== $parts[1] ? $parts[0] . "\u{00A0}· " : '' ) . wp_date( 'l, j.m', $ts ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
 		}
 		$tile_todo = self::plan_list_tile( __( 'Do zrobienia w tym tygodniu', 'colorify-by-inyfinn' ), $todo ? self::num( count( $todo ) ) : '', $titems, __( 'Nic nie czeka. Spokojny tydzień.', 'colorify-by-inyfinn' ), 'cfb-todo', 5 );
 
@@ -706,7 +707,7 @@ trait Colorify_Dashboard_Planner {
 				$sum    += max( 0, (int) $e['amount'] );
 				$ts      = strtotime( $e['date'] . ' 12:00:00' );
 				$ditm[]  = '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog">' . self::plan_date_badge( $e['date'] )
-					. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $e['title'] ) . '</strong><span class="cfb-li__sub">' . esc_html( wp_date( 'l, j.m', $ts ) . ' · ' . self::plan_rel( $e['date'], $today ) ) . '</span></span>'
+					. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $e['title'] ) . '</strong><span class="cfb-li__sub">' . esc_html( wp_date( 'l, j.m', $ts ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) ) . '</span></span>'
 					. ( null !== $e['amount'] && $e['amount'] > 0 ? '<span class="cfb-li__amt">' . esc_html( self::plan_money( (float) $e['amount'] ) ) . '</span>' : '' ) . '</button></li>';
 			}
 			$tile_dep = self::plan_list_tile( __( 'Zadatki do wpłaty', 'colorify-by-inyfinn' ), $sum > 0 ? self::plan_money( (float) $sum ) : '', $ditm, __( 'Wszystkie zadatki są wpłacone.', 'colorify-by-inyfinn' ), 'cfb-dep' );

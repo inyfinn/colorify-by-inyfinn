@@ -553,6 +553,14 @@
 	}
 }
 
+/* 2.12.3: na ekranie 320 px pozycje paska miały razem 325 px, więc Colorify i awatar spadały pod pasek, na zakładkę
+ * "Pomoc" / "Opcje ekranu". Bez strzałki przy ikonie pasek ma 307 px i mieści się w jednym rzędzie. */
+@media screen and (max-width: 340px) {
+	#wpadminbar .quicklinks #wp-admin-bar-colorify > .ab-item .colorify-ab-chev {
+		display: none;
+	}
+}
+
 /* ---------- Komponenty ekranów (profil i ustawienia) ---------- */
 .colorify-picker {
 	max-width: 1180px;
