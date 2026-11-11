@@ -160,7 +160,8 @@
 
 /* ---------- pola ---------- */
 .cft-pole { display: flex; flex-direction: column; gap: 6px; min-width: 0; border-radius: var(--cft-r); transition: box-shadow 0.4s; }
-.cft-pole.is-wskazane { box-shadow: 0 0 0 4px rgba(184, 149, 90, 0.35); }
+.cft-pole.is-wskazane, .cft-akapit.is-wskazane, .cft-wiersz.is-wskazane { box-shadow: 0 0 0 4px rgba(184, 149, 90, 0.35); }
+.cft-akapit, .cft-wiersz { transition: box-shadow 0.4s; }
 .cft-etykieta { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 500; line-height: 1.4; color: var(--cft-braz-d); }
 .cft-in, .cft input.cft-in, .cft textarea.cft-in {
 	display: block;
@@ -381,6 +382,20 @@
 .cft-sp__o:focus-visible { outline: 2px solid var(--cft-zloto); outline-offset: 2px; }
 .cft-sp__o[aria-pressed="true"] { font-weight: 600; color: var(--cft-krem); background: var(--cft-braz-d); border-color: var(--cft-zloto); box-shadow: 0 0 0 2px var(--cft-zloto); } /* złoty pierścień: wybór widać też w trybie ciemnym (Dark Reader) */
 .cft-sp__o.is-dzied { border-style: dashed; border-color: var(--cft-zloto-d); }
+/* stan efektywny (2.14): tak jest teraz na stronie (z projektu albo z komputera) = przerywana złota ramka; Twoja zmiana = pełne zaznaczenie */
+.cft-sp__o.is-efekt { border: 2px dashed var(--cft-zloto-d); padding: 0 9px; }
+.cft-sp__o--ik.is-efekt { padding: 0 7px; }
+.cft-sp__n { flex-direction: column; align-items: flex-start; gap: 2px; }
+.cft-sp__n > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.cft-sp__teraz { font-size: 11.5px; font-weight: 400; line-height: 1.3; color: var(--cft-cichy); }
+.cft-sp__w.is-ust .cft-sp__teraz { color: var(--cft-zloto-d); font-weight: 500; }
+.cft-sp__narz { display: flex; flex-wrap: wrap; gap: 6px; }
+.cft-sp__nb { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px 0 8px; font: inherit; font-size: 12.5px; color: var(--cft-braz-d); background: var(--cft-krem); border: 1px solid var(--cft-obrys); border-radius: 999px; cursor: pointer; }
+.cft-sp__nb .cft-ik { width: 16px; height: 16px; color: var(--cft-zloto-d); }
+.cft-sp__nb:hover { background: var(--cft-krem-2); }
+.cft-sp__nb:focus-visible { outline: 2px solid var(--cft-zloto); outline-offset: 2px; }
+.cft-sp__nb:disabled { opacity: 0.45; cursor: not-allowed; }
+.cft-sp__info--ok { padding: 8px 10px; color: var(--cft-ok-fg); background: var(--cft-ok-bg); border-radius: var(--cft-r); }
 .cft-sp__o:disabled { opacity: 0.35; cursor: not-allowed; }
 .cft-sp__o--ik { min-width: 40px; padding: 0 8px; }
 .cft-sp__o .cft-ik { width: 18px; height: 18px; }
@@ -472,7 +487,7 @@
 	.cft [data-tip]:hover::after { display: none; } /* na dotyku dymek zasłaniałby palec; zostaje aria-label */
 }
 @media (pointer: coarse) {
-	.cft-sp__o, .cft-styl-btn, .cft-akapit__w select, .cft-sp__gora .cft-przelacz button { min-height: 44px; }
+	.cft-sp__o, .cft-styl-btn, .cft-akapit__w select, .cft-sp__gora .cft-przelacz button, .cft-sp__nb { min-height: 44px; }
 	.cft-nav__dodaj { min-height: 44px; }
 }
 

@@ -19,10 +19,60 @@ const COLORIFY_TRESCI_OPTION = 'colorify_tresci';
 
 require_once __DIR__ . '/colorify-tresci-uklad.php'; // wygląd, układ stron, nowe sekcje, akapity (2.13.0)
 
+const COLORIFY_TRESCI_ZAAW_OPTION = 'colorify_tresci_zaaw';
+
 /** Czy moduł jest włączony w Ustawienia, Colorify (domyślnie nie). */
 function colorify_tresci_aktywny(): bool {
 	return 'yes' === get_option( COLORIFY_TRESCI_OPTION, 'no' );
 }
+
+/**
+ * "Zaawansowana edycja" (2.14.0): Wygląd tekstu, akapity jako bloki, Układ strony, nowe sekcje. Domyślnie wyłączona.
+ * Wyłączona = panel jak w 2.12 (zwykłe pola); zapisane już style, układ i sekcje strona dalej pokazuje, żeby wyłączenie
+ * przełącznika niczego nie rozjechało (cofa się je w panelu po włączeniu albo z Historii zmian).
+ */
+function colorify_tresci_zaawansowana(): bool {
+	return colorify_tresci_aktywny() && 'yes' === get_option( COLORIFY_TRESCI_ZAAW_OPTION, 'no' );
+}
+
+/**
+ * Właściciele Colorify: loginy albo e-maile ze stałej w wp-config.php, np.
+ * define( 'COLORIFY_WLASCICIEL', 'login1,osoba@example.com' ); (repozytorium jest publiczne: adresy tylko w wp-config).
+ * Bez stałej właścicielem jest konto o ID 1 (pierwszy administrator).
+ */
+function colorify_wlasciciele(): array {
+	if ( ! defined( 'COLORIFY_WLASCICIEL' ) ) {
+		return array();
+	}
+	return array_values( array_filter( array_map( 'strtolower', array_map( 'trim', explode( ',', (string) COLORIFY_WLASCICIEL ) ) ) ) );
+}
+
+/** Czy użytkownik (domyślnie zalogowany, w WP-CLI ten z --user=) jest właścicielem Colorify. */
+function colorify_jest_wlascicielem( $user = null ): bool {
+	$u = null === $user ? wp_get_current_user() : ( $user instanceof WP_User ? $user : get_userdata( (int) $user ) );
+	if ( ! $u || ! $u->exists() ) {
+		return false;
+	}
+	$lista = colorify_wlasciciele();
+	if ( ! $lista ) {
+		return 1 === (int) $u->ID && user_can( $u, 'manage_options' );
+	}
+	return in_array( strtolower( $u->user_login ), $lista, true ) || in_array( strtolower( (string) $u->user_email ), $lista, true );
+}
+
+// Przełączniki modułu zmienia tylko właściciel, każdą drogą (formularz Colorify, options.php, REST, wp option update):
+// zapis od innego konta zostawia starą wartość. WP-CLI: wp option update colorify_tresci_zaaw yes --user=<właściciel>.
+foreach ( array( COLORIFY_TRESCI_OPTION, COLORIFY_TRESCI_ZAAW_OPTION ) as $colorify_tresci_opt ) {
+	add_filter(
+		'pre_update_option_' . $colorify_tresci_opt,
+		static function ( $new, $old ) {
+			return colorify_jest_wlascicielem() ? $new : $old;
+		},
+		10,
+		2
+	);
+}
+unset( $colorify_tresci_opt );
 
 /** Jedno pole schematu (pomocnik dla motywów). */
 function colorify_tresci_pole( $type, $label, $default, $hint = '', $x = array() ) {
@@ -158,14 +208,18 @@ function colorify_tresci_pola() {
 
 /** Zapis przełącznika z formularza ustawień; ukryte pole *_present mówi, że przełącznik był w formularzu. */
 function colorify_tresci_save_from_input( array $input ): void {
-	if ( empty( $input['colorify_tresci_present'] ) || ! current_user_can( 'manage_options' ) ) {
-		return;
+	if ( empty( $input['colorify_tresci_present'] ) || ! current_user_can( 'manage_options' ) || ! colorify_jest_wlascicielem() ) {
+		return; // przełączniki tylko dla właściciela (inni nie widzą wierszy, a serwer i tak odrzuca)
 	}
 	update_option( COLORIFY_TRESCI_OPTION, ! empty( $input['colorify_tresci'] ) ? 'yes' : 'no' );
+	update_option( COLORIFY_TRESCI_ZAAW_OPTION, ! empty( $input['colorify_tresci_zaaw'] ) ? 'yes' : 'no' );
 }
 
-/** Wiersz "Edytor treści" na ekranie ustawień. */
+/** Wiersze "Edytor treści" i "Zaawansowana edycja" na ekranie ustawień: tylko dla właściciela Colorify. */
 function colorify_tresci_settings_row(): void {
+	if ( ! colorify_jest_wlascicielem() ) {
+		return;
+	}
 	$n = count( colorify_tresci_schema() );
 	echo '<div class="colorify-site colorify-style-row">';
 	echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Edytor treści', 'colorify-by-inyfinn' ) . '</p>';
@@ -175,6 +229,18 @@ function colorify_tresci_settings_row(): void {
 		? esc_html( sprintf( _n( 'Motyw zarejestrował schemat: %d sekcja.', 'Motyw zarejestrował schemat: %d sekcji.', $n, 'colorify-by-inyfinn' ), $n ) )
 		: esc_html__( 'Ten motyw nie rejestruje schematu, więc włączenie niczego nie zmieni.', 'colorify-by-inyfinn' ) ) . '</p></div>';
 	echo '<label class="colorify-site__check"><input type="hidden" name="colorify_tresci_present" value="1"><input type="checkbox" name="colorify_tresci" value="1"' . checked( colorify_tresci_aktywny(), true, false ) . '> ' . esc_html__( 'Włącz panel Treści strony', 'colorify-by-inyfinn' ) . '</label>';
+	echo '</div>';
+	$kto = colorify_wlasciciele() ? implode( ', ', colorify_wlasciciele() ) : '';
+	echo '<div class="colorify-site colorify-style-row">';
+	echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Zaawansowana edycja (tylko właściciel)', 'colorify-by-inyfinn' ) . '</p>';
+	echo '<p class="colorify-site__hint">' . esc_html__( 'W panelu Treści strony: „Wygląd” tekstu (krój, rozmiar, kolor, odstępy, komputer i telefon), akapity do dodawania i przesuwania, „Układ strony” (kolejność i ukrywanie sekcji) i nowe sekcje z biblioteki. Wyłączona: panel ma zwykłe pola, a to, co już ustawiono, zostaje na stronie.', 'colorify-by-inyfinn' ) . '</p>';
+	echo '<p class="colorify-site__now">' . esc_html(
+		'' !== $kto
+			/* translators: %s: lista kont */
+			? sprintf( __( 'Te dwa przełączniki widzą i zmieniają tylko właściciele: %s (stała COLORIFY_WLASCICIEL w wp-config.php).', 'colorify-by-inyfinn' ), $kto )
+			: __( 'Te dwa przełączniki widzi i zmienia tylko konto o ID 1. Inne konta wskażesz w wp-config.php: define( \'COLORIFY_WLASCICIEL\', \'login,adres@domena\' );', 'colorify-by-inyfinn' )
+	) . '</p></div>';
+	echo '<label class="colorify-site__check"><input type="checkbox" name="colorify_tresci_zaaw" value="1"' . checked( 'yes' === get_option( COLORIFY_TRESCI_ZAAW_OPTION, 'no' ), true, false ) . '> ' . esc_html__( 'Włącz zaawansowaną edycję', 'colorify-by-inyfinn' ) . '</label>';
 	echo '</div>';
 }
 
@@ -624,6 +690,12 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 		}
 
 		if ( 'akapity' === $type ) {
+			if ( ! colorify_tresci_zaawansowana() ) {
+				if ( array_key_exists( $key, $stored ) ) {
+					$new[ $key ] = $stored[ $key ]; // zaawansowana edycja wyłączona: lista akapitów bez zmian
+				}
+				continue;
+			}
 			$bloki = colorify_tresci_akapity_z( $in, $f ); // panel: id => blok (kolejność formularza), WP-CLI: JSON listy
 			if ( $bloki != $def ) { // phpcs:ignore WordPress.PHP.StrictComparisons
 				$new[ $key ] = $bloki;
@@ -671,7 +743,7 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 	// Nowe sekcje, układ i wygląd (klucze zastrzeżone). Nic z tego nie przyszło: zostaje zapisane bez zmian.
 	// Przyszło cokolwiek: wszystkie trzy przechodzą walidację razem (usunięta sekcja znika też z układu i stylów).
 	$jest = array_intersect( array( '__i', '__sekcje', '__uklad', '__style' ), array_keys( $post ) );
-	if ( ! $jest ) {
+	if ( ! $jest || ! colorify_tresci_zaawansowana() ) { // wyłączona zaawansowana edycja: nikt (panel, WP-CLI, POST) ich nie zmieni
 		foreach ( array( '__sekcje', '__uklad', '__style' ) as $k ) {
 			if ( ! empty( $stored[ $k ] ) ) {
 				$new[ $k ] = $stored[ $k ];

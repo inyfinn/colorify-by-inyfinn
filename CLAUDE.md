@@ -22,6 +22,14 @@ i przy każdej nowej stronie, która go używa:
 7. Dane: tylko addytywnie. Stare klucze opcji czytane jak dotąd; nowe dane pod kluczami zastrzeżonymi `__style`,
    `__uklad`, `__sekcje` w tej samej opcji. Testy na żywej stronie: kopia opcji przed, przywrócenie z bramką wersji po.
 
+## Przełączniki właściciela (od 2.14.0, decyzja usera)
+
+- „Edytor treści” i „Zaawansowana edycja” w Ustawieniach Colorify widzi i zmienia tylko właściciel: `COLORIFY_WLASCICIEL`
+  w wp-config.php (loginy/e-maile po przecinku), bez stałej konto ID 1. Nigdy nie wpisuj e-maili ani loginów usera
+  w kod tego repozytorium (jest publiczne). Ochrona po stronie serwera (`pre_update_option_*`), nie tylko w UI.
+- Nowe funkcje „premium” modułu chowaj za `colorify_tresci_zaawansowana()` (panel, WP-CLI, zapis), a stronę publiczną
+  zostaw renderującą to, co już zapisano.
+
 ## Praca w repo
 
 - Wersja: `colorify-by-inyfinn.php` (nagłówek `Version:` i `COLORIFY_PLUGIN_VERSION`) + wpis w `CHANGELOG.md`, przy każdej

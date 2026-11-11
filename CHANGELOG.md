@@ -1,5 +1,14 @@
 # Historia zmian
 
+## 2.14.0
+
+Edytor treści: przełączniki tylko dla właściciela Colorify i klik w podglądzie prowadzi prosto do pola.
+
+- „Edytor treści” i nowa „Zaawansowana edycja” (Wygląd, akapity jako bloki, Układ strony, nowe sekcje) widzi i przełącza tylko właściciel: konta ze stałej `COLORIFY_WLASCICIEL` w wp-config.php (loginy albo e-maile po przecinku), bez stałej konto o ID 1. Inni administratorzy nie widzą tych wierszy, a zapis od nich jest odrzucany po stronie serwera (`pre_update_option`, każda droga: formularz, options.php, REST, `wp option update` bez `--user=<właściciel>`).
+- Domyślnie oba wyłączone. Wyłączona „Zaawansowana edycja” = panel jak w 2.12 (zwykłe pola akapitów, bez Wyglądu i układu, WP-CLI `styl`/`uklad`/`sekcja` odmawia, POST z kluczami `__style`/`__uklad`/`__sekcje` jest ignorowany); to, co już zapisano, strona dalej pokazuje, żeby wyłączenie niczego nie rozjechało.
+- Klik w element podglądu: otwiera właściwą kartę (pozostałe się zwijają), trafia w konkretny akapit bloku albo wiersz listy, przewija panel tak, że pole stoi w pionowym środku widoku (pod paskiem admina, nad paskiem zapisu), daje fokus i krótkie podświetlenie. Przyczyna dawnego „przesuwa się, ale nie tam”: `scrollIntoView()` w ramce podglądu przewijał też stronę panelu; teraz ramka przewija tylko siebie.
+- Test w WordPressie `wp eval-file tools/test-tresci.php` sprawdza też allowlistę stylu, akapity, normalizację układu i odrzucenie przełącznika od nie-właściciela.
+
 ## 2.13.0
 
 Edytor treści: wygląd tekstu, akapity, układ stron i nowe sekcje (twarde reguły edytora: `docs/edytor-tresci.md` 8e, `CLAUDE.md`).

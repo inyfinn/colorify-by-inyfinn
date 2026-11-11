@@ -83,6 +83,40 @@ $ok( array( 'b' ) === colorify_tresci_roznica( array( 'a' => 1, 'b' => 1 ), arra
 $r = colorify_tresci_zapisz( array( 'x' => 1 ), 'test', 'test', 'zla-wersja00' );
 $ok( is_wp_error( $r ) && 'konflikt' === $r->get_error_code(), 'zapis ze złą wersją = konflikt, bez zapisu' );
 
+// 2.13: wygląd tylko z allowlisty tokenów, normalizacja układu, akapity jako bloki.
+$ok( 'clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem)' === colorify_tresci_styl_css( 'fz', 'xl' ), 'token rozmiaru -> clamp' );
+$ok( '' === colorify_tresci_styl_css( 'fz', '99px' ) && '' === colorify_tresci_styl_css( 'c', 'red;background:url(x)' ), 'wartość spoza allowlisty = nic' );
+$ok( '1.55' === colorify_tresci_styl_css( 'lh', '1.53' ) && '2.2' === colorify_tresci_styl_css( 'lh', '9' ) && '' === colorify_tresci_styl_css( 'lh', 'x' ), 'interlinia: krok 0,05, zakres 1–2,2' );
+$s = colorify_tresci_style_z(
+	array(
+		'pole_a'      => array( 'b' => array( 'fz' => 'xl', 'zle' => 'x', 'c' => 'red' ), 'm' => array( 'pt' => 'xl' ) ),
+		'#sek'        => array( 'b' => array( 'pt' => 'lg', 'fz' => 'l' ) ),
+		'x"><script>' => array( 'b' => array( 'fz' => 'l' ) ),
+		'#s-abcdef12' => array( 'b' => array( 'pt' => 'lg' ) ),
+	),
+	array()
+);
+$ok( array( '#sek' => array( 'b' => array( 'pt' => 'lg' ) ), 'pole_a' => array( 'b' => array( 'fz' => 'xl' ) ) ) === $s, 'style_z: tylko znane cele, właściwości i tokeny; sekcja tylko odstępy; styl usuniętej sekcji wypada' );
+$fa = array( 'z_pol' => array( 'stare1' => 'a' ), 'warianty' => array( 'a' => array( 'A', 'ka' ), 'b' => array( 'B', 'kb' ) ) );
+$bl = colorify_tresci_akapity_z( array( '_' => '1', 'stare1' => array( 'w' => 'b' ), 'p-abc123' => array( 'w' => 'a', 't' => 'Tekst <script>x</script><em>k</em>' ), 'p-pusty1' => array( 't' => '' ), 'zle' => array( 't' => 'x' ) ), $fa );
+$ok( 2 === count( $bl ) && array( 'id' => 'stare1', 'w' => 'b' ) === $bl[0] && 'p-abc123' === $bl[1]['id'] && false === strpos( $bl[1]['t'], '<script' ) && false !== strpos( $bl[1]['t'], '<em>k</em>' ), 'akapity: stare pole jako odwołanie, nowy z tekstem po kses, puste i obce id wypadają' );
+if ( isset( colorify_tresci_uklad_def()['home']['hero'] ) ) { // motyw z rejestrem układu (np. elarisse)
+	$dom = colorify_tresci_uklad_norm( 'home', array(), array() )['o'];
+	$n   = colorify_tresci_uklad_norm( 'home', array( 'o' => array( 'faq', 'nieznana', 'hero', 'faq' ), 'h' => array( 'hero', 'faq' ) ), array() );
+	$ok( 'hero' === $n['o'][0] && 'faq' === $n['o'][1] && count( $n['o'] ) === count( $dom ) && array( 'faq' ) === $n['h'], 'układ: stała na górze, nieznane i powtórzone id wypadają, brakujące wracają, stałej nie da się ukryć' );
+}
+// 2.14: przełączniki zmienia tylko właściciel (tu: bieżący użytkownik WP-CLI bez --user = nikt).
+if ( ! colorify_jest_wlascicielem() ) {
+	$przed = get_option( COLORIFY_TRESCI_ZAAW_OPTION, 'no' );
+	update_option( COLORIFY_TRESCI_ZAAW_OPTION, 'test-nie-wlasciciel' );
+	$po = get_option( COLORIFY_TRESCI_ZAAW_OPTION, 'no' );
+	$ok( $przed === $po, 'przełącznik od nie-właściciela odrzucony' );
+	if ( $przed !== $po ) {
+		update_option( COLORIFY_TRESCI_ZAAW_OPTION, $przed );
+	}
+}
+$ok( ! colorify_jest_wlascicielem( 0 ), 'właściciel: gość nie' );
+
 if ( $fail ) {
 	fwrite( STDERR, "NIEPOWODZENIA:\n - " . implode( "\n - ", $fail ) . "\n" );
 	exit( 1 );

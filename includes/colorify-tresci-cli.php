@@ -24,6 +24,7 @@ class Colorify_Tresci_CLI {
 
 	private function pole( $key ) {
 		if ( in_array( $key, array( '__style', '__uklad', '__sekcje' ), true ) ) {
+			$this->wymagaj_zaaw();
 			return array( 'type' => 'json', 'label' => $key, 'default' => array(), 'section' => '' ); // dane wyglądu, układu i nowych sekcji (JSON)
 		}
 		$pola = colorify_tresci_pola();
@@ -154,6 +155,13 @@ class Colorify_Tresci_CLI {
 
 	/* ----- 2.13.0: wygląd, układ, nowe sekcje (ta sama walidacja i ten sam zapis co panel) ----- */
 
+	/** Wygląd, układ i nowe sekcje działają tylko z włączoną „Zaawansowaną edycją” (przełącza właściciel Colorify). */
+	private function wymagaj_zaaw() {
+		if ( ! colorify_tresci_zaawansowana() ) {
+			WP_CLI::error( 'Zaawansowana edycja jest wyłączona. Włącza ją właściciel Colorify: Ustawienia, Colorify, albo wp option update colorify_tresci_zaaw yes --user=<właściciel>.' );
+		}
+	}
+
 	private function zapisz_post( array $post, $label, $assoc ) {
 		$new = colorify_tresci_z_formularza( $post, colorify_tresci_opcja() );
 		$r   = colorify_tresci_zapisz( $new, $assoc['etykieta'] ?? $label, 'AI/WP-CLI', $assoc['wersja'] ?? null );
@@ -211,6 +219,7 @@ class Colorify_Tresci_CLI {
 	 *     wp colorify-tresci styl omnie_naglowek --reset
 	 */
 	public function styl( $args, $assoc ) {
+		$this->wymagaj_zaaw();
 		$cel  = (string) array_shift( $args );
 		$baza = explode( '.', ltrim( $cel, '#' ) )[0];
 		$ids  = array();
@@ -266,6 +275,7 @@ class Colorify_Tresci_CLI {
 	 * : Bramka wersji jak w `set`.
 	 */
 	public function uklad( $args, $assoc ) {
+		$this->wymagaj_zaaw();
 		$def = colorify_tresci_uklad_def();
 		if ( ! $def ) {
 			WP_CLI::error( 'Motyw nie rejestruje układu stron (rejestr "uklad").' );
@@ -330,6 +340,7 @@ class Colorify_Tresci_CLI {
 	 *     wp colorify-tresci sekcja usun s-abc12345
 	 */
 	public function sekcja( $args, $assoc ) {
+		$this->wymagaj_zaaw();
 		$akcja = $args[0] ?? 'list';
 		$sek   = colorify_tresci_sekcje_nowe( colorify_tresci_opcja() );
 		$typy  = colorify_tresci_typy_sekcji();

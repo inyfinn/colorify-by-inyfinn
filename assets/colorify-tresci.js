@@ -524,7 +524,16 @@
 	});
 
 	/* ----- fokus w panelu → przewiń i podświetl w podglądzie; klik w podglądzie → pole ----- */
-	var ostatnieFokus = null, fokusT = null;
+	var ostatnieFokus = null, fokusT = null, zPodgladu = 0;
+	// Przewijanie TYLKO wewnątrz ramki: scrollIntoView() na elemencie w iframe przewija też stronę panelu
+	// (przodków ramki), co zrywało przewinięcie lewej kolumny do klikniętego pola (2.14.0).
+	function ramkaPrzewin(el, gdzie, cicho) {
+		try {
+			var w = iframe.contentWindow, r = el.getBoundingClientRect(), h = w.innerHeight;
+			var y = w.scrollY + r.top - (gdzie === 'start' ? 0 : (h - Math.min(r.height, h)) / 2);
+			w.scrollTo({ top: Math.max(0, y), behavior: cicho ? 'auto' : 'smooth' });
+		} catch (e) {}
+	}
 	function podswietl(key, cicho) {
 		var d = doc();
 		if (!d) { return; }
@@ -534,18 +543,31 @@
 		if (!cel) {
 			var s = sekcjaPola(key), kot = s && CFG.sekcje[s] ? CFG.sekcje[s].kotwica : '';
 			cel = kot ? d.querySelector(kot) : null;
-			if (cel) { cel.scrollIntoView({ block: 'start', behavior: cicho ? 'auto' : 'smooth' }); }
+			if (cel) { ramkaPrzewin(cel, 'start', cicho); }
 			return;
 		}
 		list.forEach(function (x) { x.classList.add('cft-hl'); });
-		cel.scrollIntoView({ block: 'center', behavior: cicho ? 'auto' : 'smooth' });
+		ramkaPrzewin(cel, 'center', cicho);
 	}
 	function podgladSekcja(sid) {
 		var sec = CFG.sekcje[sid];
-		if (!sec || !widoczny()) { return; }
+		if (!sec || !widoczny() || Date.now() - zPodgladu < 900) { return; } // karta otwarta klikiem w podglądzie: podgląd zostaje przy klikniętym elemencie
 		if (sec.strona !== 'oba' && sec.strona !== strona) { ustawStrone(sec.strona); }
 		var d = doc();
-		if (d && sec.kotwica && !ladowanie) { var c = d.querySelector(sec.kotwica); if (c) { c.scrollIntoView({ block: 'start', behavior: 'smooth' }); } }
+		if (d && sec.kotwica && !ladowanie) { var c = d.querySelector(sec.kotwica); if (c) { ramkaPrzewin(c, 'start'); } }
+	}
+	/** Przewija stronę panelu tak, żeby element stał w pionowym środku widocznej części (pod paskiem admina, nad paskiem zapisu). */
+	function panelNaSrodek(el, cicho) {
+		var bar = document.getElementById('wpadminbar'), pas = form.querySelector('.cft-pasek');
+		var gora = bar ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+		var dol = window.innerHeight - (pas && getComputedStyle(pas).position === 'sticky' ? pas.offsetHeight : 0);
+		var r = el.getBoundingClientRect(), wys = Math.min(r.height, (dol - gora) * 0.6);
+		var o = r.top + wys / 2 - (gora + dol) / 2;
+		if (Math.abs(o) > 4) { window.scrollBy({ top: o, behavior: cicho ? 'auto' : 'smooth' }); }
+	}
+	/** Najbliższy sensowny „wiersz” pola: akapit bloku, pole w wierszu listy, wiersz listy, pole. */
+	function wierszPola(el) {
+		return el.closest('.cft-akapit') || el.closest('.cft-wiersz .cft-pole') || el.closest('.cft-wiersz') || el.closest('.cft-pole') || el;
 	}
 	form.addEventListener('focusin', function (e) {
 		var el = e.target.closest('[data-key]') || e.target.closest('.cft-media[data-key]');
@@ -559,18 +581,26 @@
 		fokusT = setTimeout(function () { if (!ladowanie) { podswietl(key); } }, 120);
 	});
 	function otworzPole(key) {
-		var el = form.querySelector('[data-key="' + key + '"]') || form.querySelector('[data-key="' + baseKey(key) + '"]');
+		var q = function (k) { return form.querySelector('.cft-ed[data-key="' + k + '"], input[data-key="' + k + '"], textarea[data-key="' + k + '"], .cft-media[data-key="' + k + '"]') || form.querySelector('[data-key="' + k + '"]'); };
+		var el = q(key) || q(baseKey(key));
 		if (!el) { return; }
 		var karta = el.closest('details.cft-karta');
-		if (karta && !karta.open) { karta.open = true; }
+		zPodgladu = Date.now();
+		if (karta) {
+			[].forEach.call(form.querySelectorAll('details.cft-karta[open]'), function (k) { if (k !== karta) { k.open = false; } }); // akordeon: jedna karta naraz, mniej skoków
+			karta.open = true;
+		}
 		if (window.matchMedia('(max-width: 1199px)').matches) { podgladOtworz(false); }
-		setTimeout(function () {
-			el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-			var f = el.matches('input, textarea, [contenteditable]') ? el : el.querySelector('.cft-kadr__ramka, button');
+		var cel = wierszPola(el);
+		// Po rozwinięciu karty układ się zmienia: liczymy pozycję dopiero po dwóch klatkach, potem jeszcze raz po wygaśnięciu przewijania.
+		requestAnimationFrame(function () { requestAnimationFrame(function () {
+			panelNaSrodek(cel);
+			var f = el.matches('input, textarea, [contenteditable]') ? el : el.querySelector('.cft-kadr__ramka[tabindex], button'); // zdjęcie: punkt kadru albo „Wybierz zdjęcie”
 			if (f) { f.focus({ preventScroll: true }); }
-			el.classList.add('is-wskazane');
-			setTimeout(function () { el.classList.remove('is-wskazane'); }, 1600);
-		}, 60);
+			cel.classList.add('is-wskazane');
+			setTimeout(function () { cel.classList.remove('is-wskazane'); }, 1600);
+			setTimeout(function () { panelNaSrodek(cel, true); }, 650);
+		}); });
 	}
 
 	/* ----- start podglądu na szerokim ekranie ----- */
@@ -677,57 +707,136 @@
 		[].forEach.call(aside.querySelectorAll('[data-urz]'), function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-urz') === urz ? 'true' : 'false'); });
 		uklad();
 	}
-	function czyNaglowkowy(cel, dev) {
-		var s = STY[cel] || {}, f = (s[dev] && s[dev].ff) || (s.b && s.b.ff);
-		if (f) { return f === 'heading'; }
+	/**
+	 * Stan efektywny: computed style elementu w ramce (ramka ma szerokość wybranego ekranu) zamieniony na najbliższy token.
+	 * projekt = true: na chwilę zdejmuje zmienne --cft-*, czyli wygląd z projektu (CSS motywu). null = elementu nie ma w podglądzie.
+	 */
+	function efekt(cel, projekt) {
 		var el = styEls(cel)[0];
-		try { return !!el && /gilda|serif/i.test(iframe.contentWindow.getComputedStyle(el).fontFamily) && !/sans/i.test(iframe.contentWindow.getComputedStyle(el).fontFamily); } catch (e) { return false; }
+		if (!el) { return null; }
+		var w = iframe.contentWindow, d = doc(), out = {}, zdjete = el.getAttribute('style');
+		if (projekt) { NAZWY.forEach(function (n) { el.style.removeProperty('--cft-' + n); el.style.removeProperty('--cft-' + n + '-m'); }); }
+		try {
+			var cs = w.getComputedStyle(el), sonda = d.createElement('div');
+			sonda.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;';
+			d.body.appendChild(sonda);
+			var px = function (prop, css) { sonda.style[prop] = css; return parseFloat(w.getComputedStyle(sonda)[prop]) || 0; };
+			var naj = function (p, val, f) { var best = null, bd = Infinity; Object.keys(TOK[p] || {}).forEach(function (t) { var dd = Math.abs(f(TOK[p][t][1], t) - val); if (dd < bd) { bd = dd; best = t; } }); return { t: best, dokl: bd < 0.75 }; };
+			var rodz = function (s) { return String(s).split(',')[0].replace(/["']/g, '').trim().toLowerCase(); };
+			var rgb = function (s) { return (String(s).match(/[0-9.]+/g) || [0, 0, 0]).slice(0, 3).map(Number); };
+			var fz = parseFloat(cs.fontSize) || 16, ffEl = rodz(cs.fontFamily), r = null;
+			Object.keys(TOK.ff || {}).forEach(function (t) { sonda.style.fontFamily = TOK.ff[t][1]; if (rodz(w.getComputedStyle(sonda).fontFamily) === ffEl) { r = t; } });
+			out.ff = { t: r, dokl: !!r, txt: String(cs.fontFamily).split(',')[0].replace(/["']/g, '') };
+			out.fz = naj('fz', fz, function (css) { return px('fontSize', css); }); out.fz.txt = Math.round(fz * 10) / 10 + ' px';
+			var fw = parseFloat(cs.fontWeight) || 400;
+			out.fw = naj('fw', fw, function (css) { return parseFloat(css); }); out.fw.txt = String(fw);
+			var ce = rgb(cs.color);
+			out.c = naj('c', 0, function (css) { sonda.style.color = css; var c = rgb(w.getComputedStyle(sonda).color); return Math.abs(c[0] - ce[0]) + Math.abs(c[1] - ce[1]) + Math.abs(c[2] - ce[2]); });
+			out.c.txt = '#' + ce.map(function (x) { return ('0' + Math.round(x).toString(16)).slice(-2); }).join('');
+			var ta = { start: 'left', left: 'left', center: 'center', right: 'right', end: 'right', justify: 'justify' }[cs.textAlign] || 'left';
+			out.ta = { t: ta, dokl: true, txt: '' };
+			[['mb', 'marginBottom'], ['mt', 'marginTop'], ['pt', 'paddingTop'], ['pb', 'paddingBottom']].forEach(function (x) {
+				var v = parseFloat(cs[x[1]]) || 0;
+				out[x[0]] = naj(x[0], v, function (css) { return px('marginTop', css); });
+				out[x[0]].txt = Math.round(v) + ' px';
+			});
+			var lh = cs.lineHeight === 'normal' ? 1.2 : (parseFloat(cs.lineHeight) || fz * 1.2) / fz;
+			out.lh = { t: String(Math.round(Math.max(1, Math.min(2.2, lh)) * 20) / 20), dokl: true, txt: String(Math.round(lh * 100) / 100).replace('.', ',') };
+			var ls = cs.letterSpacing === 'normal' ? 0 : (parseFloat(cs.letterSpacing) || 0) / fz;
+			out.ls = naj('ls', ls * 100, function (css) { return (parseFloat(css) || 0) * 100; }); out.ls.txt = (Math.round(ls * 100) / 100 + ' em').replace('.', ',');
+			if (cs.maxWidth === 'none') { out.mw = { t: 'pelna', dokl: true, txt: '' }; } else { var mw = parseFloat(cs.maxWidth) || 0; out.mw = naj('mw', mw, function (css) { return css === 'none' ? 1e6 : px('maxWidth', css); }); out.mw.txt = Math.round(mw) + ' px'; }
+			out.tt = { t: cs.textTransform === 'uppercase' ? 'upper' : 'none', dokl: true, txt: '' };
+			out.fs = { t: cs.fontStyle === 'italic' ? 'italic' : 'normal', dokl: true, txt: '' };
+			sonda.remove();
+		} catch (e) { out = null; }
+		if (projekt) { if (zdjete === null) { el.removeAttribute('style'); } else { el.setAttribute('style', zdjete); } }
+		return out;
 	}
-	function wierszHtml(cel, dev, p) {
+	/** Wygląd celu na ekranie dev jako tokeny: zapisane ustawienia, a reszta ze stanu efektywnego. */
+	function stylCalosc(cel, dev) {
+		var s = STY[cel] || {}, eff = efekt(cel), out = {};
+		Object.keys(WL).forEach(function (p) { var v = (s[dev] && s[dev][p]) || (dev === 'm' && s.b && s.b[p]) || (eff && eff[p] && eff[p].t); if (v) { out[p] = String(v); } });
+		return out;
+	}
+	/** Nakłada wygląd (tokeny) na cel: zapisuje tylko to, czym różni się od projektu tego pola. */
+	function stylNaloz(cel, dev, tok) {
+		var proj = efekt(cel, true), sekcja = cel.charAt(0) === '#';
+		STY[cel] = STY[cel] || {};
+		STY[cel][dev] = STY[cel][dev] || {};
+		Object.keys(tok).forEach(function (p) {
+			if (!WL[p] || (WL[p][2] === 's') !== sekcja) { return; }
+			if (proj && proj[p] && String(proj[p].t) === String(tok[p])) { delete STY[cel][dev][p]; } else { STY[cel][dev][p] = String(tok[p]); }
+		});
+		styZapisz();
+		styZastosuj(cel);
+	}
+	var SCHOWEK = 'cftSchowekStylu';
+	function schowek() { try { return JSON.parse(sessionStorage.getItem(SCHOWEK) || 'null'); } catch (e) { return null; } }
+	function wierszHtml(cel, dev, p, eff) {
 		var s = STY[cel] || {}, cur = s[dev] && s[dev][p], dzied = dev === 'm' && !cur && s.b ? s.b[p] : undefined;
+		var ef = eff && eff[p] ? eff[p] : null, efT = cur ? null : (dzied || (ef ? ef.t : null));
 		var nazwa = WL[p][0], opcje = '';
+		var podpis = cur ? 'zmienione' : (dzied ? 'jak na komputerze' : (ef ? 'z projektu' + (ef.txt ? ': ' + ef.txt : '') : ''));
 		if (p === 'lh') {
-			var val = cur || dzied || '1.5';
-			opcje = '<input type="range" min="1" max="2.2" step="0.05" value="' + esc(val) + '" data-sp-lh aria-label="Interlinia"><output>' + (cur ? String(cur).replace('.', ',') : (dzied ? 'jak na komputerze' : 'z projektu')) + '</output>';
+			var val = cur || efT || '1.5';
+			opcje = '<input type="range" min="1" max="2.2" step="0.05" value="' + esc(val) + '" data-sp-lh aria-label="Interlinia"><output>' + (cur ? String(cur).replace('.', ',') : (ef || dzied ? String(val).replace('.', ',') : '–')) + '</output>';
 		} else {
-			var gilda = p === 'fw' && czyNaglowkowy(cel, dev);
+			var ffTeraz = (s[dev] && s[dev].ff) || (s.b && s.b.ff) || (eff && eff.ff ? eff.ff.t : null);
+			var gilda = p === 'fw' && ffTeraz === 'heading';
 			Object.keys(TOK[p] || {}).forEach(function (t) {
-				var d = TOK[p][t], wcisk = String(cur) === t, styl = '', tresc = esc(d[0]), off = '';
+				var d = TOK[p][t], wcisk = String(cur) === t, jest = !wcisk && efT !== null && String(efT) === t, styl = '', tresc = esc(d[0]), off = '';
 				if (p === 'c') { tresc = '<span class="cft-sp__kolor" data-colorify-swatch style="background:' + esc(d[1]) + '"></span><span class="screen-reader-text">' + esc(d[0]) + '</span>'; }
 				if (p === 'ta') { tresc = ik({ left: 'lewo', center: 'srodek', right: 'prawo', justify: 'justuj' }[t]) + '<span class="screen-reader-text">' + esc(d[0]) + '</span>'; }
 				if (p === 'ff') { styl = ' style="font-family:' + (t === 'heading' ? 'var(--cft-font-h)' : 'var(--cft-font)') + '"'; }
 				if (p === 'fw') { styl = ' style="font-weight:' + esc(d[1]) + '"'; if (gilda && t !== '400') { off = ' disabled'; } }
 				if (p === 'ta' && t === 'justify' && dev === 'm') { off = ' disabled'; }
-				var tip = off ? (p === 'fw' ? 'Krój nagłówkowy ma tylko jedną grubość' : 'Na telefonie justowanie robi dziury między słowami') : d[0] + (String(dzied) === t ? ' (tak jak na komputerze)' : '');
-				opcje += '<button type="button" class="cft-sp__o' + (p === 'c' || p === 'ta' ? ' cft-sp__o--ik' : '') + (String(dzied) === t ? ' is-dzied' : '') + '" data-sp-t="' + esc(t) + '" aria-pressed="' + (wcisk ? 'true' : 'false') + '" data-tip="' + esc(tip) + '"' + styl + off + '>' + tresc + '</button>';
+				var tip = off ? (p === 'fw' ? 'Krój nagłówkowy ma tylko jedną grubość' : 'Na telefonie justowanie robi dziury między słowami') : d[0] + (jest ? (dzied ? ' (teraz: tak jak na komputerze)' : ' (teraz: z projektu' + (ef && !ef.dokl && ef.txt ? ', dokładnie ' + ef.txt : '') + ')') : '');
+				opcje += '<button type="button" class="cft-sp__o' + (p === 'c' || p === 'ta' ? ' cft-sp__o--ik' : '') + (jest ? ' is-efekt' : '') + '" data-sp-t="' + esc(t) + '" aria-pressed="' + (wcisk ? 'true' : 'false') + '"' + (jest ? ' aria-current="true"' : '') + ' data-tip="' + esc(tip) + '"' + styl + off + '>' + tresc + '</button>';
 			});
 		}
-		return '<div class="cft-sp__w' + (cur ? ' is-ust' : '') + '" data-p="' + p + '"><span class="cft-sp__n" id="sp-' + p + '">' + esc(nazwa) + (cur ? '<span class="cft-sp__zm" aria-label="zmienione"></span>' : '') + '</span>'
+		return '<div class="cft-sp__w' + (cur ? ' is-ust' : '') + '" data-p="' + p + '"><span class="cft-sp__n" id="sp-' + p + '"><span>' + esc(nazwa) + (cur ? '<span class="cft-sp__zm" aria-label="zmienione"></span>' : '') + '</span>' + (podpis ? '<small class="cft-sp__teraz">' + esc(podpis) + '</small>' : '') + '</span>'
 			+ '<div class="cft-sp__opcje" role="group" aria-labelledby="sp-' + p + '">' + opcje + '</div>'
 			+ (cur ? btnIk('reset', 'data-sp-reset', 'Przywróć z projektu strony: ' + nazwa.toLowerCase()) : '<span class="cft-sp__pusto"></span>') + '</div>';
 	}
 	function panelRysuj(pan) {
 		var cel = pan.cftCel, dev = pan.cftDev, sekcja = cel.charAt(0) === '#';
 		var props = Object.keys(WL).filter(function (p) { return sekcja ? WL[p][2] === 's' : WL[p][2] !== 's'; });
-		var tylko = pan.cftTylko, s = STY[cel] || {}, ile = 0;
+		var tylko = pan.cftTylko, s = STY[cel] || {}, ile = 0, eff = efekt(cel), sch = schowek();
 		var w1 = '', w2 = '';
 		props.forEach(function (p) {
 			var ust = s[dev] && s[dev][p] !== undefined;
 			if (ust) { ile++; }
 			if (tylko && !ust) { return; }
-			if (WL[p][2] === 2) { w2 += wierszHtml(cel, dev, p); } else { w1 += wierszHtml(cel, dev, p); }
+			if (WL[p][2] === 2) { w2 += wierszHtml(cel, dev, p, eff); } else { w1 += wierszHtml(cel, dev, p, eff); }
 		});
+		var ekran = dev === 'm' ? 'telefon' : 'komputer';
 		pan.innerHTML = '<div class="cft-sp__gora"><span class="cft-przelacz" role="group" aria-label="Dla którego ekranu">'
 			+ '<button type="button" data-sp-urz="b" aria-pressed="' + (dev === 'b') + '">' + ik('komputer') + 'Komputer</button>'
 			+ '<button type="button" data-sp-urz="m" aria-pressed="' + (dev === 'm') + '">' + ik('telefon') + 'Telefon</button></span>'
 			+ '<label class="cft-sp__tylko"><input type="checkbox" data-sp-tylko' + (tylko ? ' checked' : '') + '> Tylko zmienione</label>'
 			+ btnIk('zamknij', 'data-sp-zamknij', 'Zamknij ustawienia wyglądu') + '</div>'
-			+ '<p class="cft-sp__info">' + (dev === 'm' ? 'Telefon: ustaw tylko to, co ma być inne niż na komputerze. Przerywana ramka = tak jak na komputerze.' : (sekcja ? 'Odstęp nad i pod całą sekcją.' : 'Zmiana od razu w podglądzie. Kółko ze strzałką wraca do wyglądu z projektu.')) + '</p>'
+			+ '<div class="cft-sp__narz" role="group" aria-label="Wygląd z innego tekstu">'
+			+ '<button type="button" class="cft-sp__nb" data-sp-kopiuj data-tip="Zapamiętaj wygląd tego tekstu (' + ekran + '), żeby wkleić go w innym polu">' + ik('kopia') + 'Kopiuj wygląd</button>'
+			+ '<button type="button" class="cft-sp__nb" data-sp-wklej' + (sch && sch.sekcja === sekcja ? '' : ' disabled') + ' data-tip="' + (sch && sch.sekcja === sekcja ? 'Wklej wygląd skopiowany z: ' + esc(sch.nazwa || 'innego pola') : 'Najpierw kliknij „Kopiuj wygląd” w polu, które Ci się podoba') + '">' + ik('wklej') + 'Wklej</button>'
+			+ (sekcja ? '' : '<button type="button" class="cft-sp__nb" data-sp-sasiad="-1" data-tip="Ten sam wygląd co tekst nad tym polem">' + ik('gora') + 'Jak powyżej</button>'
+			+ '<button type="button" class="cft-sp__nb" data-sp-sasiad="1" data-tip="Ten sam wygląd co tekst pod tym polem">' + ik('dol') + 'Jak poniżej</button>') + '</div>'
+			+ (pan.cftMsg ? '<p class="cft-sp__info cft-sp__info--ok" role="status">' + esc(pan.cftMsg) + '</p>' : '')
+			+ '<p class="cft-sp__info">' + (eff ? (dev === 'm' ? 'Telefon: ustaw tylko to, co ma być inne. Przerywana ramka = tak jest teraz (z projektu albo z komputera), pełne zaznaczenie = Twoja zmiana.' : 'Przerywana ramka = tak jest teraz (z projektu strony), pełne zaznaczenie = Twoja zmiana. Zmiana widać od razu w podglądzie.')
+				: 'Tego tekstu nie widać teraz w podglądzie (wczytuje się, jest pusty albo na innej podstronie), więc zaznaczone są tylko Twoje zmiany.') + '</p>'
 			+ (w1 || (tylko && !w2 ? '<p class="cft-sp__info">Nic tu jeszcze nie zmieniono.</p>' : ''))
 			+ (sekcja || (!w2 && tylko) ? '' : '<details class="cft-sp__wiecej"' + (pan.cftWiecej || tylko ? ' open' : '') + '><summary>Więcej ustawień: interlinia, odstęp liter, szerokość, wielkie litery, kursywa</summary>' + w2 + '</details>')
 			+ (ile || (s.b || s.m) ? '<button type="button" class="cft-btn cft-btn--link cft-sp__wszystko" data-sp-reset-all>' + ik('reset') + 'Przywróć cały wygląd z projektu</button>' : '');
+		pan.cftMsg = '';
 		var det = pan.querySelector('.cft-sp__wiecej');
 		if (det) { det.addEventListener('toggle', function () { pan.cftWiecej = det.open; }); }
+	}
+	/** Sąsiednie pole z przyciskiem „Wygląd” w tej samej karcie (kier = -1 powyżej, 1 poniżej). */
+	function sasiad(btn, kier) {
+		var karta = btn.closest('details.cft-karta');
+		if (!karta) { return null; }
+		var lista = [].filter.call(karta.querySelectorAll('[data-styl]'), function (b) { return b.getAttribute('data-styl').charAt(0) !== '#'; });
+		var i = lista.indexOf(btn);
+		return i < 0 ? null : (lista[i + kier] || null);
 	}
 	function panelOtworz(btn) {
 		var cel = btn.getAttribute('data-styl');
@@ -748,13 +857,11 @@
 		btn.setAttribute('aria-expanded', 'true');
 		otwartyPanel = pan;
 		panelRysuj(pan);
-		if (!styEls(cel).length && widoczny() && !ladowanie) {
-			var n = document.createElement('p');
-			n.className = 'cft-sp__info cft-sp__info--uwaga';
-			n.textContent = 'Tego tekstu nie widać teraz w podglądzie (jest pusty albo na innej podstronie). Ustawienia i tak się zapiszą.';
-			pan.insertBefore(n, pan.children[1]);
-		}
 		podswietl(cel.charAt(0) === '#' ? cel.slice(1) : cel);
+	}
+	function nazwaCelu(cel) {
+		var b = wrap.querySelector('[data-styl="' + cel + '"]');
+		return b ? String(b.getAttribute('aria-label') || '').replace(/^Wygląd: /, '').replace(/^Odstępy sekcji: /, '') : cel;
 	}
 	wrap.addEventListener('click', function (e) {
 		var b = e.target.closest('[data-styl]');
@@ -768,6 +875,27 @@
 		if (e.target.closest('[data-sp-reset-all]')) {
 			if (!window.confirm('Przywrócić cały wygląd tego elementu z projektu strony (komputer i telefon)?')) { return; }
 			delete STY[cel]; styZapisz(); styZastosuj(cel); panelRysuj(pan); return;
+		}
+		if (e.target.closest('[data-sp-kopiuj]')) {
+			if (!efekt(cel) && !STY[cel]) { pan.cftMsg = 'Nie widać tego tekstu w podglądzie, więc nie ma czego skopiować. Otwórz podgląd tej podstrony.'; panelRysuj(pan); return; }
+			try { sessionStorage.setItem(SCHOWEK, JSON.stringify({ tok: stylCalosc(cel, dev), sekcja: cel.charAt(0) === '#', nazwa: nazwaCelu(cel) })); } catch (er) {}
+			pan.cftMsg = 'Skopiowano. Otwórz „Wygląd” w innym polu i kliknij „Wklej”.';
+			panelRysuj(pan); pan.querySelector('[data-sp-kopiuj]').focus(); return;
+		}
+		var wk = e.target.closest('[data-sp-wklej]'), ss = e.target.closest('[data-sp-sasiad]');
+		if (wk && !wk.disabled) {
+			var sch = schowek();
+			if (sch && sch.tok) { stylNaloz(cel, dev, sch.tok); pan.cftMsg = 'Wklejono wygląd z: ' + (sch.nazwa || 'innego pola') + '. Zapisane są tylko różnice względem projektu.'; }
+			panelRysuj(pan); pan.querySelector('[data-sp-wklej]').focus(); return;
+		}
+		if (ss) {
+			var nb = sasiad(pan.cftBtn, +ss.getAttribute('data-sp-sasiad'));
+			if (!nb) { pan.cftMsg = ss.getAttribute('data-sp-sasiad') === '-1' ? 'Nad tym polem w tej karcie nie ma innego tekstu.' : 'Pod tym polem w tej karcie nie ma innego tekstu.'; panelRysuj(pan); return; }
+			var zc = nb.getAttribute('data-styl');
+			if (!efekt(zc) && !STY[zc]) { pan.cftMsg = 'Tekstu „' + nazwaCelu(zc) + '” nie widać w podglądzie, więc nie da się odczytać jego wyglądu.'; panelRysuj(pan); return; }
+			stylNaloz(cel, dev, stylCalosc(zc, dev));
+			pan.cftMsg = 'Ustawiono wygląd jak w: ' + nazwaCelu(zc) + '.';
+			panelRysuj(pan); var sb = pan.querySelector('[data-sp-sasiad="' + ss.getAttribute('data-sp-sasiad') + '"]'); if (sb) { sb.focus(); } return;
 		}
 		var w = e.target.closest('.cft-sp__w');
 		if (!w) { return; }
@@ -800,7 +928,10 @@
 		if (t) { var pan = t.closest('.cft-sp'); pan.cftTylko = t.checked; panelRysuj(pan); }
 	});
 	// Styl przeżywa przeładowanie podglądu (serwer drukuje zmienne z transientu), ale po każdym load nakładamy go jeszcze raz.
-	iframe.addEventListener('load', function () { Object.keys(STY).forEach(styZastosuj); });
+	iframe.addEventListener('load', function () {
+		Object.keys(STY).forEach(styZastosuj);
+		if (otwartyPanel && otwartyPanel.isConnected) { setTimeout(function () { panelRysuj(otwartyPanel); }, 300); } // stan „z projektu” po wczytaniu ramki
+	});
 
 	/* ----- układ strony: nawigator, przyciski w kartach, biblioteka nowych sekcji ----- */
 	function defSek(pid, id) { return ((UK[pid] && UK[pid].def) || []).filter(function (x) { return x.id === id; })[0] || null; }
@@ -953,7 +1084,7 @@
 		if (co === 'otworz') {
 			var k = document.getElementById('cft-karta-' + kartaId(pid, id));
 			if (k) { k.open = true; k.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
-			if (widoczny()) { if (strona !== pid) { ustawStrone(pid, id); } else { var d = doc(), c = d && d.querySelector('[data-cft-sekcja="' + id + '"]'); if (c) { c.scrollIntoView({ block: 'start', behavior: 'smooth' }); } } }
+			if (widoczny()) { if (strona !== pid) { ustawStrone(pid, id); } else { var d = doc(), c = d && d.querySelector('[data-cft-sekcja="' + id + '"]'); if (c) { ramkaPrzewin(c, 'start'); } } }
 			return;
 		}
 		if (co === 'gora' || co === 'dol') { przesun(pid, id, co === 'gora' ? -1 : 1); ukladZmiana(pid); var nb = wrap.querySelector('[data-strona="' + pid + '"][data-id="' + id + '"] [data-nav="' + co + '"]'); if (nb && !nb.disabled) { nb.focus(); } else { var nb2 = wrap.querySelector('[data-strona="' + pid + '"][data-id="' + id + '"] [data-nav]'); if (nb2) { nb2.focus(); } } return; }

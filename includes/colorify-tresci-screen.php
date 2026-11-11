@@ -47,8 +47,9 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	}
 	// 2.13.0: układ stron, nowe sekcje, wygląd (stan początkowy dla panelu; zapis i tak waliduje serwer).
 	$stored = colorify_tresci_stored();
+	$zaaw   = colorify_tresci_zaawansowana(); // wyłączona: panel jak w 2.12 (bez Wyglądu, układu i nowych sekcji)
 	$uklad  = array();
-	foreach ( colorify_tresci_uklad_def() as $pid => $def ) {
+	foreach ( $zaaw ? colorify_tresci_uklad_def() : array() as $pid => $def ) {
 		$lista = array();
 		foreach ( $def as $id => $s ) {
 			$lista[] = array( 'id' => $id, 'label' => (string) $s['label'], 'stala' => ! empty( $s['stala'] ), 'karta' => (string) $s['karta'], 'kotwica' => (string) $s['kotwica_id'] );
@@ -59,7 +60,7 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		$uklad[ $pid ] = array( 'def' => $lista ) + colorify_tresci_uklad_strony( $pid, $stored );
 	}
 	$nowe = array();
-	foreach ( colorify_tresci_sekcje_nowe( $stored ) as $id => $s ) {
+	foreach ( $zaaw ? colorify_tresci_sekcje_nowe( $stored ) : array() as $id => $s ) {
 		$nowe[ $id ]   = array( 'typ' => $s['typ'], 'strona' => $s['strona'] );
 		$sekcje[ $id ] = array( 'strona' => $s['strona'], 'kotwica' => '[data-cft-sekcja="' . $id . '"]' );
 	}
@@ -74,8 +75,8 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		'adresy' => $adresy,
 		'sekcje' => $sekcje,
 		'pola'   => $pola,
-		'wl'     => colorify_tresci_styl_wlasciwosci(),
-		'tok'    => colorify_tresci_tokeny(),
+		'wl'     => $zaaw ? colorify_tresci_styl_wlasciwosci() : (object) array(),
+		'tok'    => $zaaw ? colorify_tresci_tokeny() : (object) array(),
 		'style'  => (object) ( $stored['__style'] ?? array() ),
 		'uklad'  => (object) $uklad,
 		'nowe'   => (object) $nowe,
@@ -112,6 +113,7 @@ function cft_ikony_ui() {
 		'cytat'   => '<path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/>',
 		'cta'     => '<path d="M14 4.1 12 6"/><path d="m5.1 8-2.9-.8"/><path d="m6 12-1.9 2"/><path d="M7.2 2.2 8 5.1"/><path d="M9.04 9.69a.5.5 0 0 1 .65-.65l11 4.5a.5.5 0 0 1-.07.95l-4.35 1.04a1 1 0 0 0-.74.74l-1.04 4.35a.5.5 0 0 1-.95.07z"/>',
 		'odstep'  => '<path d="M3 12h18"/><path d="m8 8 4-4 4 4"/><path d="m16 16-4 4-4-4"/>',
+		'wklej'   => '<path d="M15 2H9a1 1 0 0 0-1 1v2c0 .6.4 1 1 1h6c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1Z"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M16 4h2a2 2 0 0 1 2 2v2M11 14h10"/><path d="m17 10 4 4-4 4"/>',
 	);
 }
 
@@ -334,7 +336,7 @@ function cft_edytor( $id, $name, $val, $default, $rows, $multi = false, $key = '
 
 /** Czy pole tekstowe dostaje przycisk "Wygląd" (motyw wyklucza np. opisy zdjęć i SEO regexem 'styl_bez'). */
 function cft_ma_styl( $key, $f ) {
-	if ( ! in_array( $f['type'], array( 'text', 'area' ), true ) || ! empty( $f['czysty'] ) || ! empty( $f['bez_stylu'] ) ) {
+	if ( ! colorify_tresci_zaawansowana() || ! in_array( $f['type'], array( 'text', 'area' ), true ) || ! empty( $f['czysty'] ) || ! empty( $f['bez_stylu'] ) ) {
 		return false;
 	}
 	$bez = (string) ( colorify_tresci_rejestr()['styl_bez'] ?? '' );
@@ -739,7 +741,10 @@ function cft_karta( $sid, $sec, $stored, $grupy ) {
 			$wg = array();
 			foreach ( $sec['fields'] as $key => $f ) {
 				$f = $pola[ $key ] ?? $f;
-				if ( ! empty( $f['w_akapitach'] ) && isset( $sec['fields'][ $f['w_akapitach'] ] ) ) {
+				if ( 'akapity' === $f['type'] && ! colorify_tresci_zaawansowana() ) {
+					continue; // wyłączona zaawansowana edycja: stare pola akapitów pokazują się osobno, jak dawniej
+				}
+				if ( colorify_tresci_zaawansowana() && ! empty( $f['w_akapitach'] ) && isset( $sec['fields'][ $f['w_akapitach'] ] ) ) {
 					continue; // edytowane w polu akapitów tej karty
 				}
 				$wg[ cft_grupa( $key, $f ) ][ $key ] = $f;
@@ -849,8 +854,8 @@ function cft_ekran() {
 				<li>Każda karta to jedna część strony, w kolejności od góry. Kliknij nazwę, żeby ją rozwinąć. Podgląd po prawej sam przewija się do tej części, a kliknięcie w podglądzie otwiera właściwe pole.</li>
 				<li>Zdjęcie: ramka pokazuje dokładnie tyle, ile widać na stronie. Przeciągnij punkt, który ma być najważniejszy, i dosuń przybliżenie. „Komputer / Telefon” pokazuje, jak kadr wypada na obu.</li>
 				<li>W akapitach Enter robi nową linię; pogrubienie i kursywa po zaznaczeniu tekstu. Znaczki „↵ tylko komputer” i „w jednej linii” sterują łamaniem wiersza na stronie.</li>
-				<li>„Wygląd” przy tekście zmienia krój, rozmiar, grubość, kolor, wyrównanie i odstępy, osobno na komputerze i na telefonie. Widzisz to od razu w podglądzie. Kółko ze strzałką przy ustawieniu wraca do wyglądu z projektu strony.</li>
-				<li>„Układ strony” nad kartami: strzałki przesuwają sekcję wyżej albo niżej, oko ją ukrywa (dane zostają, możesz ją pokazać z powrotem), plus dodaje nową sekcję w tym miejscu. Dodaną sekcję możesz też zduplikować albo usunąć.</li>
+				<?php if ( colorify_tresci_zaawansowana() ) : ?><li>„Wygląd” przy tekście zmienia krój, rozmiar, grubość, kolor, wyrównanie i odstępy, osobno na komputerze i na telefonie. Widzisz to od razu w podglądzie. Kółko ze strzałką przy ustawieniu wraca do wyglądu z projektu strony.</li>
+				<li>„Układ strony” nad kartami: strzałki przesuwają sekcję wyżej albo niżej, oko ją ukrywa (dane zostają, możesz ją pokazać z powrotem), plus dodaje nową sekcję w tym miejscu. Dodaną sekcję możesz też zduplikować albo usunąć.</li><?php endif; ?>
 				<li>Agent AI zmienia te same treści poleceniem „wp <?php echo esc_html( $cli ); ?>”, więc panel, agent i strona zawsze pokazują to samo. Gdy ktoś zapisze coś w międzyczasie, panel to zauważy i nie nadpisze cudzych zmian.</li>
 				<li>Pomyłka? Na dole jest historia ostatnich 10 zapisów z przyciskiem „Przywróć”.</li>
 			</ul>
@@ -862,12 +867,14 @@ function cft_ekran() {
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'colorify_tresci_zapis' ) ); ?>">
 			<input type="hidden" name="cft_wersja" id="cft-wersja" value="<?php echo esc_attr( colorify_tresci_wersja() ); ?>">
 
+			<?php if ( colorify_tresci_zaawansowana() ) : ?>
 			<input type="hidden" name="cft[__style]" id="cft-style" value="<?php echo esc_attr( wp_json_encode( (object) ( $stored['__style'] ?? array() ) ) ); ?>">
 			<input type="hidden" name="cft[__uklad]" id="cft-uklad-dane" value="">
 			<input type="hidden" name="cft[__i][_]" value="1">
+			<?php endif; ?>
 			<?php
 			// Karty pogrupowane według stron; karty sekcji strony w kolejności układu (z nowymi sekcjami), potem "Każda podstrona".
-			$uklad_def = colorify_tresci_uklad_def();
+			$uklad_def = colorify_tresci_zaawansowana() ? colorify_tresci_uklad_def() : array();
 			$schema    = colorify_tresci_schema();
 			$nowe      = colorify_tresci_sekcje_nowe( $stored );
 			$uzyte     = array();
@@ -932,7 +939,7 @@ function cft_ekran() {
 				?>
 				</div>
 			<?php endforeach; ?>
-			<?php foreach ( array_keys( colorify_tresci_typy_sekcji() ) as $typ ) : ?>
+			<?php foreach ( colorify_tresci_zaawansowana() ? array_keys( colorify_tresci_typy_sekcji() ) : array() as $typ ) : ?>
 				<template class="cft-szablon-sekcji" data-typ="<?php echo esc_attr( $typ ); ?>"><?php cft_karta_sekcji( 's-__id__', array( 'typ' => $typ, 'strona' => '__strona__' ) ); ?></template>
 			<?php endforeach; ?>
 

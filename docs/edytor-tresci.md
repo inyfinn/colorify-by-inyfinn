@@ -214,6 +214,26 @@ wp colorify-tresci get __style | __uklad | __sekcje
 Wszystko przez `colorify_tresci_z_formularza()` + `colorify_tresci_zapisz()` (jedna walidacja, historia, bramka wersji).
 Zapis trzyma blokadę (`<opcja>_zapis`, `INSERT IGNORE`), więc panel i agent nie zapiszą w tej samej chwili.
 
+## 8d2. Przełączniki właściciela (od 2.14.0)
+
+Ustawienia, Colorify: wiersze **„Edytor treści”** (cały moduł) i **„Zaawansowana edycja (tylko właściciel)”** (Wygląd,
+akapity jako bloki, Układ strony, nowe sekcje) widzi i zmienia wyłącznie właściciel Colorify:
+
+```php
+// wp-config.php (repozytorium wtyczki jest publiczne: adresy e-mail tylko tutaj, nigdy w kodzie)
+define( 'COLORIFY_WLASCICIEL', 'login1,osoba@example.com' ); // loginy albo e-maile po przecinku, wielkość liter bez znaczenia
+```
+
+Bez stałej właścicielem jest konto o ID 1 (jeśli ma `manage_options`). Funkcja: `colorify_jest_wlascicielem( $user = null )`.
+Ochrona po stronie serwera: filtr `pre_update_option_colorify_tresci` i `pre_update_option_colorify_tresci_zaaw` zostawia
+starą wartość, gdy zapisuje ktoś inny (formularz, options.php, REST, `wp option update`). WP-CLI:
+`wp option update colorify_tresci_zaaw yes --user=<login właściciela>`. Domyślnie oba wyłączone.
+
+Wyłączona zaawansowana edycja: panel jak w 2.12 (stare pola akapitów osobno, bez przycisków „Wygląd”, bez „Układu strony”),
+WP-CLI `styl`, `uklad`, `sekcja` i `get __style…` odmawiają, a `colorify_tresci_z_formularza()` ignoruje przysłane klucze
+`__style`, `__uklad`, `__sekcje` i listy akapitów (zostają zapisane). Strona dalej pokazuje to, co już zapisano (decyzja:
+wyłączenie przełącznika nie może zmienić wyglądu strony; cofnięcie = włączyć i zresetować albo przywrócić wersję z Historii).
+
 ## 8e. Twarde reguły edytora (dla każdej strony i każdej sesji)
 
 Każdy edytor treści Colorify (ten moduł albo jego następca) MUSI dawać właścicielce strony, bez programisty:
@@ -226,6 +246,7 @@ Każdy edytor treści Colorify (ten moduł albo jego następca) MUSI dawać wła
    w wybranym miejscu, edytuj, duplikuj, usuń dodaną (z cofnięciem do zapisu i z historii).
 5. **Czytelność panelu**: ikona + podpis albo ikona z dymkiem (hover i fokus klawiatury) + `aria-label` na każdej
    kontrolce; cel dotykowy 44 px; zrozumiały komunikat zamiast martwego przycisku (wyszarzone = dymek „dlaczego”).
+   Klik w element podglądu otwiera jego kartę i stawia pole w pionowym środku panelu, z fokusem.
 6. **Podgląd na żywo** prawdziwej strony (styl bez przeładowania, struktura z roboczego dokumentu) i **historia**
    z przywracaniem całości (treść + wygląd + układ) oraz **bramka wersji** dla panelu i agentów.
 7. **Tylko tokeny marki, zero dowolnego CSS**: żadnych pól px, własnych fontów, kodu CSS/HTML wpisywanego przez użytkownika;
@@ -235,6 +256,8 @@ Każdy edytor treści Colorify (ten moduł albo jego następca) MUSI dawać wła
 9. **RWD 320–1920**: każda nowa kontrolka i każda nowa sekcja bez poziomego przewijania i nachodzenia na 320, 375, 390,
    768, 1024, 1440, 1920; zero nowych bibliotek JS na froncie (PageSpeed).
 10. **Nic nie ginie**: stare klucze danych czytane jak dotąd, migracje tylko addytywne, „ukryj” zamiast „usuń” dla szablonu.
+11. **Przełączniki modułu i zaawansowanej edycji zmienia tylko właściciel Colorify** (`COLORIFY_WLASCICIEL`), egzekwowane
+    po stronie serwera; domyślnie wyłączone; wyłączenie nie zmienia wyglądu strony.
 
 ## 8. Co dzieje się na innych stronach
 
