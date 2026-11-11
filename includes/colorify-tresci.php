@@ -17,6 +17,8 @@ defined( 'ABSPATH' ) || exit;
 
 const COLORIFY_TRESCI_OPTION = 'colorify_tresci';
 
+require_once __DIR__ . '/colorify-tresci-uklad.php'; // wygląd, układ stron, nowe sekcje, akapity (2.13.0)
+
 /** Czy moduł jest włączony w Ustawienia, Colorify (domyślnie nie). */
 function colorify_tresci_aktywny(): bool {
 	return 'yes' === get_option( COLORIFY_TRESCI_OPTION, 'no' );
@@ -118,7 +120,11 @@ function colorify_tresci_kadr_domyslny( $f ) {
 	return array( 'x' => (int) $xy[0], 'y' => (int) $xy[1], 'z' => 1.0 );
 }
 
-/** Płaska mapa klucz => pole (+ "section"), raz. Pole zdjęcia z 'kadr' dostaje wirtualne "<klucz>__kadr". */
+/**
+ * Płaska mapa klucz => pole (+ "section"), raz. Pole zdjęcia z 'kadr' dostaje wirtualne "<klucz>__kadr".
+ * Pole 'akapity' ma domyślną listę bloków ze starych pól ('z_pol'); te stare pola dostają 'w_akapitach' => klucz grupy
+ * (panel pokazuje je w edytorze akapitów, dane i WP-CLI zostają jak były).
+ */
 function colorify_tresci_pola() {
 	static $flat = null;
 	if ( null === $flat ) {
@@ -126,9 +132,19 @@ function colorify_tresci_pola() {
 		foreach ( colorify_tresci_schema() as $sid => $sec ) {
 			foreach ( (array) $sec['fields'] as $k => $f ) {
 				$f['section'] = $sid;
-				$flat[ $k ]   = $f;
+				if ( 'akapity' === $f['type'] ) {
+					$f['default'] = colorify_tresci_akapity_domyslne( $f );
+				}
+				$flat[ $k ] = $f;
 				if ( 'media' === $f['type'] && ! empty( $f['kadr'] ) ) {
 					$flat[ $k . '__kadr' ] = array( 'type' => 'kadr', 'label' => $f['label'] . ': kadr', 'default' => colorify_tresci_kadr_domyslny( $f ), 'hint' => '', 'section' => $sid, 'dla' => $k, 'kadr' => $f['kadr'] );
+				}
+			}
+		}
+		foreach ( $flat as $k => $f ) {
+			foreach ( array_keys( (array) ( $f['z_pol'] ?? array() ) ) as $stare ) {
+				if ( isset( $flat[ $stare ] ) ) {
+					$flat[ $stare ]['w_akapitach'] = $k;
 				}
 			}
 		}
@@ -313,28 +329,34 @@ function colorify_tresc_html( $key ) {
 	return esc_html( $v );
 }
 
-/** Prints the escaped text of a field (wrapped in a marked span in preview mode). */
+/** Prints the escaped text of a field (wrapped in a marked span in preview mode, and when it has its own look). */
 function colorify_tresci_e( $key ) {
 	$html = colorify_tresc_html( $key );
-	if ( colorify_tresci_podglad() ) {
-		$html = '<span' . colorify_tresci_podglad_attr( $key, false ) . '>' . $html . '</span>';
+	$styl = colorify_tresci_styl_attr( $key );
+	if ( colorify_tresci_podglad() || '' !== $styl ) {
+		$html = '<span' . $styl . colorify_tresci_podglad_attr( $key, false ) . '>' . $html . '</span>';
 	}
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in colorify_tresc_html()
 }
 
-/** Prints <tag class="..."> with the field, nothing at all when the field is empty. */
-function colorify_tresci_tag( $key, $tag, $class = '' ) {
+/** <tag class="..."> with the field ('' when the field is empty); style="--cft-…" only when a look is set in the panel. */
+function colorify_tresci_tag_html( $key, $tag, $class = '' ) {
 	$html = colorify_tresc_html( $key );
 	if ( '' === trim( $html ) ) {
-		return;
+		return '';
 	}
-	printf(
+	return sprintf(
 		'<%1$s%2$s%4$s>%3$s</%1$s>',
 		tag_escape( $tag ),
 		'' !== $class ? ' class="' . esc_attr( $class ) . '"' : '',
-		$html, // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in colorify_tresc_html()
-		colorify_tresci_podglad_attr( $key, false ) // phpcs:ignore WordPress.Security.EscapeOutput
+		$html,
+		colorify_tresci_styl_attr( $key ) . colorify_tresci_podglad_attr( $key, false )
 	);
+}
+
+/** Prints <tag class="..."> with the field, nothing at all when the field is empty. */
+function colorify_tresci_tag( $key, $tag, $class = '' ) {
+	echo colorify_tresci_tag_html( $key, $tag, $class ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in colorify_tresc_html()
 }
 
 /** Link field as an escaped URL. */
@@ -601,6 +623,14 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 			continue;
 		}
 
+		if ( 'akapity' === $type ) {
+			$bloki = colorify_tresci_akapity_z( $in, $f ); // panel: id => blok (kolejność formularza), WP-CLI: JSON listy
+			if ( $bloki != $def ) { // phpcs:ignore WordPress.PHP.StrictComparisons
+				$new[ $key ] = $bloki;
+			}
+			continue;
+		}
+
 		if ( colorify_tresci_jest_lista( $type ) ) {
 			if ( is_string( $in ) ) {
 				$in = json_decode( $in, true ); // WP-CLI passes JSON
@@ -637,6 +667,26 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 		}
 		$new[ $key ] = $val;
 	}
+
+	// Nowe sekcje, układ i wygląd (klucze zastrzeżone). Nic z tego nie przyszło: zostaje zapisane bez zmian.
+	// Przyszło cokolwiek: wszystkie trzy przechodzą walidację razem (usunięta sekcja znika też z układu i stylów).
+	$jest = array_intersect( array( '__i', '__sekcje', '__uklad', '__style' ), array_keys( $post ) );
+	if ( ! $jest ) {
+		foreach ( array( '__sekcje', '__uklad', '__style' ) as $k ) {
+			if ( ! empty( $stored[ $k ] ) ) {
+				$new[ $k ] = $stored[ $k ];
+			}
+		}
+		return $new;
+	}
+	$sek = colorify_tresci_sekcje_z( array_key_exists( '__i', $post ) ? $post['__i'] : ( array_key_exists( '__sekcje', $post ) ? $post['__sekcje'] : ( $stored['__sekcje'] ?? array() ) ) );
+	$ukl = colorify_tresci_uklad_z( array_key_exists( '__uklad', $post ) ? $post['__uklad'] : ( $stored['__uklad'] ?? array() ), $sek );
+	$sty = colorify_tresci_style_z( array_key_exists( '__style', $post ) ? $post['__style'] : ( $stored['__style'] ?? array() ), $sek );
+	foreach ( array( '__sekcje' => $sek, '__uklad' => $ukl, '__style' => $sty ) as $k => $v ) {
+		if ( $v ) {
+			$new[ $k ] = $v;
+		}
+	}
 	return $new;
 }
 
@@ -655,6 +705,32 @@ function colorify_tresci_historia() {
  * written and a WP_Error 'konflikt' comes back with the keys changed in the meantime (data: 'obce', 'baza').
  */
 function colorify_tresci_zapisz( array $new, $label, $autor = null, $wersja_bazowa = null ) {
+	// Jeden zapis naraz (panel, WP-CLI, agent AI): INSERT IGNORE wiersza blokady jest atomowy; blokada starsza niż 10 s = porzucona.
+	// ponytail: jedna blokada na całą opcję; wystarczy, bo zapisy są rzadkie i trwają milisekundy.
+	global $wpdb;
+	$lock = colorify_tresci_opcja_nazwa() . '_zapis';
+	for ( $i = 0; $i < 40; $i++ ) {
+		if ( $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $lock, (string) time() ) ) ) {
+			break;
+		}
+		$t = (int) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $lock ) );
+		if ( $t && $t < time() - 10 ) {
+			$wpdb->delete( $wpdb->options, array( 'option_name' => $lock ) );
+			continue;
+		}
+		usleep( 100000 );
+	}
+	wp_cache_delete( colorify_tresci_opcja_nazwa(), 'options' ); // świeży odczyt z bazy, nie z pamięci tego żądania
+	wp_cache_delete( 'alloptions', 'options' );
+	try {
+		return colorify_tresci_zapisz_teraz( $new, $label, $autor, $wersja_bazowa );
+	} finally {
+		$wpdb->delete( $wpdb->options, array( 'option_name' => $lock ) );
+	}
+}
+
+/** Właściwy zapis (pod blokadą z colorify_tresci_zapisz()). */
+function colorify_tresci_zapisz_teraz( array $new, $label, $autor, $wersja_bazowa ) {
 	$old = colorify_tresci_opcja();
 	if ( null !== $wersja_bazowa && $wersja_bazowa !== colorify_tresci_wersja( $old ) ) {
 		$baza = colorify_tresci_snapshot( $wersja_bazowa );
@@ -697,6 +773,7 @@ add_action(
 			},
 			20
 		);
+		colorify_tresci_uklad_hooki();
 		if ( is_admin() ) {
 			require_once __DIR__ . '/colorify-tresci-screen.php';
 		}

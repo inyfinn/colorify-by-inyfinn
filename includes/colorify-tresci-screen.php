@@ -25,8 +25,12 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		wp_enqueue_style( 'cft-fonty', esc_url_raw( (string) $r['fonty'] ), array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 		$deps[] = 'cft-fonty';
 	}
-	wp_enqueue_style( 'colorify-tresci', COLORIFY_PLUGIN_URL . 'assets/colorify-tresci.css', $deps, COLORIFY_PLUGIN_VERSION );
-	wp_enqueue_script( 'colorify-tresci', COLORIFY_PLUGIN_URL . 'assets/colorify-tresci.js', array( 'media-editor' ), COLORIFY_PLUGIN_VERSION, true );
+	// Wersja + czas pliku: każda poprawka arkusza/skryptu omija pamięć przeglądarki (assety mają cache na rok).
+	$v = function ( $f ) {
+		return COLORIFY_PLUGIN_VERSION . '-' . (int) @filemtime( COLORIFY_PLUGIN_DIR . 'assets/' . $f );
+	};
+	wp_enqueue_style( 'colorify-tresci', COLORIFY_PLUGIN_URL . 'assets/colorify-tresci.css', $deps, $v( 'colorify-tresci.css' ) );
+	wp_enqueue_script( 'colorify-tresci', COLORIFY_PLUGIN_URL . 'assets/colorify-tresci.js', array( 'media-editor' ), $v( 'colorify-tresci.js' ), true );
 	$sekcje = array();
 	foreach ( colorify_tresci_schema() as $sid => $sec ) {
 		$sekcje[ $sid ] = array( 'strona' => $sec['strona'] ?? 'oba', 'kotwica' => $sec['kotwica'] ?? '' );
@@ -41,6 +45,28 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		$adresy[ $id ]  = (string) $st['url'];
 		$podglad[ $id ] = add_query_arg( 'colorify_tresci_podglad', '1', (string) $st['url'] );
 	}
+	// 2.13.0: układ stron, nowe sekcje, wygląd (stan początkowy dla panelu; zapis i tak waliduje serwer).
+	$stored = colorify_tresci_stored();
+	$uklad  = array();
+	foreach ( colorify_tresci_uklad_def() as $pid => $def ) {
+		$lista = array();
+		foreach ( $def as $id => $s ) {
+			$lista[] = array( 'id' => $id, 'label' => (string) $s['label'], 'stala' => ! empty( $s['stala'] ), 'karta' => (string) $s['karta'], 'kotwica' => (string) $s['kotwica_id'] );
+			if ( isset( $sekcje[ $id ] ) ) {
+				$sekcje[ $id ]['kotwica'] = '[data-cft-sekcja="' . $id . '"]';
+			}
+		}
+		$uklad[ $pid ] = array( 'def' => $lista ) + colorify_tresci_uklad_strony( $pid, $stored );
+	}
+	$nowe = array();
+	foreach ( colorify_tresci_sekcje_nowe( $stored ) as $id => $s ) {
+		$nowe[ $id ]   = array( 'typ' => $s['typ'], 'strona' => $s['strona'] );
+		$sekcje[ $id ] = array( 'strona' => $s['strona'], 'kotwica' => '[data-cft-sekcja="' . $id . '"]' );
+	}
+	$typy = array();
+	foreach ( colorify_tresci_typy_sekcji() as $t => $d ) {
+		$typy[ $t ] = array( 'nazwa' => $d['nazwa'], 'opis' => $d['opis'], 'ikona' => $d['ikona'] );
+	}
 	wp_localize_script( 'colorify-tresci', 'CFT', array(
 		'ajax'   => admin_url( 'admin-ajax.php' ),
 		'nonce'  => wp_create_nonce( 'colorify_tresci_podglad' ),
@@ -48,8 +74,52 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		'adresy' => $adresy,
 		'sekcje' => $sekcje,
 		'pola'   => $pola,
+		'wl'     => colorify_tresci_styl_wlasciwosci(),
+		'tok'    => colorify_tresci_tokeny(),
+		'style'  => (object) ( $stored['__style'] ?? array() ),
+		'uklad'  => (object) $uklad,
+		'nowe'   => (object) $nowe,
+		'typy'   => $typy,
+		'ik'     => cft_ikony_ui(),
 	) );
 } );
+
+/** Ikony panelu: linie z zestawu Lucide (ISC), wklejone jako SVG, bez CDN. Nazwa => zawartość <svg viewBox="0 0 24 24">. */
+function cft_ikony_ui() {
+	return array(
+		'gora'    => '<path d="m18 15-6-6-6 6"/>',
+		'dol'     => '<path d="m6 9 6 6 6-6"/>',
+		'oko'     => '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+		'oko_nie' => '<path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>',
+		'plus'    => '<path d="M5 12h14"/><path d="M12 5v14"/>',
+		'kopia'   => '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+		'kosz'    => '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+		'reset'   => '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+		'styl'    => '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+		'odstepy' => '<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
+		'lewo'    => '<path d="M21 6H3"/><path d="M15 12H3"/><path d="M17 18H3"/>',
+		'srodek'  => '<path d="M21 6H3"/><path d="M17 12H7"/><path d="M19 18H5"/>',
+		'prawo'   => '<path d="M21 6H3"/><path d="M21 12H9"/><path d="M21 18H7"/>',
+		'justuj'  => '<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>',
+		'komputer' => '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+		'telefon' => '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+		'klodka'  => '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+		'akapit'  => '<path d="M13 4v16"/><path d="M17 4v16"/><path d="M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/>',
+		'uklad'   => '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/>',
+		'zamknij' => '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+		'tekst'   => '<path d="M21 6H3"/><path d="M15 12H3"/><path d="M17 18H3"/>',
+		'zdjecie' => '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+		'cytat'   => '<path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/>',
+		'cta'     => '<path d="M14 4.1 12 6"/><path d="m5.1 8-2.9-.8"/><path d="m6 12-1.9 2"/><path d="M7.2 2.2 8 5.1"/><path d="M9.04 9.69a.5.5 0 0 1 .65-.65l11 4.5a.5.5 0 0 1-.07.95l-4.35 1.04a1 1 0 0 0-.74.74l-1.04 4.35a.5.5 0 0 1-.95.07z"/>',
+		'odstep'  => '<path d="M3 12h18"/><path d="m8 8 4-4 4 4"/><path d="m16 16-4 4-4-4"/>',
+	);
+}
+
+/** <svg> ikony panelu (aria-hidden; nazwę przycisku niesie aria-label albo tekst obok). */
+function cft_ik( $nazwa ) {
+	$p = cft_ikony_ui()[ $nazwa ] ?? '';
+	return '<svg class="cft-ik" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $p . '</svg>';
+}
 
 /* ---------------------------------------------------------------------------
  * Saving, restoring (admin-post.php) and the preview transient (admin-ajax.php)
@@ -177,8 +247,8 @@ function cft_kadr_tekst( $k ) {
 function cft_media( $name, $val, $f, $has_stored, $kadr = null, $key = '' ) {
 	$kind      = isset( $f['kind'] ) ? $f['kind'] : 'image';
 	$default   = colorify_tresci_plik_url( $f['default'] );
-	$removable = ! empty( $f['removable'] ) && '' !== $f['default'];
-	$list_item = ! empty( $f['lista'] ); // a tile of a list: no default, no "restore"
+	$list_item = ! empty( $f['lista'] ); // a tile of a list / a photo of a new section: no default, no "restore"
+	$removable = ! empty( $f['removable'] ) && ( '' !== $f['default'] || $list_item );
 	$cur       = '';
 	$post      = '';
 	if ( $list_item ) {
@@ -262,12 +332,29 @@ function cft_edytor( $id, $name, $val, $default, $rows, $multi = false, $key = '
 	echo '</div>';
 }
 
-/** One field of the registry. */
-function cft_pole( $key, $f, $stored ) {
+/** Czy pole tekstowe dostaje przycisk "Wygląd" (motyw wyklucza np. opisy zdjęć i SEO regexem 'styl_bez'). */
+function cft_ma_styl( $key, $f ) {
+	if ( ! in_array( $f['type'], array( 'text', 'area' ), true ) || ! empty( $f['czysty'] ) || ! empty( $f['bez_stylu'] ) ) {
+		return false;
+	}
+	$bez = (string) ( colorify_tresci_rejestr()['styl_bez'] ?? '' );
+	return '' === $bez || ! preg_match( '/' . $bez . '/', $key );
+}
+
+/** Przycisk "Wygląd" pola: otwiera edytor wyglądu (assets/colorify-tresci.js) dla celu $cel. */
+function cft_styl_btn( $cel, $label ) {
+	return '<button type="button" class="cft-styl-btn" data-styl="' . esc_attr( $cel ) . '" aria-expanded="false" aria-label="' . esc_attr( 'Wygląd: ' . wp_strip_all_tags( $label ) ) . '" data-tip="Krój, rozmiar, kolor, wyrównanie i odstępy">' . cft_ik( 'styl' ) . '<span>Wygląd</span></button>';
+}
+
+/**
+ * One field of the registry. $o (pola nowych sekcji): 'name' = nazwa w formularzu, 'name_kadr' = nazwa kadru zdjęcia;
+ * $key jest wtedy kluczem podglądu i stylu ("s-…​.naglowek").
+ */
+function cft_pole( $key, $f, $stored, $o = array() ) {
 	$has  = array_key_exists( $key, $stored );
 	$val  = $has ? $stored[ $key ] : $f['default'];
 	$id   = 'cft-' . $key;
-	$name = 'cft[' . $key . ']';
+	$name = $o['name'] ?? 'cft[' . $key . ']';
 	$type = $f['type'];
 
 	echo '<div class="cft-pole cft-pole--' . esc_attr( $type ) . '" data-pole="' . esc_attr( $key ) . '">';
@@ -277,7 +364,7 @@ function cft_pole( $key, $f, $stored ) {
 		$kadr = null;
 		if ( ! empty( $f['kadr'] ) ) {
 			$kk   = $key . '__kadr';
-			$kadr = array( 'cft[' . $kk . ']', $f['kadr'], array_key_exists( $kk, $stored ) ? $stored[ $kk ] : null );
+			$kadr = array( $o['name_kadr'] ?? 'cft[' . $kk . ']', $f['kadr'], array_key_exists( $kk, $stored ) ? $stored[ $kk ] : null );
 		}
 		cft_media( $name, $val, $f, $has, $kadr, $key );
 		cft_podpowiedz( $f['hint'] );
@@ -291,8 +378,29 @@ function cft_pole( $key, $f, $stored ) {
 		echo '</div>';
 		return;
 	}
+	if ( 'akapity' === $type ) {
+		echo '<span class="cft-etykieta">' . esc_html( $f['label'] ) . '</span>';
+		cft_podpowiedz( $f['hint'] );
+		cft_akapity( $key, $f, $stored, $o + array( 'val' => $val ) );
+		echo '</div>';
+		return;
+	}
+	if ( 'select' === $type || 'bool' === $type ) {
+		if ( 'bool' === $type ) {
+			echo '<label class="cft-check"><input type="hidden" name="' . esc_attr( $name ) . '" value="0"><input type="checkbox" name="' . esc_attr( $name ) . '" value="1" data-struktura' . checked( ! empty( $val ), true, false ) . '> ' . esc_html( $f['label'] ) . '</label>';
+		} else {
+			echo '<label class="cft-etykieta" for="' . esc_attr( $id ) . '">' . esc_html( $f['label'] ) . '</label><select class="cft-in" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" data-struktura>';
+			foreach ( (array) $f['opcje'] as $v => $l ) {
+				echo '<option value="' . esc_attr( $v ) . '"' . selected( (string) $val, (string) $v, false ) . '>' . esc_html( $l ) . '</option>';
+			}
+			echo '</select>';
+		}
+		cft_podpowiedz( $f['hint'] );
+		echo '</div>';
+		return;
+	}
 
-	echo '<label class="cft-etykieta" id="' . esc_attr( $id ) . '-l" for="' . esc_attr( $id ) . ( 'area' === $type && empty( $f['czysty'] ) ? '-ed' : '' ) . '">' . esc_html( $f['label'] ) . '</label>';
+	echo '<div class="cft-pole__gora"><label class="cft-etykieta" id="' . esc_attr( $id ) . '-l" for="' . esc_attr( $id ) . ( 'area' === $type && empty( $f['czysty'] ) ? '-ed' : '' ) . '">' . esc_html( $f['label'] ) . '</label>' . ( cft_ma_styl( $key, $f ) ? cft_styl_btn( $key, $f['label'] ) : '' ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	if ( 'area' === $type && empty( $f['czysty'] ) ) {
 		cft_edytor( $id, $name, colorify_tresci_do_wysiwyg( $val ), colorify_tresci_do_wysiwyg( $f['default'] ), $f['rows'] ?? 3, false, $key );
 		$default = colorify_tresci_do_wysiwyg( $f['default'] );
@@ -352,6 +460,7 @@ function cft_lista( $key, $type, $val, $default ) {
 	$pusty = array_fill_keys( array_keys( colorify_tresci_listy()[ $type ] ), '' );
 	$nazwy = array( 'faq' => 'Dodaj pytanie', 'ig' => 'Dodaj zdjęcie', 'punkty' => 'Dodaj punkt', 'menu' => 'Dodaj pozycję' );
 	echo '<div class="cft-lista" data-lista="' . esc_attr( $key ) . '">';
+	echo '<input type="hidden" name="cft[' . esc_attr( $key ) . '][_]" value="1">'; // pole jest w formularzu także wtedy, gdy usunięto wszystkie wiersze
 	echo '<div class="cft-wiersze">';
 	foreach ( array_values( (array) $val ) as $i => $row ) {
 		cft_wiersz( $key, $type, $i, $row );
@@ -369,6 +478,104 @@ function cft_lista( $key, $type, $val, $default ) {
 	echo '<button type="button" class="cft-btn cft-btn--obrys cft-btn--maly" data-dodaj>' . esc_html( $nazwy[ $type ] ?? 'Dodaj' ) . '</button>';
 	echo '<button type="button" class="cft-btn cft-btn--link" data-lista-domyslna>Przywróć domyślną listę</button>';
 	echo '</div></div>';
+}
+
+/**
+ * Edytor akapitów (pole 'akapity'): bloki w kolejności formularza, nazwy cft[<pole>][<id bloku>][w|t].
+ * Blok starego pola (z 'z_pol') edytuje to pole (cft[<stare pole>]), nowy blok "p-…" ma własny tekst.
+ * $o: 'name' (nazwa pola w formularzu), 'val' (lista bloków). Klucz $key = prefiks celu stylu i podglądu.
+ */
+function cft_akapity( $key, $f, $stored, $o = array() ) {
+	$name = $o['name'] ?? 'cft[' . $key . ']';
+	$war  = colorify_tresci_warianty( $f );
+	$nowy = (string) ( $f['nowy'] ?? array_key_first( $war ) );
+	echo '<div class="cft-akapity" data-akapity="' . esc_attr( $key ) . '">';
+	echo '<input type="hidden" name="' . esc_attr( $name . '[_]' ) . '" value="1">';
+	echo '<ol class="cft-akapity__lista">';
+	foreach ( (array) ( $o['val'] ?? array() ) as $b ) {
+		if ( is_array( $b ) && ! empty( $b['id'] ) ) {
+			cft_akapit( $name, $key, $b, $f, $stored );
+		}
+	}
+	echo '</ol>';
+	echo '<template class="cft-akapit-szablon">';
+	cft_akapit( $name, $key, array( 'id' => 'p-__p__', 'w' => $nowy, 't' => '' ), $f, $stored );
+	echo '</template>';
+	echo '<button type="button" class="cft-btn cft-btn--obrys cft-btn--maly cft-akapity__dodaj" data-akapit-dodaj>' . cft_ik( 'plus' ) . 'Dodaj akapit</button>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '</div>';
+}
+
+function cft_akapit( $name, $key, $b, $f, $stored ) {
+	$id     = (string) $b['id'];
+	$z      = (array) ( $f['z_pol'] ?? array() );
+	$stare  = isset( $z[ $id ] );
+	$war    = colorify_tresci_warianty( $f );
+	$n      = $name . '[' . $id . ']';
+	$cel    = $stare ? $id : $key . '.' . $id; // cel stylu i klucz podglądu
+	$dom    = 'cft-' . $cel;
+	$pola   = colorify_tresci_pola();
+	$label  = $stare && isset( $pola[ $id ] ) ? $pola[ $id ]['label'] : 'Nowy akapit';
+	echo '<li class="cft-akapit" data-akapit="' . esc_attr( $id ) . '" data-cel="' . esc_attr( $cel ) . '">';
+	echo '<div class="cft-akapit__gora"><span class="cft-akapit__t" id="' . esc_attr( $dom ) . '-l">' . esc_html( $label ) . '</span>';
+	echo '<label class="cft-akapit__w"><span class="screen-reader-text">Rodzaj akapitu</span><select name="' . esc_attr( $n . '[w]' ) . '" data-struktura>';
+	foreach ( $war as $w => $d ) {
+		echo '<option value="' . esc_attr( $w ) . '"' . selected( (string) ( $b['w'] ?? '' ), (string) $w, false ) . '>' . esc_html( $d[0] ) . '</option>';
+	}
+	echo '</select></label>';
+	echo '<span class="cft-akapit__ruch">' . cft_styl_btn( $cel, $label ) // phpcs:ignore WordPress.Security.EscapeOutput
+		. '<button type="button" class="cft-ikona" data-akapit="gora" aria-label="Przesuń akapit wyżej" data-tip="Wyżej">' . cft_ik( 'gora' ) . '</button>'
+		. '<button type="button" class="cft-ikona" data-akapit="dol" aria-label="Przesuń akapit niżej" data-tip="Niżej">' . cft_ik( 'dol' ) . '</button>'
+		. '<button type="button" class="cft-ikona" data-akapit="kopia" aria-label="Duplikuj akapit" data-tip="Duplikuj (kopia pod spodem)">' . cft_ik( 'kopia' ) . '</button>'
+		. '<button type="button" class="cft-ikona cft-ikona--usun" data-akapit="usun" aria-label="Usuń akapit" data-tip="Usuń akapit">' . cft_ik( 'kosz' ) . '</button></span></div>';
+	if ( $stare && isset( $pola[ $id ] ) ) {
+		$v = array_key_exists( $id, $stored ) ? $stored[ $id ] : $pola[ $id ]['default'];
+		cft_edytor( $dom, 'cft[' . $id . ']', colorify_tresci_do_wysiwyg( $v ), colorify_tresci_do_wysiwyg( $pola[ $id ]['default'] ), $pola[ $id ]['rows'] ?? 3, false, $id );
+	} else {
+		cft_edytor( $dom, $n . '[t]', colorify_tresci_do_wysiwyg( (string) ( $b['t'] ?? '' ) ), '', 3, false, $cel );
+	}
+	echo '</li>';
+}
+
+/** Definicja pola nowej sekcji w kształcie pola schematu. */
+function cft_pole_sekcji( $d ) {
+	return array( 'type' => $d[0], 'label' => $d[1], 'default' => $d[2], 'hint' => '' ) + (array) ( $d[3] ?? array() );
+}
+
+/** Karta nowej sekcji (z biblioteki). $id = 's-…' albo 's-__id__' w szablonie dla JS. */
+function cft_karta_sekcji( $id, $s ) {
+	$typy = colorify_tresci_typy_sekcji();
+	$typ  = (string) $s['typ'];
+	if ( ! isset( $typy[ $typ ] ) ) {
+		return;
+	}
+	$d    = $typy[ $typ ];
+	$v    = (array) ( $s['v'] ?? array() );
+	$n    = 'cft[__i][' . $id . ']';
+	$wart = array();
+	foreach ( $d['pola'] as $p => $pd ) {
+		$wart[ $id . '.' . $p ] = array_key_exists( $p, $v ) ? $v[ $p ] : $pd[2];
+		if ( isset( $v[ $p . '__kadr' ] ) ) {
+			$wart[ $id . '.' . $p . '__kadr' ] = $v[ $p . '__kadr' ];
+		}
+	}
+	$nag = isset( $d['pola']['naglowek'] ) ? (string) $wart[ $id . '.naglowek' ] : '';
+	echo '<details class="cft-karta cft-karta--nowa" id="cft-karta-' . esc_attr( $id ) . '" data-karta="' . esc_attr( $id ) . '" data-nowa="' . esc_attr( $typ ) . '">';
+	echo '<summary><span class="cft-kafel cft-kafel--typ" aria-hidden="true">' . cft_ik( $d['ikona'] ) . '</span><span class="cft-karta__o"><span class="cft-karta__t">' . esc_html( $d['nazwa'] ) . ( '' !== $nag ? ': <span data-kafel-txt="' . esc_attr( $id . '.naglowek' ) . '">' . esc_html( $nag ) . '</span>' : '' ) . '</span><span class="cft-karta__g">Nowa sekcja. ' . esc_html( $d['opis'] ) . '</span></span></summary>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<div class="cft-karta__tresc"><div class="cft-grupa">';
+	echo '<input type="hidden" name="' . esc_attr( $n . '[typ]' ) . '" value="' . esc_attr( $typ ) . '">';
+	echo '<input type="hidden" name="' . esc_attr( $n . '[strona]' ) . '" value="' . esc_attr( (string) $s['strona'] ) . '" data-strona-sekcji>';
+	echo '<input type="hidden" name="' . esc_attr( $n . '[usun]' ) . '" value="" data-usun-sekcji>';
+	foreach ( $d['pola'] as $p => $pd ) {
+		$f = cft_pole_sekcji( $pd );
+		if ( 'media' === $pd[0] ) {
+			$f += array( 'lista' => true, 'removable' => true );
+		}
+		if ( 'akapity' === $pd[0] ) {
+			$f['warianty'] = colorify_tresci_klasy()['warianty'];
+		}
+		cft_pole( $id . '.' . $p, $f, $wart, array( 'name' => $n . '[' . $p . ']', 'name_kadr' => $n . '[' . $p . '__kadr]' ) );
+	}
+	echo '</div></div></details>';
 }
 
 /**
@@ -489,15 +696,68 @@ function cft_kafel( $sid ) {
 function cft_zmienione( $a, $b ) {
 	$pola = colorify_tresci_pola();
 	$out  = array();
+	$zas  = array( '__style' => 'Wygląd tekstów i odstępy', '__uklad' => 'Kolejność i ukrycie sekcji', '__sekcje' => 'Nowe sekcje' );
 	foreach ( array_unique( array_merge( array_keys( (array) $a ), array_keys( (array) $b ) ) ) as $k ) {
 		$x = array_key_exists( $k, (array) $a ) ? $a[ $k ] : null;
 		$y = array_key_exists( $k, (array) $b ) ? $b[ $k ] : null;
+		if ( $x != $y && isset( $zas[ $k ] ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons
+			$out[] = $zas[ $k ];
+			continue;
+		}
 		if ( $x != $y && isset( $pola[ $k ] ) ) { // phpcs:ignore WordPress.PHP.StrictComparisons
 			$sec   = colorify_tresci_schema()[ $pola[ $k ]['section'] ]['title'];
 			$out[] = $sec . ': ' . mb_strtolower( $pola[ $k ]['label'] );
 		}
 	}
 	return $out;
+}
+
+/** Karta sekcji schematu (pola pogrupowane: teksty, zdjęcia, przyciski, listy). Stare pola grupy akapitów są w jej edytorze. */
+function cft_karta( $sid, $sec, $stored, $grupy ) {
+	$sec += array( 'strona' => 'oba', 'kotwica' => '', 'where' => '', 'link' => array() );
+	$pola = colorify_tresci_pola();
+	$zm   = 0;
+	foreach ( array_keys( $sec['fields'] ) as $k ) {
+		$zm += array_key_exists( $k, $stored ) ? 1 : 0;
+		$zm += array_key_exists( $k . '__kadr', $stored ) ? 1 : 0;
+	}
+	?>
+	<details class="cft-karta" id="cft-karta-<?php echo esc_attr( $sid ); ?>" data-karta="<?php echo esc_attr( $sid ); ?>">
+		<summary>
+			<?php cft_kafel( $sid ); ?>
+			<span class="cft-karta__o">
+				<span class="cft-karta__t"><?php echo esc_html( $sec['title'] ); ?></span>
+				<span class="cft-karta__g"><?php echo esc_html( $sec['where'] ); ?></span>
+			</span>
+			<?php if ( $zm ) : ?><span class="cft-karta__zm"><?php echo (int) $zm; ?> <?php echo 1 === $zm ? 'zmiana' : ( $zm < 5 ? 'zmiany' : 'zmian' ); ?></span><?php endif; ?>
+		</summary>
+		<div class="cft-karta__tresc">
+			<?php if ( ! empty( $sec['link'] ) ) : ?>
+				<a class="cft-skok" href="<?php echo esc_url( admin_url( $sec['link'][1] ) ); ?>"><?php echo esc_html( $sec['link'][0] ); ?> <span aria-hidden="true">→</span></a>
+			<?php endif; ?>
+			<?php
+			$wg = array();
+			foreach ( $sec['fields'] as $key => $f ) {
+				$f = $pola[ $key ] ?? $f;
+				if ( ! empty( $f['w_akapitach'] ) && isset( $sec['fields'][ $f['w_akapitach'] ] ) ) {
+					continue; // edytowane w polu akapitów tej karty
+				}
+				$wg[ cft_grupa( $key, $f ) ][ $key ] = $f;
+			}
+			$ile = count( $wg );
+			foreach ( $grupy as $gid => $gt ) :
+				if ( empty( $wg[ $gid ] ) ) {
+					continue;
+				}
+				?>
+				<div class="cft-grupa cft-grupa--<?php echo esc_attr( $gid ); ?>">
+					<?php if ( $ile > 1 && '' !== $gt ) : ?><h3 class="cft-grupa__t"><?php echo esc_html( $gt ); ?></h3><?php endif; ?>
+					<?php foreach ( $wg[ $gid ] as $key => $f ) { cft_pole( $key, $f, $stored ); } ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+	</details>
+	<?php
 }
 
 /* ---------------------------------------------------------------------------
@@ -554,7 +814,9 @@ function cft_ekran() {
 					$pola_k  = colorify_tresci_pola();
 					$etyk    = array();
 					foreach ( (array) $konflikt['obce'] as $k ) {
-						if ( isset( $pola_k[ $k ] ) ) {
+						if ( 0 === strpos( (string) $k, '__' ) ) {
+							$etyk[] = cft_zmienione( array( $k => 1 ), array() )[0] ?? $k;
+						} elseif ( isset( $pola_k[ $k ] ) ) {
 							$etyk[] = colorify_tresci_schema()[ $pola_k[ $k ]['section'] ]['title'] . ': ' . mb_strtolower( $pola_k[ $k ]['label'] );
 						}
 					}
@@ -587,6 +849,8 @@ function cft_ekran() {
 				<li>Każda karta to jedna część strony, w kolejności od góry. Kliknij nazwę, żeby ją rozwinąć. Podgląd po prawej sam przewija się do tej części, a kliknięcie w podglądzie otwiera właściwe pole.</li>
 				<li>Zdjęcie: ramka pokazuje dokładnie tyle, ile widać na stronie. Przeciągnij punkt, który ma być najważniejszy, i dosuń przybliżenie. „Komputer / Telefon” pokazuje, jak kadr wypada na obu.</li>
 				<li>W akapitach Enter robi nową linię; pogrubienie i kursywa po zaznaczeniu tekstu. Znaczki „↵ tylko komputer” i „w jednej linii” sterują łamaniem wiersza na stronie.</li>
+				<li>„Wygląd” przy tekście zmienia krój, rozmiar, grubość, kolor, wyrównanie i odstępy, osobno na komputerze i na telefonie. Widzisz to od razu w podglądzie. Kółko ze strzałką przy ustawieniu wraca do wyglądu z projektu strony.</li>
+				<li>„Układ strony” nad kartami: strzałki przesuwają sekcję wyżej albo niżej, oko ją ukrywa (dane zostają, możesz ją pokazać z powrotem), plus dodaje nową sekcję w tym miejscu. Dodaną sekcję możesz też zduplikować albo usunąć.</li>
 				<li>Agent AI zmienia te same treści poleceniem „wp <?php echo esc_html( $cli ); ?>”, więc panel, agent i strona zawsze pokazują to samo. Gdy ktoś zapisze coś w międzyczasie, panel to zauważy i nie nadpisze cudzych zmian.</li>
 				<li>Pomyłka? Na dole jest historia ostatnich 10 zapisów z przyciskiem „Przywróć”.</li>
 			</ul>
@@ -598,51 +862,78 @@ function cft_ekran() {
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'colorify_tresci_zapis' ) ); ?>">
 			<input type="hidden" name="cft_wersja" id="cft-wersja" value="<?php echo esc_attr( colorify_tresci_wersja() ); ?>">
 
+			<input type="hidden" name="cft[__style]" id="cft-style" value="<?php echo esc_attr( wp_json_encode( (object) ( $stored['__style'] ?? array() ) ) ); ?>">
+			<input type="hidden" name="cft[__uklad]" id="cft-uklad-dane" value="">
+			<input type="hidden" name="cft[__i][_]" value="1">
 			<?php
-			$ostatnia = '';
-			foreach ( colorify_tresci_schema() as $sid => $sec ) :
-				$sec += array( 'strona' => 'oba', 'kotwica' => '', 'where' => '', 'link' => array() );
-				$zm = 0;
-				foreach ( array_keys( $sec['fields'] ) as $k ) {
-					$zm += array_key_exists( $k, $stored ) ? 1 : 0;
-					$zm += array_key_exists( $k . '__kadr', $stored ) ? 1 : 0;
-				}
-				if ( $sec['strona'] !== $ostatnia ) :
-					$ostatnia = $sec['strona'];
-					?>
-					<h2 class="cft-h2 cft-h2--strona"><?php echo esc_html( $nazwy[ $ostatnia ] ?? $ostatnia ); ?></h2>
-				<?php endif; ?>
-				<details class="cft-karta" id="cft-karta-<?php echo esc_attr( $sid ); ?>" data-karta="<?php echo esc_attr( $sid ); ?>">
-					<summary>
-						<?php cft_kafel( $sid ); ?>
-						<span class="cft-karta__o">
-							<span class="cft-karta__t"><?php echo esc_html( $sec['title'] ); ?></span>
-							<span class="cft-karta__g"><?php echo esc_html( $sec['where'] ); ?></span>
-						</span>
-						<?php if ( $zm ) : ?><span class="cft-karta__zm"><?php echo (int) $zm; ?> <?php echo 1 === $zm ? 'zmiana' : ( $zm < 5 ? 'zmiany' : 'zmian' ); ?></span><?php endif; ?>
-					</summary>
-					<div class="cft-karta__tresc">
-						<?php if ( ! empty( $sec['link'] ) ) : ?>
-							<a class="cft-skok" href="<?php echo esc_url( admin_url( $sec['link'][1] ) ); ?>"><?php echo esc_html( $sec['link'][0] ); ?> <span aria-hidden="true">→</span></a>
-						<?php endif; ?>
-						<?php
-						$wg = array();
-						foreach ( $sec['fields'] as $key => $f ) {
-							$wg[ cft_grupa( $key, $f ) ][ $key ] = $f;
-						}
-						$ile = count( $wg );
-						foreach ( $grupy as $gid => $gt ) :
-							if ( empty( $wg[ $gid ] ) ) {
-								continue;
+			// Karty pogrupowane według stron; karty sekcji strony w kolejności układu (z nowymi sekcjami), potem "Każda podstrona".
+			$uklad_def = colorify_tresci_uklad_def();
+			$schema    = colorify_tresci_schema();
+			$nowe      = colorify_tresci_sekcje_nowe( $stored );
+			$uzyte     = array();
+			$bloki     = array(); // array( nagłówek, id strony z układem albo '', lista kart: array( 's', id karty ) | array( 'n', id sekcji ) )
+			if ( $uklad_def ) {
+				foreach ( $strony as $pid => $st ) {
+					$lista = array();
+					if ( isset( $uklad_def[ $pid ] ) ) {
+						foreach ( colorify_tresci_uklad_strony( $pid, $stored )['o'] as $id ) {
+							$k = $uklad_def[ $pid ][ $id ]['karta'] ?? null;
+							if ( null !== $k && isset( $schema[ $k ] ) && ! isset( $uzyte[ $k ] ) ) {
+								$lista[]       = array( 's', $k );
+								$uzyte[ $k ] = true;
+							} elseif ( isset( $nowe[ $id ] ) ) {
+								$lista[] = array( 'n', $id );
 							}
-							?>
-							<div class="cft-grupa cft-grupa--<?php echo esc_attr( $gid ); ?>">
-								<?php if ( $ile > 1 && '' !== $gt ) : ?><h3 class="cft-grupa__t"><?php echo esc_html( $gt ); ?></h3><?php endif; ?>
-								<?php foreach ( $wg[ $gid ] as $key => $f ) { cft_pole( $key, $f, $stored ); } ?>
-							</div>
-						<?php endforeach; ?>
-					</div>
-				</details>
+						}
+					}
+					foreach ( $schema as $sid => $sec ) {
+						if ( ( $sec['strona'] ?? 'oba' ) === $pid && ! isset( $uzyte[ $sid ] ) ) {
+							$lista[]         = array( 's', $sid );
+							$uzyte[ $sid ] = true;
+						}
+					}
+					$bloki[] = array( $nazwy[ $pid ] ?? $pid, isset( $uklad_def[ $pid ] ) ? $pid : '', $lista );
+				}
+				$reszta = array();
+				foreach ( $schema as $sid => $sec ) {
+					if ( ! isset( $uzyte[ $sid ] ) ) {
+						$reszta[] = array( 's', $sid );
+					}
+				}
+				if ( $reszta ) {
+					$bloki[] = array( 'Na każdej podstronie (menu, stopka, okienka, Google)', '', $reszta );
+				}
+			} else {
+				$ostatnia = null; // motyw bez układu: jak dawniej, kolejność schematu
+				foreach ( $schema as $sid => $sec ) {
+					$st = $sec['strona'] ?? 'oba';
+					if ( $st !== $ostatnia ) {
+						$bloki[]  = array( $nazwy[ $st ] ?? $st, '', array() );
+						$ostatnia = $st;
+					}
+					$bloki[ count( $bloki ) - 1 ][2][] = array( 's', $sid );
+				}
+			}
+			foreach ( $bloki as $blok ) :
+				?>
+				<h2 class="cft-h2 cft-h2--strona"><?php echo esc_html( $blok[0] ); ?></h2>
+				<?php if ( '' !== $blok[1] ) : ?>
+					<div class="cft-nawigator" data-strona="<?php echo esc_attr( $blok[1] ); ?>"></div>
+				<?php endif; ?>
+				<div class="cft-karty" data-strona="<?php echo esc_attr( $blok[1] ); ?>">
+				<?php
+				foreach ( $blok[2] as $kk ) {
+					if ( 'n' === $kk[0] ) {
+						cft_karta_sekcji( $kk[1], $nowe[ $kk[1] ] );
+					} else {
+						cft_karta( $kk[1], $schema[ $kk[1] ], $stored, $grupy );
+					}
+				}
+				?>
+				</div>
+			<?php endforeach; ?>
+			<?php foreach ( array_keys( colorify_tresci_typy_sekcji() ) as $typ ) : ?>
+				<template class="cft-szablon-sekcji" data-typ="<?php echo esc_attr( $typ ); ?>"><?php cft_karta_sekcji( 's-__id__', array( 'typ' => $typ, 'strona' => '__strona__' ) ); ?></template>
 			<?php endforeach; ?>
 
 			<div class="cft-pasek">

@@ -1,5 +1,17 @@
 # Historia zmian
 
+## 2.13.0
+
+Edytor treści: wygląd tekstu, akapity, układ stron i nowe sekcje (twarde reguły edytora: `docs/edytor-tresci.md` 8e, `CLAUDE.md`).
+
+- „Wygląd” przy polach tekstowych: krój, rozmiar XS–XXL (clamp), grubość, kolor z palety, wyrównanie, odstęp pod/nad, interlinia, odstęp liter, szerokość, wielkie litery, kursywa; osobno komputer i telefon; podgląd na żywo bez przeładowania; reset każdego ustawienia, „Tylko zmienione”, „Przywróć cały wygląd”. Na stronę trafiają tylko zmienne CSS z allowlisty tokenów, arkusz reguł (ok. 1,5 KB) tylko gdy coś jest ustawione.
+- Pole `akapity`: dodaj, usuń, przesuń, duplikuj, rodzaj akapitu. Grupa zbiera stare pola (`z_pol`), więc zapisane treści i WP-CLI działają jak dotąd, a HTML bez zmian w panelu jest bajt w bajt ten sam.
+- Układ stron (rejestr `uklad` + `colorify_render_page()`): kolejność, ukrywanie i odstępy sekcji, biblioteka nowych sekcji (Tekst, Tekst + zdjęcie, Cytat, Przycisk z zachętą, Odstęp) z klasami motywu; nawigator „Układ strony” i pasek sekcji w karcie, ikony z dymkami.
+- Dane w tej samej opcji pod kluczami `__style`, `__uklad`, `__sekcje` (jedna bramka wersji, jedna historia, przywracanie obejmuje wszystko); zapis pod blokadą (`INSERT IGNORE`), panel i WP-CLI nie zapiszą w tej samej chwili.
+- WP-CLI: `tokeny`, `styl`, `uklad`, `sekcja list|dodaj|set|usun`, `get __style|__uklad|__sekcje`.
+- Naprawa: zmiany list (FAQ, menu, Instagram, punkty) z panelu nie zapisywały się od 2.11.0 (zgubiony ukośnik w regexie numerowania zmieniał nazwy pól na `ej[...]`); usunięcie wszystkich wierszy listy też nie dochodziło do zapisu. Test: `node tools/test-tresci.mjs`.
+- Assety panelu mają wersję z czasem pliku (każda poprawka omija pamięć przeglądarki).
+
 ## 2.12.4
 
 - Kokpit "Kalendarz zleceń" w trybie ciemnym: komórki kalendarza i obrysy przycisków są znowu widoczne. Silnik trybu ciemnego przelicza kolor tekstu użyty jako tło albo ramka na ciemny, więc stopnie "tekst 4–8% na karcie" wychodziły identyczne z kartą: dni miesiąca zlewały się w jedną płaszczyznę, a przyciski (strzałki miesiąca, "Dziś", "Otwórz zlecenie", "Zadzwoń", "Trasa", "Pokaż wszystkie") wyglądały jak zwykły tekst. Pod `body.colorify-dark` zmienne `--line`, `--cfb-soft` i `--cfb-neutral-bg` oraz tła dni weekendowych i spoza miesiąca liczą się od `currentColor`, który po przeliczeniu zostaje kolorem tekstu. Tryb jasny bez zmian.

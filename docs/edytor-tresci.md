@@ -152,6 +152,90 @@ wchodzą, cudze zostają). Panel sprawdza wersję co 60 s i po powrocie do karty
 panelem”). WP-CLI: `wersja` + `set --wersja=` to samo. Historia (`<opcja>_historia`, 10 wpisów) ma czas `t`, autora `u`
 („AI/WP-CLI” z CLI), etykietę `l`, migawkę `d` i wersję `w`; przywracanie z panelu.
 
+## 8a. Wygląd tekstu i odstępy (od 2.13.0)
+
+Przy każdym polu `text`/`area`, które jest osobnym elementem na stronie, panel ma przycisk **„Wygląd”**. Otwiera pod polem
+edytor: **Komputer / Telefon** (telefon = do 767 px, nadpisuje tylko to, co ustawisz; tablet bierze komputer), krój
+(Nagłówkowy / Tekstowy), rozmiar XS–XXL (`clamp()`), grubość, kolor z palety marki, wyrównanie, odstęp pod spodem, a w
+„Więcej ustawień”: interlinia 1–2,2, odstęp liter, odstęp nad, szerokość tekstu, wielkie litery, kursywa. Każde ustawienie
+ma kropkę „zmienione” i reset, jest „Tylko zmienione” i „Przywróć cały wygląd”. Sekcja (rejestr `uklad`) ma odstęp nad i pod.
+
+Dane: klucz zastrzeżony `__style` w tej samej opcji: `cel => array( 'b' => array( wlasciwosc => token ), 'm' => … )`.
+Cel: klucz pola, `grupa.p-…` (akapit grupy), `s-….pole` (pole nowej sekcji), `#id` (sekcja). Do strony nie trafia nic
+z tego, co wpisano: token jest zamieniany na wartość z mapy (`colorify_tresci_tokeny()`, motyw podmienia listy kluczem
+rejestru `'tokeny' => array( 'c' => …, 'ff' => … )`). Na stronie element dostaje tylko zmienne `style="--cft-fz:…;--cft-fz-m:…"`,
+a `<style id="cft-styl">` w `<head>` (około 1,5 KB) ma reguły `[style*="--cft-fz:"]{font-size:var(--cft-fz)!important}` itd.
+Bez zapisanego wyglądu nie ma ani zmiennych, ani arkusza: HTML jest taki jak przed 2.13. Podgląd zmienia zmienne w ramce
+bez przeładowania. Rejestr `'styl_bez' => regex` wyłącza przycisk dla pól, które nie są osobnym elementem (np. opisy zdjęć).
+
+## 8b. Akapity: pole `akapity` (od 2.13.0)
+
+```php
+'omnie_akapity' => colorify_tresci_pole( 'akapity', 'Akapity', null, 'Podpowiedź', array(
+	'z_pol'    => array( 'omnie_akapit1' => 'lead', 'omnie_akapit2' => 'lead', 'omnie_akapit3' => 'punch' ), // stare pola w kolejności strony
+	'warianty' => array( 'lead' => array( 'Akapit', 'klasy p' ), 'punch' => array( 'Wyróżnione zdanie', 'klasy p' ) ),
+	'nowy'     => 'lead',
+) ),
+```
+
+Szablon: `colorify_tresci_akapity( 'omnie_akapity', $wciecie )` (motyw: alias `ej_akapity()`). Blok starego pola bierze tekst
+z tego pola (zapisane treści, panel i `set omnie_akapit1` działają jak dotąd), nowy blok ma id `p-…` i własny tekst. Domyślna
+lista = stare pola w kolejności `z_pol` z ich wariantami, więc dopóki nikt nie zmieni listy, HTML jest bajt w bajt ten sam
+(`$wciecie` = wcięcie z szablonu między dawnymi wywołaniami `ej_tag()`). Panel: dodaj, przesuń, duplikuj, usuń, rodzaj.
+
+## 8c. Układ stron i nowe sekcje (od 2.13.0)
+
+Motyw rejestruje sekcje stron (`'uklad' => strona => id => array( 'label', 'render' => callable, 'stala', 'karta', 'kotwica_id' )`)
+i w szablonie woła `colorify_render_page( 'home' )` zamiast wypisywać sekcje po kolei. Funkcje `render` to dosłowne
+wycinki dawnego szablonu (motyw `elarisse`: `template-parts/strona-glowna.php`, `o-mnie.php`). `stala` = zawsze na górze
+i widoczna (np. pierwszy ekran, który zamyka wrapper z `header.php`); `kotwica_id` = panel ostrzega przed ukryciem sekcji,
+do której prowadzi menu. Dane: `__uklad` (kolejność `o`, ukryte `h`, zapisywane tylko gdy różne od domyślnych) i `__sekcje`
+(nowe sekcje: `id => array( 'typ', 'strona', 'v' => pola )`, id `s-` + 8 znaków, nigdy numer pozycji). Normalizacja:
+nieznane id pomijane, nowe sekcje motywu wstawiane za domyślnym poprzednikiem, sekcje nowe bez miejsca na końcu.
+
+Biblioteka (`colorify_tresci_typy_sekcji()`): **Tekst**, **Tekst + zdjęcie**, **Cytat**, **Przycisk z zachętą**, **Odstęp**.
+Markup z klasami motywu (rejestr `'klasy'`, np. `sekcja`, `kontener`, `naglowek`, `warianty` akapitów, `przycisk`,
+`tlo_kremowe`), żeby nowa sekcja wyglądała jak reszta strony; bez klas Colorify ma własne `cft-sek*` z małym arkuszem.
+Pełny własny renderer typu: rejestr `'typy' => typ => array( 'render' => callable( $id, $wartosci ) )`.
+Panel: „Układ strony” nad kartami strony (wyżej, niżej, ukryj/pokaż, odstępy sekcji, „Dodaj sekcję tutaj”, a dla nowych
+duplikuj i usuń z cofnięciem do zapisu), ten sam pasek w karcie sekcji. Zmiany struktury przeładowują podgląd z roboczego
+dokumentu (transient), więc niezapisane zmiany nie znikają.
+
+## 8d. WP-CLI dla wyglądu, układu i sekcji
+
+```
+wp colorify-tresci tokeny
+wp colorify-tresci styl <cel> [wl=token ...] [--telefon] [--reset] [--wersja=<skrót>]
+wp colorify-tresci uklad [<strona>] [--kolejnosc=a,b,c] [--ukryj=id] [--pokaz=id] [--wersja=<skrót>]
+wp colorify-tresci sekcja list | dodaj <typ> --strona=home --po=<id> [--pola='{json}'] | set <id> '<json>' | usun <id>
+wp colorify-tresci get __style | __uklad | __sekcje
+```
+
+Wszystko przez `colorify_tresci_z_formularza()` + `colorify_tresci_zapisz()` (jedna walidacja, historia, bramka wersji).
+Zapis trzyma blokadę (`<opcja>_zapis`, `INSERT IGNORE`), więc panel i agent nie zapiszą w tej samej chwili.
+
+## 8e. Twarde reguły edytora (dla każdej strony i każdej sesji)
+
+Każdy edytor treści Colorify (ten moduł albo jego następca) MUSI dawać właścicielce strony, bez programisty:
+
+1. **Typografię** każdego widocznego tekstu: krój (z kroju marki), rozmiar, grubość (tylko istniejące w foncie), kolor
+   z palety, wyrównanie, interlinię, odstęp liter, wielkie litery, kursywę; osobno komputer i telefon.
+2. **Odstępy**: pod i nad akapitem, szerokość tekstu, odstęp nad i pod sekcją; osobno komputer i telefon.
+3. **Akapity**: dodaj, usuń, przesuń, duplikuj, zmień rodzaj, w każdej sekcji z kilkoma akapitami.
+4. **Sekcje**: przenieś wyżej/niżej, ukryj i przywróć sekcję szablonu (nigdy jej nie kasuj), dodaj nową z biblioteki
+   w wybranym miejscu, edytuj, duplikuj, usuń dodaną (z cofnięciem do zapisu i z historii).
+5. **Czytelność panelu**: ikona + podpis albo ikona z dymkiem (hover i fokus klawiatury) + `aria-label` na każdej
+   kontrolce; cel dotykowy 44 px; zrozumiały komunikat zamiast martwego przycisku (wyszarzone = dymek „dlaczego”).
+6. **Podgląd na żywo** prawdziwej strony (styl bez przeładowania, struktura z roboczego dokumentu) i **historia**
+   z przywracaniem całości (treść + wygląd + układ) oraz **bramka wersji** dla panelu i agentów.
+7. **Tylko tokeny marki, zero dowolnego CSS**: żadnych pól px, własnych fontów, kodu CSS/HTML wpisywanego przez użytkownika;
+   wartość zapisana to token z allowlisty, jedna funkcja walidacji dla panelu, WP-CLI i AI.
+8. **HTML szablonu bez zmian po refaktorze**: przeniesienie sekcji do rendererów musi dać identyczny HTML (diff przed/po
+   na tym samym stanie treści); bez zapisanych zmian strona wygląda i waży tyle samo co przed modułem.
+9. **RWD 320–1920**: każda nowa kontrolka i każda nowa sekcja bez poziomego przewijania i nachodzenia na 320, 375, 390,
+   768, 1024, 1440, 1920; zero nowych bibliotek JS na froncie (PageSpeed).
+10. **Nic nie ginie**: stare klucze danych czytane jak dotąd, migracje tylko addytywne, „ukryj” zamiast „usuń” dla szablonu.
+
 ## 8. Co dzieje się na innych stronach
 
 Moduł wyłączony (domyślnie) albo brak schematu: `includes/colorify-tresci.php` definiuje funkcje i wiersz w ustawieniach,
