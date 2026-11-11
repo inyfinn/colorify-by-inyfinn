@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.12.4
+
+- Kokpit "Kalendarz zleceń" w trybie ciemnym: komórki kalendarza i obrysy przycisków są znowu widoczne. Silnik trybu ciemnego przelicza kolor tekstu użyty jako tło albo ramka na ciemny, więc stopnie "tekst 4–8% na karcie" wychodziły identyczne z kartą: dni miesiąca zlewały się w jedną płaszczyznę, a przyciski (strzałki miesiąca, "Dziś", "Otwórz zlecenie", "Zadzwoń", "Trasa", "Pokaż wszystkie") wyglądały jak zwykły tekst. Pod `body.colorify-dark` zmienne `--line`, `--cfb-soft` i `--cfb-neutral-bg` oraz tła dni weekendowych i spoza miesiąca liczą się od `currentColor`, który po przeliczeniu zostaje kolorem tekstu. Tryb jasny bez zmian.
+
 ## 2.12.3
 
 Kokpit "Kalendarz zleceń" i ekrany panelu na telefonie i tablecie: nic nie nachodzi na siebie w zakresie 320–1920 px.

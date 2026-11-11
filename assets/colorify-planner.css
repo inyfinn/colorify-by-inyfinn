@@ -27,6 +27,17 @@
 	--cfb-neutral-fg: color-mix(in srgb, var(--t) 78%, var(--s));
 	--cfb-thumb: var(--colorify-scrollbar-thumb, color-mix(in srgb, var(--a) 70%, transparent));
 }
+/* 2.12.4, tryb ciemny. Silnik trybu ciemnego przelicza var(--t) użyte jako tło albo ramka na ciemny kolor, więc stopnie
+ * "tekst 4-8% na karcie" wychodziły identyczne z kartą: komórki kalendarza zlewały się w jedną płaszczyznę, a przyciski
+ * (strzałki miesiąca, Otwórz zlecenie, Zadzwoń, Trasa, Pokaż wszystkie) traciły obrys. currentColor zostaje kolorem tekstu
+ * także po przeliczeniu, więc stopień tonu jest widoczny. Tryb jasny bez zmian. */
+body.colorify-dark .cfd {
+	--line: color-mix(in srgb, currentColor 18%, transparent);
+	--cfb-soft: color-mix(in srgb, currentColor 7%, var(--s));
+	--cfb-neutral-bg: color-mix(in srgb, currentColor 13%, var(--s));
+}
+body.colorify-dark .cfd .cfb-day.is-weekend:not(.has-ev) { background: color-mix(in srgb, currentColor 11%, var(--s)); }
+body.colorify-dark .cfd .cfb-day.is-out:not(.has-ev) { background: color-mix(in srgb, currentColor 3%, var(--s)); }
 
 .cfd .cfb { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .cfd .cfb svg, .cfd .cfb-card svg { width: 1em; height: 1em; flex: none; }
