@@ -178,7 +178,7 @@ function colorify_tresci_typy_sekcji() {
 				'akapity'  => $akap( 'Tu wpisz tekst obok zdjęcia.' ),
 				'zdjecie'  => array( 'media', 'Zdjęcie', '', array( 'kind' => 'image', 'kadr' => array( 'r' => '4/5', 'rm' => '4/5', 'xy' => array( 50, 50 ) ) ) ),
 				'alt'      => array( 'text', 'Opis zdjęcia (dla Google i czytników ekranu)', '' ),
-				'strona'   => array( 'select', 'Zdjęcie po której stronie', 'prawo', array( 'opcje' => array( 'prawo' => 'Po prawej', 'lewo' => 'Po lewej' ) ) ),
+				'zdjecie_po' => array( 'select', 'Zdjęcie po której stronie', 'prawo', array( 'opcje' => array( 'prawo' => 'Po prawej', 'lewo' => 'Po lewej' ) ) ),
 				'przycisk' => array( 'text', 'Napis na przycisku (puste = bez przycisku)', '' ),
 				'link'     => array( 'url', 'Dokąd prowadzi przycisk', $kontakt ),
 				'tlo'      => $tlo( 'jasne' ),
@@ -741,7 +741,7 @@ function colorify_tresci_render_sekcja( $id, $s ) {
 				}
 				$img = wp_get_attachment_image( (int) $v['zdjecie'], 'large', false, $atr );
 			}
-			$lewo = 'lewo' === $v['strona'];
+			$lewo = 'lewo' === $v['zdjecie_po']; // nie 'strona': to nazwa strony sekcji (home, omnie) w danych i w formularzu
 			$tekst = $naglowki( $k['naglowek_tz'] ) . colorify_tresci_akapity_html( $id . '.akapity', $v['akapity'], $f_akap ) . $btn;
 			if ( '' === $img ) {
 				echo '<div class="' . esc_attr( $k['wiersz'] ) . '"><div class="' . esc_attr( $k['kol_srodek'] ) . '">' . $tekst . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput

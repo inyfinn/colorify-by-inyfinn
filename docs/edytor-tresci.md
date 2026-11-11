@@ -165,7 +165,10 @@ Cel: klucz pola, `grupa.p-…` (akapit grupy), `s-….pole` (pole nowej sekcji),
 z tego, co wpisano: token jest zamieniany na wartość z mapy (`colorify_tresci_tokeny()`, motyw podmienia listy kluczem
 rejestru `'tokeny' => array( 'c' => …, 'ff' => … )`). Na stronie element dostaje tylko zmienne `style="--cft-fz:…;--cft-fz-m:…"`,
 a `<style id="cft-styl">` w `<head>` (około 1,5 KB) ma reguły `[style*="--cft-fz:"]{font-size:var(--cft-fz)!important}` itd.
-Bez zapisanego wyglądu nie ma ani zmiennych, ani arkusza: HTML jest taki jak przed 2.13. Podgląd zmienia zmienne w ramce
+Bez zapisanego wyglądu nie ma ani zmiennych, ani arkusza: HTML jest taki jak przed 2.13. Od 2.14 panel pokazuje też stan „z projektu”
+(computed style elementu w ramce → najbliższy token, przerywana ramka + faktyczna wartość) i ma „Kopiuj wygląd” / „Wklej” oraz
+„Jak powyżej” / „Jak poniżej” (wklejenie zapisuje tylko różnice względem projektu pola). Pola nowych sekcji nie mogą nazywać się
+`typ`, `strona` ani `usun` (to dane samej sekcji). Podgląd zmienia zmienne w ramce
 bez przeładowania. Rejestr `'styl_bez' => regex` wyłącza przycisk dla pól, które nie są osobnym elementem (np. opisy zdjęć).
 
 ## 8b. Akapity: pole `akapity` (od 2.13.0)

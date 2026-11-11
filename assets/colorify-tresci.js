@@ -783,6 +783,7 @@
 		} else {
 			var ffTeraz = (s[dev] && s[dev].ff) || (s.b && s.b.ff) || (eff && eff.ff ? eff.ff.t : null);
 			var gilda = p === 'fw' && ffTeraz === 'heading';
+			if (gilda && efT !== null) { efT = '400'; } // krój nagłówkowy ma jedną grubość: tak naprawdę widać zwykłą
 			Object.keys(TOK[p] || {}).forEach(function (t) {
 				var d = TOK[p][t], wcisk = String(cur) === t, jest = !wcisk && efT !== null && String(efT) === t, styl = '', tresc = esc(d[0]), off = '';
 				if (p === 'c') { tresc = '<span class="cft-sp__kolor" data-colorify-swatch style="background:' + esc(d[1]) + '"></span><span class="screen-reader-text">' + esc(d[0]) + '</span>'; }
@@ -821,7 +822,7 @@
 			+ (sekcja ? '' : '<button type="button" class="cft-sp__nb" data-sp-sasiad="-1" data-tip="Ten sam wygląd co tekst nad tym polem">' + ik('gora') + 'Jak powyżej</button>'
 			+ '<button type="button" class="cft-sp__nb" data-sp-sasiad="1" data-tip="Ten sam wygląd co tekst pod tym polem">' + ik('dol') + 'Jak poniżej</button>') + '</div>'
 			+ (pan.cftMsg ? '<p class="cft-sp__info cft-sp__info--ok" role="status">' + esc(pan.cftMsg) + '</p>' : '')
-			+ '<p class="cft-sp__info">' + (eff ? (dev === 'm' ? 'Telefon: ustaw tylko to, co ma być inne. Przerywana ramka = tak jest teraz (z projektu albo z komputera), pełne zaznaczenie = Twoja zmiana.' : 'Przerywana ramka = tak jest teraz (z projektu strony), pełne zaznaczenie = Twoja zmiana. Zmiana widać od razu w podglądzie.')
+			+ '<p class="cft-sp__info">' + (eff ? (dev === 'm' ? 'Telefon: ustaw tylko to, co ma być inne. Przerywana ramka = tak jest teraz (z projektu albo z komputera), pełne zaznaczenie = Twoja zmiana.' : 'Przerywana ramka = tak jest teraz (z projektu strony), pełne zaznaczenie = Twoja zmiana. Zmianę widać od razu w podglądzie.')
 				: 'Tego tekstu nie widać teraz w podglądzie (wczytuje się, jest pusty albo na innej podstronie), więc zaznaczone są tylko Twoje zmiany.') + '</p>'
 			+ (w1 || (tylko && !w2 ? '<p class="cft-sp__info">Nic tu jeszcze nie zmieniono.</p>' : ''))
 			+ (sekcja || (!w2 && tylko) ? '' : '<details class="cft-sp__wiecej"' + (pan.cftWiecej || tylko ? ' open' : '') + '><summary>Więcej ustawień: interlinia, odstęp liter, szerokość, wielkie litery, kursywa</summary>' + w2 + '</details>')
