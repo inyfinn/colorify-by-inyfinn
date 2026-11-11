@@ -170,7 +170,7 @@ function colorify_tresci_typy_sekcji() {
 		),
 		'tekst_zdjecie' => array(
 			'nazwa' => 'Tekst + zdjęcie',
-			'opis'  => 'Tekst obok zdjęcia, jak na podstronie „O mnie”',
+			'opis'  => 'Tekst obok zdjęcia, jak na podstronie „O mnie”',
 			'ikona' => 'zdjecie',
 			'pola'  => array(
 				'nadtytul' => array( 'text', 'Mały napis nad nagłówkiem', '' ),
