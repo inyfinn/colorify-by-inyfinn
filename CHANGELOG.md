@@ -1,5 +1,17 @@
 # Historia zmian
 
+## 2.15.0
+
+Kokpit z prawdziwą analityką i zarządzaniem stroną. Wydanie zbiera 2.14.1, 2.14.2 i nowy moduł analityki.
+
+- **Analityka bez ciasteczek (nowy moduł `includes/colorify-analytics*.php`):** własne tabele `{prefix}colorify_*` z atomowym przyrostem (`INSERT … ON DUPLICATE KEY UPDATE`), wersją schematu, retencją 800 dni (cron, małe partie) i sprzątaniem przy odinstalowaniu (`uninstall.php`). Kolektor po stronie serwera pomija boty (lista UA, HEAD, prerender, prefetch z wyników wyszukiwarki), zalogowanych, podglądy, REST i AJAX, a boty liczy osobno. Odwiedzający to dzienny szacunek (HMAC z losowym sekretem na dzień, skróty żyją do ok. 25 h, do statystyk trafia tylko liczba), nigdy „unikalni w miesiącu”. Zapisuje klasę i domenę źródła, klasę urządzenia, godziny, wejścia z zewnątrz i adresy 404 ze stroną z błędnym linkiem. Bez IP, pełnego UA, pełnych adresów i parametrów (poza UTM z listy).
+- **Dziennik odsłon dla stron z cache całych stron:** gdy cache omija PHP, mały skrypt (bez ciasteczek i pamięci przeglądarki, jedno wysłanie na odsłonę) wysyła ścieżkę do lekkiego odbiornika bez WordPressa (`includes/colorify-beacon.php`); pliki godzinowe są chronione i agregowane cronem. Na stronach bez cache skrypt się nie ładuje. Zawsze jedno źródło odsłon na instalację.
+- **Migracja:** historia starego licznika (`colorify_visits`) przeniesiona jako metoda „legacy”; każdy dzień ma zapisaną metodę, raporty nigdy nie sumują dwóch metod. WP-CLI: `wp colorify-analytics status | migrate | purge [--dry-run] | beacon <auto|on|off>`.
+- **Panel ruchu i szczegóły (`includes/colorify-dashboard-insights.php`):** zakresy 7 / 30 / 90 / 365 dni i własne daty, wykres odsłon (dni / tygodnie, tabela dla czytnika), wszystkie strony z udziałem i zmianą, źródła, urządzenia, siatka dzień × godzina, adresy 404 z podpowiedzią naprawy, karta jakości danych („za mało danych” poniżej 50 odsłon). Klik w liczbę albo stronę otwiera szczegóły (`admin.php?page=colorify-ruch`). Gdy nowa metoda nie ma jeszcze pełnego dnia, bloki doliczają dzień bieżący z podpisem.
+- **Moduły widoków:** każdy widok zaczyna się własnym modułem z danych, które WordPress już ma. Firma: aktualizacje, kondycja witryny, ostatnia kopia zapasowa, dane kontaktowe, uszkodzone linki. Zapytania: sprawy i czas oczekiwania, lejek zgłoszenie → odpowiedź → umowa → realizacja (z wtyczki zleceń przez `colorify_insights_*` albo automatycznie z zapisanych zgłoszeń formularzy). Redakcja, Portfolio, Sprzedaż: własne zestawy.
+- **Zasada interfejsu:** kokpit nie pokazuje użytkownikowi nazw filtrów, funkcji ani wtyczek do skonfigurowania. Bez danych: zwykłe zdanie albo brak modułu; informacje techniczne tylko dla właściciela, zwinięte.
+- **Telefon i tryb ciemny:** panel ruchu bez poziomego przewijania od 320 px, cele dotyku 44 px, tabela stron w dwóch kolumnach na telefonie; w trybie ciemnym cienka siatka wykresu, widoczne pola i puste karty, neutralne obrysy przycisków planera zamiast zielonych.
+
 ## 2.14.2
 
 Kalendarz kokpitu: zaznaczanie dni i blokowanie kilku naraz.
