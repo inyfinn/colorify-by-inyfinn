@@ -1,5 +1,10 @@
 # Historia zmian
 
+## 2.15.2
+
+- Analityka: migracja starego licznika (`wp colorify-analytics migrate` i przebieg cronu) pomija dni już ostateczne, więc nie cofa ręcznych korekt (np. usunięcia odsłon testowych).
+- Kokpit: panel ruchu dolicza dzień bieżący, gdy nowa metoda pomiaru nie ma jeszcze pełnego dnia; teksty stanów pustych bez nazw filtrów i wtyczek.
+
 ## 2.15.1
 
 - Moduł analityki ładuje się z pliku głównego wtyczki (w 2.15.0 brakowało `require_once` i bez tymczasowego mu-pluginu kolektor oraz `wp colorify-analytics` nie działały).
