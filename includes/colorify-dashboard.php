@@ -1255,6 +1255,7 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-fold[open]>.cfd-fold__s{margin-bottom:20px}
 .cfd-fold[open]>.cfd-fold__s svg{transform:rotate(180deg)}
 .cfd-fold__s:focus-visible{outline:1px solid var(--a);outline-offset:2px}
+.cfd-fold .cfi-head .cfi-h2{display:none}
 .cfd-head{position:relative}
 <?php echo self::pick_css(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- stały arkusz. ?>
 @media (prefers-reduced-motion:reduce){.cfd-view__a,.cfd-quick__a,.cfd-vpick__btn svg{transition:none}}
