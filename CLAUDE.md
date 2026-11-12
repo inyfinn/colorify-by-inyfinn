@@ -39,3 +39,10 @@ i przy każdej nowej stronie, która go używa:
 - Testy: `node tools/test-tresci.mjs` (numerowanie wierszy list w panelu), `php -l` każdego zmienionego pliku PHP.
 - Wyrażenia regularne w JS/PHP pisane przez narzędzia agenta: po zapisie sprawdź, czy ukośniki przeżyły (`node --check`,
   `php -l`, test). W 2.11–2.12 zgubiony ukośnik w regexie listy sprawił, że zmiany list z panelu nie zapisywały się.
+
+## Kokpit: język dla użytkownika (twarda zasada, 12.11.2026)
+
+Kokpit NIGDY nie pokazuje użytkownikowi nazw filtrów, funkcji ani wtyczek do skonfigurowania ani poleceń typu "podaj", "zarejestruj", "włącz". Użytkownik nic nie konfiguruje, moduł ma sam znaleźć dane (wtyczka rezerwacji, zapisane zgłoszenia formularza, zamówienia, wpisy, biblioteka mediów).
+Gdy danych nie ma: albo moduł się nie pokazuje, albo jedno zdanie po ludzku ("Tu pojawią się zapytania z formularza, gdy ktoś napisze."). Nigdy zero w miejsce braku pomiaru.
+Instrukcja techniczna (nazwy filtrów, wymagane dane) tylko dla właściciela wtyczki (colorify_jest_wlascicielem()), w zwiniętym bloku "Dla administratora".
+Dotyczy każdego tekstu w includes/colorify-dashboard*.php i colorify-dashboard-insights.php.
