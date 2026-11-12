@@ -1,5 +1,16 @@
 # Historia zmian
 
+## 2.14.1
+
+Kokpit: zlecenia zwinięte do jednego wiersza, zrozumiały zablokowany dzień, widoczny główny skrót i przełącznik widoku na kokpicie.
+
+- Lista „Najbliższe” (styl „Kalendarz zleceń”): jeden wiersz na zlecenie zamiast osobnego wiersza na każde zadanie pary. Wiersz zlecenia jest mocniejszy od reszty (blok w tonie karty, data na pełnym akcencie, większa nazwa) i pokazuje datę, ile dni zostało, liczbę zadań i najbliższe z nich. Klik albo Enter rozwija zadania zlecenia po kolei, z samym zleceniem na swoim miejscu w czasie; status („Zadatek wpłacony”) stoi raz, w nagłówku rozwinięcia, obok „Otwórz zlecenie”. Wydarzenia bez zlecenia (zablokowany dzień, luźny kontakt) zostają zwykłymi wierszami. Grupowanie idzie po polu `id` wydarzenia; wtyczka, która go nie podaje, dostaje listę jak dotąd.
+- Zablokowany dzień: karta mówi, co to jest („Tego dnia nie przyjmujesz zleceń”), zamiast „Skopiuj informacje” i „Otwórz zlecenie” ma „Otwórz terminarz”, a legenda i listy nazywają go „Dzień zablokowany”. Nowe opcjonalne pola wydarzenia w filtrze `colorify_calendar_events`: `short` (krótka nazwa na chip w siatce miesiąca), `info` (zdanie wyjaśnienia w karcie) i `actions` (własne przyciski karty: odnośnik albo formularz POST z ukrytymi polami i pytaniem przed wysłaniem, tylko na adres panelu tej strony). Najwęższa siatka miesiąca (1024–1099 px) ma węższe marginesy, żeby „Zablokowany” mieścił się bez wielokropka.
+- Pierwszy kafel paska skrótów (np. „Wiadomości” w stylu „Zapytania”) jest wypełniony kolorem akcentu. Wcześniej miał 10% akcentu na bieli, czyli prawie kolor tła strony, i znikał.
+- Przełącznik widoku na kokpicie: przycisk „Widok: …” w prawym górnym rogu i pełna lista na dole, przy każdym widoku jedno zdanie, co daje, i co na nim widać. Klik zmienia widok tylko klikającemu (meta użytkownika, odnośnik z nonce), po przełączeniu jest potwierdzenie z odnośnikiem „Wróć do widoku…”. Właściciel Colorify ma dodatkowo „Ustaw … jako domyślny” (styl dla kont bez własnego wyboru; to ta sama opcja co w Ustawieniach). Widok, którego strona nie obsłuży (Sprzedaż bez WooCommerce, Kalendarz i Rezerwacje bez wtyczki zleceń), jest widoczny, wyszarzony, z wyjaśnieniem. Klasyczny kokpit wybrany jako własny widok dostaje widżet z drogą powrotną.
+- Ustawienia, Colorify, „Styl kokpitu”: te same opisy (korzyść i co widać); najechanie albo fokus na innym stylu pokazuje jego opis przed wyborem.
+- Arkusz i skrypt planera mają wersję z czasem pliku, jak panel Treści strony.
+
 ## 2.14.0
 
 Edytor treści: przełączniki tylko dla właściciela Colorify i klik w podglądzie prowadzi prosto do pola.

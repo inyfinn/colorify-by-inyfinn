@@ -1590,6 +1590,27 @@
 
 	/* Styl panelu (Ustawienia, Colorify): zapis od razu i przeładowanie, bo zmienia arkusz całego panelu. */
 	function initStyleSwitch() {
+		// Styl kokpitu: opis stylu pod kursorem albo fokusem (korzyść i co widać), po odejściu wraca opis wybranego.
+		var dashHint = d.getElementById( 'colorify-dash-hint' );
+		var dashHome = dashHint ? dashHint.innerHTML : '';
+		$$( '.colorify-dash-seg .colorify-seg__opt' ).forEach( function ( opt ) {
+			function showHint() {
+				dashHint.textContent = '';
+				var b = d.createElement( 'strong' );
+				b.textContent = opt.getAttribute( 'data-name' ) + '.';
+				dashHint.appendChild( b );
+				dashHint.appendChild( d.createTextNode( ' ' + opt.getAttribute( 'data-hint' ) ) );
+			}
+			function homeHint() {
+				dashHint.innerHTML = dashHome; // eslint-disable-line no-unsanitized/property -- własna treść serwera, odczytana przy starcie
+			}
+			if ( dashHint ) {
+				opt.addEventListener( 'mouseenter', showHint );
+				opt.addEventListener( 'focusin', showHint );
+				opt.addEventListener( 'mouseleave', homeHint );
+				opt.addEventListener( 'focusout', homeHint );
+			}
+		} );
 		$$( 'input[name="colorify_admin_style"], input[name="colorify_dashboard_style"]' ).forEach( function ( input ) {
 			input.addEventListener( 'change', function () {
 				var form = input.closest( 'form' );

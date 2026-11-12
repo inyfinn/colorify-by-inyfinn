@@ -108,10 +108,15 @@
 		return { y: parseInt( p[ 0 ], 10 ), m: parseInt( p[ 1 ], 10 ) - 1 };
 	}
 
-	/** Tekst na chipie: wesele to para, przypomnienie to samo zadanie ("Imiona: co zrobić" ma pełny tekst w karcie). */
+	/** Tekst na chipie: krótka nazwa od wtyczki, wesele to para, przypomnienie to samo zadanie ("Imiona: co zrobić" ma pełny tekst w karcie). */
 	function who( e ) {
 		var k = e.title.indexOf( ': ' );
-		return 'wesele' !== e.type && k > 0 ? e.title.slice( k + 2 ) : e.title;
+		return e.short || ( 'wesele' !== e.type && k > 0 ? e.title.slice( k + 2 ) : e.title );
+	}
+
+	/** Tytuł równy nazwie rodzaju (np. "Dzień zablokowany") wystarczy raz. */
+	function sameAsKind( e ) {
+		return String( e.tl ).toLowerCase() === String( e.title ).toLowerCase();
 	}
 
 	function chip( e, full ) {
@@ -119,7 +124,7 @@
 		b.type = 'button';
 		b.setAttribute( 'data-ev', e.i );
 		b.setAttribute( 'aria-haspopup', 'dialog' );
-		b.setAttribute( 'aria-label', e.tl + ': ' + e.title + ', ' + e.long );
+		b.setAttribute( 'aria-label', ( sameAsKind( e ) ? '' : e.tl + ': ' ) + e.title + ', ' + e.long );
 		b.appendChild( icon( { wesele: 'ring', kontakt: 'phone', oddanie: 'box', blokada: 'lock', przygotowanie: 'list', przypomnienie: 'bell' }[ e.type ] || 'bell' ) );
 		b.appendChild( el( 'span', 'cfb-ev__t', full ? e.title : who( e ) ) );
 		return b;
@@ -480,6 +485,14 @@
 	}, true );
 
 	root.addEventListener( 'click', function ( ev ) {
+		// Wiersz zlecenia na liście "Najbliższe": rozwija i zwija jego zadania.
+		var g = ev.target.closest ? ev.target.closest( '[data-cfb-grp]' ) : null;
+		if ( g ) {
+			var show = 'true' !== g.getAttribute( 'aria-expanded' );
+			g.setAttribute( 'aria-expanded', show ? 'true' : 'false' );
+			document.getElementById( g.getAttribute( 'aria-controls' ) ).hidden = ! show;
+			return;
+		}
 		var b = ev.target.closest ? ev.target.closest( '[data-cfb-showall]' ) : null;
 		if ( b ) {
 			var open = 'true' !== b.getAttribute( 'aria-expanded' );
@@ -671,7 +684,7 @@
 		var ti = el( 'span', 'cfb-tico is-lg cfb-tico--' + e.type );
 		ti.appendChild( icon( { wesele: 'ring', kontakt: 'phone', oddanie: 'box', blokada: 'lock', przygotowanie: 'list', przypomnienie: 'bell' }[ e.type ] || 'bell' ) );
 		top.appendChild( ti );
-		top.appendChild( el( 'span', 'cfb-card__type', e.tl ) );
+		top.appendChild( el( 'span', 'cfb-card__type', sameAsKind( e ) ? '' : e.tl ) );
 		var set = undefined !== e.sx && cfg.statusSets ? cfg.statusSets[ e.sx ] : null;
 		if ( set && e.id ) {
 			top.appendChild( statusControl( e, set ) );
@@ -692,6 +705,9 @@
 		h.setAttribute( 'aria-level', '3' );
 		card.appendChild( h );
 		card.appendChild( el( 'p', 'cfb-card__when', e.long + '\u00a0· ' + e.rel ) );
+		if ( e.info ) {
+			card.appendChild( el( 'p', 'cfb-card__info', e.info ) );
+		}
 		if ( e.rows && e.rows.length ) {
 			var dl = el( 'dl', 'cfb-dl' );
 			e.rows.forEach( function ( r ) {
@@ -714,14 +730,63 @@
 			card.appendChild( dl );
 		}
 		var actions = el( 'div', 'cfb-actions' );
-		actions.appendChild( copyButton( e, 'is-main' ) );
-		if ( e.url ) {
-			var open = el( 'a', 'cfb-btn' );
-			open.href = e.url;
-			open.appendChild( icon( 'ext' ) );
-			open.appendChild( el( 'span', '', T.open ) );
-			actions.appendChild( open );
+		var blocked = 'blokada' === e.type; // zablokowany dzień nie jest zleceniem: nie ma czego kopiować ani "otwierać zlecenia"
+		if ( e.acts ) {
+			e.acts.forEach( function ( a, k ) {
+				actions.appendChild( actionButton( a, 0 === k ) );
+			} );
+		} else {
+			if ( ! blocked ) {
+				actions.appendChild( copyButton( e, 'is-main' ) );
+			}
+			if ( e.url ) {
+				var open = el( 'a', 'cfb-btn' + ( blocked ? ' is-main' : '' ) );
+				open.href = e.url;
+				open.appendChild( icon( blocked ? 'calendar' : 'ext' ) );
+				open.appendChild( el( 'span', '', blocked ? T.openCal : T.open ) );
+				actions.appendChild( open );
+			}
+			defaultContact( e, actions );
 		}
+		if ( actions.children.length ) {
+			card.appendChild( actions );
+		}
+		cardNav( e );
+	}
+
+	/** Przycisk od wtyczki: odnośnik albo formularz POST z ukrytymi polami (np. admin-post.php z nonce wtyczki). */
+	function actionButton( a, main ) {
+		var cls = 'cfb-btn' + ( main ? ' is-main' : '' );
+		var b = el( a.p && Object.keys( a.p ).length ? 'button' : 'a', cls );
+		if ( a.i && cfg.icons[ a.i ] ) {
+			b.appendChild( icon( a.i ) );
+		}
+		b.appendChild( el( 'span', '', a.l ) );
+		if ( 'A' === b.tagName ) {
+			b.href = a.u;
+			return b;
+		}
+		var f = el( 'form', 'cfb-act' + ( main ? ' is-main' : '' ) );
+		f.method = 'post';
+		f.action = a.u;
+		Object.keys( a.p ).forEach( function ( name ) {
+			var i = el( 'input' );
+			i.type = 'hidden';
+			i.name = name;
+			i.value = a.p[ name ];
+			f.appendChild( i );
+		} );
+		b.type = 'submit';
+		f.appendChild( b );
+		f.addEventListener( 'submit', function ( ev ) {
+			if ( a.c && ! window.confirm( a.c ) ) {
+				ev.preventDefault();
+			}
+		} );
+		return f;
+	}
+
+	function defaultContact( e, actions ) {
 		if ( e.phone ) {
 			var call = el( 'a', 'cfb-btn' );
 			call.href = 'tel:' + e.phone.replace( /[^\d+]/g, '' );
@@ -738,7 +803,9 @@
 			rt.appendChild( el( 'span', '', T.route ) );
 			actions.appendChild( rt );
 		}
-		card.appendChild( actions );
+	}
+
+	function cardNav( e ) {
 		var pos = navPos[ e.i ];
 		if ( navList.length > 1 && undefined !== pos ) {
 			var nav = el( 'div', 'cfb-card__nav' );

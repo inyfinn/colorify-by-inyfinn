@@ -67,43 +67,262 @@ final class Colorify_Dashboard {
 		add_action( 'template_redirect', array( __CLASS__, 'count_visit' ), 99 );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'setup' ), PHP_INT_MAX );
 		add_action( 'current_screen', array( __CLASS__, 'quiet_screen' ) );
+		add_action( 'load-index.php', array( __CLASS__, 'switch_view' ) );
+		add_filter( 'removable_query_args', static function ( $args ) { $args[] = 'cfd_done'; return $args; } );
 	}
 
+	/** Styl domyślny strony (Ustawienia, Colorify): dostają go wszystkie konta bez własnego wyboru. */
 	public static function style(): string {
 		$s = (string) get_option( self::OPTION, 'classic' );
 		return in_array( $s, self::STYLES, true ) ? $s : 'classic';
 	}
 
-	/** @return array<string,array{0:string,1:string}> klucz => [nazwa, opis] */
+	/** Styl tego konta: własny wybór z przełącznika na kokpicie (meta użytkownika), a bez niego styl domyślny strony. */
+	public static function user_style(): string {
+		$own = (string) get_user_meta( get_current_user_id(), self::OPTION, true );
+		return in_array( $own, self::STYLES, true ) ? $own : self::style();
+	}
+
+	/**
+	 * Opisy stylów dla człowieka, który wybiera: co mu dany widok daje i co na nim zobaczy.
+	 *
+	 * @return array<string,array{0:string,1:string,2:array<int,string>}> klucz => [nazwa, korzyść jednym zdaniem, trzy rzeczy na ekranie]
+	 */
 	public static function labels(): array {
 		return array(
-			'classic'   => array( __( 'Klasyczny', 'colorify-by-inyfinn' ), __( 'Kokpit WordPressa z widżetami.', 'colorify-by-inyfinn' ) ),
-			'sales'     => array( __( 'Sprzedaż', 'colorify-by-inyfinn' ), __( 'Sklep: przychód, zamówienia do realizacji, płatności, magazyn.', 'colorify-by-inyfinn' ) ),
-			'leads'     => array( __( 'Zapytania', 'colorify-by-inyfinn' ), __( 'Usługi: wiadomości z formularzy, popularne podstrony.', 'colorify-by-inyfinn' ) ),
-			'editorial' => array( __( 'Redakcja', 'colorify-by-inyfinn' ), __( 'Blog: komentarze, zaplanowane wpisy, szkice, czytane.', 'colorify-by-inyfinn' ) ),
-			'company'   => array( __( 'Firma', 'colorify-by-inyfinn' ), __( 'Wizytówka: kondycja strony, aktualizacje, tłumaczenia.', 'colorify-by-inyfinn' ) ),
-			'calendar'  => array( __( 'Kalendarz zleceń', 'colorify-by-inyfinn' ), __( 'Terminarz: miesiąc z wydarzeniami, najbliższe zlecenia, liczby (dane podaje wtyczka zleceń).', 'colorify-by-inyfinn' ) ),
-			'bookings'  => array( __( 'Rezerwacje', 'colorify-by-inyfinn' ), __( 'Usługi na zamówienie: etapy zleceń, wartość, najbliższy termin (dane podaje wtyczka zleceń).', 'colorify-by-inyfinn' ) ),
-			'portfolio' => array( __( 'Portfolio', 'colorify-by-inyfinn' ), __( 'Twórca: ostatnio dodane zdjęcia, strony, wejścia.', 'colorify-by-inyfinn' ) ),
+			'classic'   => array( __( 'Klasyczny', 'colorify-by-inyfinn' ), __( 'Zwykły kokpit WordPressa: widżety w układzie, który ustawiasz samodzielnie.', 'colorify-by-inyfinn' ), array( __( 'widżety WordPressa', 'colorify-by-inyfinn' ), __( 'widżety wtyczek', 'colorify-by-inyfinn' ), __( 'własny układ', 'colorify-by-inyfinn' ) ) ),
+			'sales'     => array( __( 'Sprzedaż', 'colorify-by-inyfinn' ), __( 'Od razu wiesz, ile sklep zarobił i co trzeba wysłać.', 'colorify-by-inyfinn' ), array( __( 'przychód dzień po dniu', 'colorify-by-inyfinn' ), __( 'zamówienia do realizacji', 'colorify-by-inyfinn' ), __( 'kończące się produkty', 'colorify-by-inyfinn' ) ) ),
+			'leads'     => array( __( 'Zapytania', 'colorify-by-inyfinn' ), __( 'Żadna wiadomość z formularza nie umknie, a obok widzisz, ilu ludzi zagląda na stronę.', 'colorify-by-inyfinn' ), array( __( 'nowe wiadomości', 'colorify-by-inyfinn' ), __( 'wejścia na stronę', 'colorify-by-inyfinn' ), __( 'popularne podstrony', 'colorify-by-inyfinn' ) ) ),
+			'editorial' => array( __( 'Redakcja', 'colorify-by-inyfinn' ), __( 'Pilnujesz bloga: co czeka na publikację, co na dokończenie i co ludzie czytają.', 'colorify-by-inyfinn' ), array( __( 'zaplanowane wpisy', 'colorify-by-inyfinn' ), __( 'szkice do dokończenia', 'colorify-by-inyfinn' ), __( 'najczęściej czytane', 'colorify-by-inyfinn' ) ) ),
+			'company'   => array( __( 'Firma', 'colorify-by-inyfinn' ), __( 'Jednym rzutem oka sprawdzasz, czy strona jest zdrowa i aktualna.', 'colorify-by-inyfinn' ), array( __( 'kondycja witryny', 'colorify-by-inyfinn' ), __( 'aktualizacje', 'colorify-by-inyfinn' ), __( 'ostatnio zmieniane strony', 'colorify-by-inyfinn' ) ) ),
+			'calendar'  => array( __( 'Kalendarz zleceń', 'colorify-by-inyfinn' ), __( 'Cały miesiąc na jednym ekranie: wiesz, co i kiedy Cię czeka.', 'colorify-by-inyfinn' ), array( __( 'kalendarz z wydarzeniami', 'colorify-by-inyfinn' ), __( 'najbliższe zlecenie ze szczegółami', 'colorify-by-inyfinn' ), __( 'zlecenia z zadaniami', 'colorify-by-inyfinn' ) ) ),
+			'bookings'  => array( __( 'Rezerwacje', 'colorify-by-inyfinn' ), __( 'Widzisz, na jakim etapie jest każde zlecenie i ile jest warte.', 'colorify-by-inyfinn' ), array( __( 'etapy zleceń z kwotami', 'colorify-by-inyfinn' ), __( 'najbliższy termin', 'colorify-by-inyfinn' ), __( 'kolejne zlecenia', 'colorify-by-inyfinn' ) ) ),
+			'portfolio' => array( __( 'Portfolio', 'colorify-by-inyfinn' ), __( 'Twoje prace na wierzchu: co doszło ostatnio i co oglądają odwiedzający.', 'colorify-by-inyfinn' ), array( __( 'ostatnio dodane zdjęcia', 'colorify-by-inyfinn' ), __( 'najczęściej oglądana strona', 'colorify-by-inyfinn' ), __( 'wejścia na stronę', 'colorify-by-inyfinn' ) ) ),
 		);
+	}
+
+	/** Tekst do wyświetlenia: jednoliterowe wyrazy (a, i, o, u, w, z) trzymają się następnego słowa twardą spacją. */
+	public static function nb( string $text ): string {
+		return (string) preg_replace( '/(^| )([aiouwzAIOUWZ]) /u', '$1$2' . "\u{00A0}", $text );
+	}
+
+	/** "Zobaczysz: a, b, c" dla stylu (przełącznik na kokpicie i Ustawienia, Colorify). */
+	public static function see_line( string $s ): string {
+		$l = self::labels();
+		/* translators: %s: lista rzeczy na ekranie */
+		return isset( $l[ $s ] ) ? self::nb( sprintf( __( 'Zobaczysz: %s.', 'colorify-by-inyfinn' ), implode( ', ', $l[ $s ][2] ) ) ) : '';
+	}
+
+	/** Pełny opis stylu dla Ustawień, Colorify: korzyść, co widać i (gdy strona go nie obsłuży) dlaczego będzie pusty. */
+	public static function hint( string $s ): string {
+		$l = self::labels();
+		return isset( $l[ $s ] ) ? trim( self::nb( $l[ $s ][1] ) . ' ' . self::see_line( $s ) . ' ' . self::nb( self::missing( $s ) ) ) : '';
+	}
+
+	/** Czy to konto ma uprawnienia do danych, które styl pokazuje. */
+	private static function allowed( string $s ): bool {
+		if ( 'classic' === $s ) {
+			return true;
+		}
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return false;
+		}
+		if ( 'sales' === $s ) {
+			return current_user_can( 'manage_woocommerce' );
+		}
+		if ( in_array( $s, array( 'leads', 'company', 'calendar', 'bookings' ), true ) ) {
+			return current_user_can( 'manage_options' );
+		}
+		return 'portfolio' !== $s || current_user_can( 'upload_files' );
+	}
+
+	/** Dlaczego styl nie zadziała na tej stronie (zdanie dla człowieka); pusty tekst, gdy działa. */
+	private static function missing( string $s ): string {
+		if ( 'sales' === $s && ! function_exists( 'wc_get_orders' ) ) {
+			return __( 'Na tej stronie nie ma sklepu WooCommerce, więc nie byłoby czego pokazać.', 'colorify-by-inyfinn' );
+		}
+		if ( in_array( $s, array( 'calendar', 'bookings' ), true ) && ! self::plan_has_provider() ) {
+			return __( 'Na tej stronie nie ma wtyczki zleceń, która podaje terminy, więc widok byłby pusty.', 'colorify-by-inyfinn' );
+		}
+		return '';
 	}
 
 	/** Motyw, który ten użytkownik naprawdę zobaczy (bez uprawnień do danych: klasyczny). */
 	private static function effective(): string {
-		$s = self::style();
-		if ( 'classic' === $s || ! current_user_can( 'edit_posts' ) ) {
-			return 'classic';
+		$s = self::user_style();
+		return ( self::allowed( $s ) && ! ( 'sales' === $s && ! function_exists( 'wc_get_orders' ) ) ) ? $s : 'classic';
+	}
+
+	/* ===================== Przełącznik widoku (prawy górny róg i dół kokpitu) ===================== */
+
+	/** Odnośnik z nonce: własny widok tego konta albo (właściciel Colorify) styl domyślny strony. */
+	private static function view_url( string $s, bool $all = false ): string {
+		return wp_nonce_url( add_query_arg( $all ? 'cfd_view_all' : 'cfd_view', $s, admin_url( 'index.php' ) ), $all ? 'colorify_dash_view_all' : 'colorify_dash_view' );
+	}
+
+	/** Styl domyślny strony: dla kont bez własnego wyboru. Własne wybory kont zostają nietknięte. */
+	private static function set_global( string $s ): void {
+		update_option( self::OPTION, $s );
+		foreach ( array( 7, 30, 90 ) as $d ) {
+			delete_transient( 'colorify_dash_sales_' . $d );
+			delete_transient( 'colorify_dash_leads_' . $d );
 		}
-		if ( 'sales' === $s && ( ! function_exists( 'wc_get_orders' ) || ! current_user_can( 'manage_woocommerce' ) ) ) {
-			return 'classic';
+	}
+
+	/**
+	 * Klik w przełączniku: ?cfd_view=<styl> zmienia widok tylko klikającemu (meta użytkownika; wybór równy domyślnemu
+	 * kasuje metę, czyli konto znów idzie za domyślnym), ?cfd_view_all=<styl> ustawia styl domyślny strony (tylko
+	 * właściciel Colorify). Po zapisie powrót na kokpit; cfd_done niesie poprzedni styl do "Wróć".
+	 */
+	public static function switch_view(): void {
+		$all = isset( $_GET['cfd_view_all'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nonce sprawdzany niżej.
+		if ( ! $all && ! isset( $_GET['cfd_view'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
 		}
-		if ( in_array( $s, array( 'leads', 'company', 'calendar', 'bookings' ), true ) && ! current_user_can( 'manage_options' ) ) {
-			return 'classic';
+		check_admin_referer( $all ? 'colorify_dash_view_all' : 'colorify_dash_view' );
+		$s    = sanitize_key( (string) wp_unslash( $_GET[ $all ? 'cfd_view_all' : 'cfd_view' ] ) );
+		$prev = self::user_style();
+		$done = '';
+		if ( in_array( $s, self::STYLES, true ) && self::allowed( $s ) && '' === self::missing( $s ) ) {
+			if ( ! $all ) {
+				if ( $s === self::style() ) {
+					delete_user_meta( get_current_user_id(), self::OPTION );
+				} else {
+					update_user_meta( get_current_user_id(), self::OPTION, $s );
+				}
+				$done = $prev !== $s ? $prev : '';
+			} elseif ( current_user_can( 'manage_options' ) && function_exists( 'colorify_jest_wlascicielem' ) && colorify_jest_wlascicielem() ) {
+				self::set_global( $s );
+				delete_user_meta( get_current_user_id(), self::OPTION ); // własny wybór właściciela stał się domyślnym
+				$done = 'all';
+			}
 		}
-		if ( 'portfolio' === $s && ! current_user_can( 'upload_files' ) ) {
-			return 'classic';
+		wp_safe_redirect( '' !== $done ? add_query_arg( 'cfd_done', $done, admin_url( 'index.php' ) ) : admin_url( 'index.php' ) );
+		exit;
+	}
+
+	/** Potwierdzenie po przełączeniu (tekst z odnośnikiem powrotu, po esc_*); pusty, gdy nic się właśnie nie zmieniło. */
+	private static function view_flash(): string {
+		$done = isset( $_GET['cfd_done'] ) ? sanitize_key( (string) wp_unslash( $_GET['cfd_done'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tylko komunikat.
+		$l    = self::labels();
+		$now  = self::user_style();
+		if ( 'all' === $done ) {
+			/* translators: %s: nazwa widoku */
+			return esc_html( self::nb( sprintf( __( 'Widok „%s” jest teraz domyślny: dostają go wszystkie konta bez własnego wyboru.', 'colorify-by-inyfinn' ), $l[ $now ][0] ) ) );
 		}
-		return $s;
+		if ( ! isset( $l[ $done ] ) || $done === $now ) {
+			return '';
+		}
+		/* translators: %s: nazwa widoku */
+		return esc_html( self::nb( sprintf( __( 'Oglądasz widok „%s”. Zmiana dotyczy tylko Twojego konta.', 'colorify-by-inyfinn' ), $l[ $now ][0] ) ) )
+			/* translators: %s: nazwa widoku */
+			. ' <a href="' . esc_url( self::view_url( $done ) ) . '">' . esc_html( sprintf( __( 'Wróć do widoku „%s”', 'colorify-by-inyfinn' ), $l[ $done ][0] ) ) . '</a>';
+	}
+
+	/**
+	 * Style do pokazania temu kontu, w stałej kolejności: najpierw działające, potem te, których strona nie obsłuży
+	 * (z powodem). Stylu, do którego konto nie ma uprawnień, nie pokazujemy wcale.
+	 *
+	 * @return array<int,array{key:string,name:string,desc:string,see:string,why:string,current:bool,shared:bool}>
+	 */
+	private static function views(): array {
+		$l   = self::labels();
+		$now = self::effective();
+		$on  = array();
+		$off = array();
+		foreach ( array( 'calendar', 'bookings', 'leads', 'portfolio', 'sales', 'editorial', 'company', 'classic' ) as $s ) {
+			$why = self::missing( $s );
+			if ( '' === $why && ! self::allowed( $s ) ) {
+				continue;
+			}
+			$row = array( 'key' => $s, 'name' => $l[ $s ][0], 'desc' => self::nb( $l[ $s ][1] ), 'see' => self::see_line( $s ), 'why' => self::nb( $why ), 'current' => $s === $now, 'shared' => $s === self::style() );
+			if ( '' === $why ) {
+				$on[] = $row;
+			} else {
+				$off[] = $row;
+			}
+		}
+		return array_merge( $on, $off );
+	}
+
+	/** Plakietka przy widoku: Twój widok, Domyślny (styl strony dla kont bez własnego wyboru), Niedostępny tutaj. */
+	private static function view_tag( array $v ): string {
+		$tag = $v['current'] ? __( 'Twój widok', 'colorify-by-inyfinn' ) : ( '' !== $v['why'] ? __( 'Niedostępny tutaj', 'colorify-by-inyfinn' ) : ( $v['shared'] ? __( 'Domyślny', 'colorify-by-inyfinn' ) : '' ) );
+		return '' !== $tag ? '<span class="cfd-view__tag">' . esc_html( $tag ) . '</span>' : '';
+	}
+
+	/**
+	 * Widok jako pozycja listy: bieżący i niedostępny są zwykłym blokiem (z wyjaśnieniem), pozostałe odnośnikiem z nonce.
+	 *
+	 * @param array<string,mixed> $v    Wiersz z views().
+	 * @param bool                $full Pełna karta (z "Zobaczysz: ...") czy zwarta pozycja menu.
+	 */
+	private static function view_item( array $v, bool $full ): string {
+		$in = '<span class="cfd-view__top"><strong class="cfd-view__name">' . esc_html( $v['name'] ) . '</strong>' . self::view_tag( $v ) . '</span>'
+			. '<span class="cfd-view__desc">' . esc_html( $v['desc'] ) . '</span>'
+			. ( $full || '' !== $v['why'] ? '<span class="cfd-view__see">' . esc_html( '' !== $v['why'] ? $v['why'] : $v['see'] ) . '</span>' : '' );
+		if ( $v['current'] ) {
+			return '<li><div class="cfd-view__a is-current" aria-current="true">' . $in . '</div></li>';
+		}
+		if ( '' !== $v['why'] ) {
+			return '<li><div class="cfd-view__a is-off">' . $in . '</div></li>';
+		}
+		return '<li><a class="cfd-view__a" href="' . esc_url( self::view_url( $v['key'] ) ) . '">' . $in . '</a></li>';
+	}
+
+	/** Prawy górny róg kokpitu: przycisk "Widok: <nazwa>" z listą widoków (nazwa i korzyść); pełne opisy są na dole. */
+	private static function view_pick(): string {
+		$views = self::views();
+		if ( count( $views ) < 2 ) {
+			return '';
+		}
+		$now = self::labels()[ self::effective() ][0];
+		$out = '<details class="cfd-vpick"><summary class="cfd-vpick__btn"><span>' . esc_html__( 'Widok:', 'colorify-by-inyfinn' ) . '</span> <strong>' . esc_html( $now ) . '</strong>' . self::icon_svg( 'chev' ) . '</summary>'
+			. '<div class="cfd-vpick__menu"><p class="cfd-vpick__t">' . esc_html( self::nb( __( 'Zmiana dotyczy tylko Twojego konta.', 'colorify-by-inyfinn' ) ) ) . '</p><ul class="cfd-vpick__list">';
+		foreach ( $views as $v ) {
+			$out .= self::view_item( $v, false );
+		}
+		return $out . '</ul><a class="cfd-vpick__more" href="#cfd-view">' . esc_html( self::nb( __( 'Zobacz, co pokazuje każdy widok', 'colorify-by-inyfinn' ) ) ) . '</a></div></details>';
+	}
+
+	/** Dół kokpitu: każdy widok z nazwą, korzyścią i tym, co na nim jest; klik zmienia widok tylko klikającemu. */
+	private static function view_switch(): string {
+		$views = self::views();
+		if ( count( $views ) < 2 ) {
+			return '';
+		}
+		$l      = self::labels();
+		$shared = self::style();
+		$now    = self::effective();
+		$out    = '<section class="cfd-view" id="cfd-view" aria-labelledby="cfd-view-t"><h2 class="cfd-view__title" id="cfd-view-t">' . esc_html__( 'Widok kokpitu', 'colorify-by-inyfinn' ) . '</h2>'
+			. '<p class="cfd-view__lead">' . esc_html( self::nb( __( 'Wybierz, co chcesz widzieć po wejściu do panelu. Klik zmienia widok tylko na Twoim koncie, pozostałe osoby zostają przy swoim.', 'colorify-by-inyfinn' ) ) ) . '</p><ul class="cfd-view__list">';
+		foreach ( $views as $v ) {
+			$out .= self::view_item( $v, true );
+		}
+		$out .= '</ul>';
+		if ( $now !== $shared ) {
+			/* translators: %s: nazwa widoku */
+			$out .= '<p class="cfd-view__all"><span>' . esc_html( self::nb( sprintf( __( 'Domyślny widok strony to „%s”: dostają go konta bez własnego wyboru.', 'colorify-by-inyfinn' ), $l[ $shared ][0] ) ) ) . '</span>';
+			if ( '' === self::missing( $now ) && current_user_can( 'manage_options' ) && function_exists( 'colorify_jest_wlascicielem' ) && colorify_jest_wlascicielem() ) {
+				/* translators: %s: nazwa widoku */
+				$out .= '<a class="cfd-view__btn" href="' . esc_url( self::view_url( $now, true ) ) . '">' . esc_html( sprintf( __( 'Ustaw „%s” jako domyślny', 'colorify-by-inyfinn' ), $l[ $now ][0] ) ) . '</a>';
+			}
+			$out .= '</p>';
+		}
+		// Menu z prawego górnego rogu zamyka się po kliknięciu obok i klawiszem Esc (samo otwieranie robi <details>).
+		return $out . '</section><script>(function(){var p=document.querySelector(".cfd-vpick");if(!p)return;document.addEventListener("click",function(e){if(p.open&&(!p.contains(e.target)||e.target.closest(".cfd-vpick__more")))p.open=false});document.addEventListener("keydown",function(e){if("Escape"===e.key&&p.open){p.open=false;p.querySelector("summary").focus()}})})();</script>';
+	}
+
+	/** Klasyczny kokpit WordPressa wybrany jako własny widok: widżet z drogą powrotną (zwykła lista, wygląd WordPressa). */
+	public static function classic_widget(): void {
+		echo '<p>' . esc_html( self::nb( __( 'Oglądasz klasyczny kokpit WordPressa. To Twój własny widok, pozostałe osoby zostają przy swoim.', 'colorify-by-inyfinn' ) ) ) . '</p><ul>';
+		foreach ( self::views() as $v ) {
+			if ( $v['current'] || '' !== $v['why'] ) {
+				continue;
+			}
+			echo '<li><a href="' . esc_url( self::view_url( $v['key'] ) ) . '"><strong>' . esc_html( $v['name'] ) . '</strong></a>' . ( $v['shared'] ? ' (' . esc_html__( 'domyślny', 'colorify-by-inyfinn' ) . ')' : '' ) . '<br>' . esc_html( $v['desc'] ) . '</li>';
+		}
+		echo '</ul>';
 	}
 
 	/* ===================== Licznik wejść ===================== */
@@ -253,6 +472,19 @@ final class Colorify_Dashboard {
 
 	public static function setup(): void {
 		if ( 'classic' === self::effective() ) {
+			// Klasyczny jako własny wybór konta (styl wspólny jest inny): widżet z drogą powrotną i potwierdzenie przełączenia.
+			if ( 'classic' !== self::style() && 'classic' === self::user_style() ) {
+				wp_add_dashboard_widget( 'colorify_dashboard_view', __( 'Widok kokpitu', 'colorify-by-inyfinn' ), array( __CLASS__, 'classic_widget' ) );
+				add_action(
+					'admin_notices',
+					static function () {
+						$flash = self::view_flash();
+						if ( '' !== $flash ) {
+							echo '<div class="notice notice-success is-dismissible"><p>' . $flash . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- tekst po esc_*.
+						}
+					}
+				);
+			}
 			return;
 		}
 		global $wp_meta_boxes;
@@ -427,7 +659,7 @@ final class Colorify_Dashboard {
 			}
 			$out .= '</nav>';
 		}
-		return $out . '</div>';
+		return $out . self::view_pick() . '</div>';
 	}
 
 	/** Pasek ruchu (wspólny dla motywów). */
@@ -477,6 +709,10 @@ final class Colorify_Dashboard {
 		$m    = self::effective();
 		echo '<div class="cfd cfd--' . esc_attr( $m ) . '">';
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- elementy składane z wartości po esc_*.
+		$flash = self::view_flash();
+		if ( '' !== $flash ) {
+			echo '<p class="cfd-flash" role="status">' . $flash . '</p>';
+		}
 		switch ( $m ) {
 			case 'sales':
 				echo self::sales( $days );
@@ -500,8 +736,9 @@ final class Colorify_Dashboard {
 				echo self::portfolio( $days );
 				break;
 		}
+		echo self::view_switch();
 		// phpcs:enable
-		echo '<p class="cfd-note">' . esc_html__( 'Dane odświeżają się co 5 minut. Styl kokpitu zmienisz w Ustawienia, Colorify.', 'colorify-by-inyfinn' ) . '</p></div>';
+		echo '<p class="cfd-note">' . esc_html__( 'Dane odświeżają się co 5 minut.', 'colorify-by-inyfinn' ) . '</p></div>';
 	}
 
 	/* ---------- Motyw: Sprzedaż ---------- */
@@ -1022,7 +1259,9 @@ body.index-php #wpbody-content .notice,body.index-php #wpbody-content .update-na
 .cfd-quick__a{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 18px;border-radius:var(--rc);background:var(--s);color:var(--t);text-decoration:none;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .15s ease,box-shadow .15s ease,color .15s ease}
 .cfd-quick__a:hover{color:var(--a);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,24,40,.08)}
 body.colorify-dark .cfd-quick__a:hover{background:color-mix(in srgb,#fff 5%,var(--s))}
-.cfd-quick__a.is-main{background:color-mix(in srgb,var(--a) 10%,var(--s));color:var(--a)}
+.cfd-quick__a.is-main{background:var(--a);color:var(--on)}
+.cfd .cfd-quick__a.is-main:hover{background:color-mix(in srgb,var(--a) 88%,var(--t));color:var(--on)}
+.cfd-quick__a.is-main .cfd-ico{background:color-mix(in srgb,var(--on) 18%,transparent);color:var(--on)}
 .cfd-card{background:var(--s);border-radius:var(--r);padding:32px 36px;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04));min-width:0}
 .cfd-card__label,.cfd-card__title{margin:0;font-size:15px;font-weight:600;color:var(--t)}
 .cfd-card__label{font-weight:500;color:var(--m)}
@@ -1086,6 +1325,50 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-row-link:hover td{background:color-mix(in srgb,var(--a) 6%,transparent)}
 .cfd-row-link td:first-child{border-radius:min(10px,var(--rc)) 0 0 min(10px,var(--rc))}.cfd-row-link td:last-child{border-radius:0 min(10px,var(--rc)) min(10px,var(--rc)) 0}
 .cfd-empty,.cfd-note{color:var(--m);font-size:13px;margin:0}
+.cfd-flash{margin:0;padding:14px 18px;border-radius:var(--rc);background:var(--s);box-shadow:inset 0 0 0 1.5px var(--a);color:var(--t);font-size:14px;line-height:1.5}
+.cfd-flash a{margin-left:6px;color:var(--a);font-weight:600;white-space:nowrap}
+.cfd-head{position:relative}
+.cfd-vpick{margin-left:auto}
+.cfd-vpick__btn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 16px;border-radius:var(--rc);background:var(--s);color:var(--m);font-size:14px;line-height:1.2;cursor:pointer;list-style:none;box-shadow:0 1px 2px rgba(16,24,40,.04);user-select:none}
+.cfd-vpick__btn::-webkit-details-marker{display:none}
+.cfd-vpick__btn strong{color:var(--t);font-weight:600}
+.cfd-vpick__btn svg{width:16px;height:16px;flex:none;transition:transform .15s ease}
+.cfd-vpick[open] .cfd-vpick__btn svg{transform:rotate(180deg)}
+.cfd-vpick__btn:hover{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--a) 50%,transparent)}
+.cfd-vpick__btn:focus-visible{outline:1px solid var(--a);outline-offset:2px}
+.cfd-vpick__menu{position:absolute;z-index:50;top:calc(100% + 8px);right:0;box-sizing:border-box;width:min(400px,100%);padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--s);box-shadow:0 18px 44px rgba(16,24,40,.22)}
+.cfd-vpick__t{margin:0 4px 10px;font-size:13px;line-height:1.4;color:var(--m)}
+.cfd-vpick__list{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
+.cfd-vpick__list li{margin:0}
+.cfd-vpick__list .cfd-view__a{gap:3px;padding:10px 12px;box-shadow:none}
+.cfd-vpick__list a.cfd-view__a:hover{background:color-mix(in srgb,var(--a) 9%,var(--s));box-shadow:none}
+.cfd-vpick__list .cfd-view__a.is-current{box-shadow:inset 0 0 0 1.5px var(--a)}
+.cfd-vpick__list .cfd-view__a.is-off{box-shadow:none}
+.cfd-vpick__list .cfd-view__desc{font-size:13px;color:var(--m)}
+.cfd-vpick__more{display:flex;align-items:center;min-height:44px;margin:6px 0 -6px;padding:0 12px;border-radius:var(--rc);color:var(--a);font-size:13px;font-weight:600;text-decoration:none}
+.cfd-vpick__more:hover{background:color-mix(in srgb,var(--a) 9%,var(--s));color:var(--a)}
+.cfd-view{margin-top:12px;padding-top:28px;border-top:1px solid var(--line);scroll-margin-top:48px}
+.cfd-view__title{margin:0 0 4px;padding:0;font-size:18px;line-height:1.3;font-weight:700;color:var(--t)}
+.cfd-view__lead{max-width:72ch;margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--m)}
+.cfd-view__list{--cfd-cols:1;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px;margin:0;padding:0;list-style:none}
+.cfd-view__list li{display:flex;flex:0 0 calc((100% - (var(--cfd-cols) - 1)*12px)/var(--cfd-cols));margin:0;min-width:0}
+@media (min-width:640px){.cfd-view__list{--cfd-cols:2}.cfd-view__title,.cfd-view__lead{text-align:right}.cfd-view__lead{margin-left:auto}.cfd-view__all{justify-content:flex-end}}
+@media (min-width:1100px){.cfd-view__list{--cfd-cols:3}}
+@media (min-width:1400px){.cfd-view__list{--cfd-cols:4}}
+.cfd-view__a{display:flex;flex-direction:column;gap:6px;width:100%;min-width:0;padding:16px 18px;border-radius:var(--rc);background:var(--s);color:var(--t);text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:box-shadow .15s ease}
+a.cfd-view__a:hover{color:var(--t);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--a) 50%,transparent)}
+.cfd-view__a.is-current{box-shadow:inset 0 0 0 2px var(--a)}
+.cfd-view__a.is-off{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.cfd-view__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}
+.cfd-view__name{font-size:15px;line-height:1.3;font-weight:700}
+.cfd-view__tag{padding:2px 9px;border-radius:var(--rp);background:var(--line);color:var(--t);font-size:12px;font-weight:600;line-height:1.5;white-space:nowrap}
+.cfd-view__a.is-current .cfd-view__tag{background:var(--a);color:var(--on)}
+.cfd-view__desc{font-size:14px;line-height:1.45}
+.cfd-view__see{font-size:13px;line-height:1.45;color:var(--m)}
+.cfd-view__all{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:16px 0 0;font-size:14px;color:var(--m)}
+.cfd-view__btn{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:var(--rc);background:var(--a);color:var(--on);font-weight:600;text-decoration:none}
+.cfd-view__btn:hover{background:color-mix(in srgb,var(--a) 88%,var(--t));color:var(--on)}
+@media (prefers-reduced-motion:reduce){.cfd-view__a,.cfd-quick__a,.cfd-vpick__btn svg{transition:none}}
 @media (max-width:1100px){.cfd-row,.cfd-row--b{grid-template-columns:minmax(0,1fr)}.cfd-strip{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}.cfd-stat:nth-child(3){border-left:0}.cfd-promo{order:-1}}
 @media (max-width:600px){.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
 </style>
@@ -1098,11 +1381,7 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 			return;
 		}
 		$s = sanitize_key( (string) $input['colorify_dashboard_style'] );
-		update_option( self::OPTION, in_array( $s, self::STYLES, true ) ? $s : 'classic' );
-		foreach ( array( 7, 30, 90 ) as $d ) {
-			delete_transient( 'colorify_dash_sales_' . $d );
-			delete_transient( 'colorify_dash_leads_' . $d );
-		}
+		self::set_global( in_array( $s, self::STYLES, true ) ? $s : 'classic' );
 	}
 }
 

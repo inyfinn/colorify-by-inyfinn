@@ -221,6 +221,31 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 @container (max-width: 440px) {
 	.cfd .cfb-li > .cfd-pill, .cfd .cfb-li > .cfb-li__amt { grid-column: 2; justify-self: start; }
 }
+/* 2.14.1: wiersz zlecenia na liście "Najbliższe". Zlecenie jest o stopień mocniejsze niż zwykłe wydarzenia i jego własne
+ * zadania: blok w tonie karty, data na pełnym akcencie, większa nazwa. Cały wiersz jest przyciskiem (aria-expanded), który
+ * rozwija zadania zlecenia po kolei; status zlecenia stoi raz, w nagłówku rozwinięcia. */
+.cfd .cfb-grp { margin: 0 0 8px; border-radius: var(--rc); background: var(--cfb-soft); }
+.cfd .cfb-grp__btn { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; width: 100%; min-height: 84px; margin: 0; padding: 14px 12px 14px 14px; border: 0; border-radius: var(--rc); background: transparent; color: var(--t); font: inherit; text-align: left; cursor: pointer; transition: background-color .12s ease; }
+.cfd .cfb-grp__btn:hover, .cfd .cfb-grp__btn[aria-expanded="true"] { background: var(--cfb-tint); }
+.cfd .cfb-grp__btn[aria-expanded="true"] { border-radius: var(--rc) var(--rc) 0 0; }
+.cfd .cfb-date.is-main { width: 52px; height: 56px; background: var(--a); color: var(--on); }
+.cfd .cfb-grp__title { font-size: 17px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.cfd .cfb-grp__when, .cfd .cfb-grp__sum { font-size: 13px; line-height: 1.4; color: var(--m); }
+.cfd .cfb-grp__when::first-letter { text-transform: uppercase; }
+.cfd .cfb-grp__sum b.is-late { color: #b42335; font-weight: 600; }
+.cfd .cfb-grp__chev { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: var(--rc); background: var(--s); color: var(--t); }
+.cfd .cfb-grp__chev svg { width: 18px; height: 18px; transition: transform .15s ease; }
+.cfd .cfb-grp__btn[aria-expanded="true"] .cfb-grp__chev svg { transform: rotate(180deg); }
+.cfd .cfb-grp__panel { padding: 12px 12px 10px 14px; border-top: 1px solid var(--line); }
+.cfd .cfb-grp__panel[hidden] { display: none; }
+.cfd .cfb-grp__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin: 0 0 6px; }
+.cfd .cfb-grp__open { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--rc); background: var(--s); color: var(--t); font-size: 13px; font-weight: 600; text-decoration: none; }
+.cfd .cfb-grp__open svg { width: 15px; height: 15px; }
+.cfd .cfb-grp__open:hover { background: var(--cfb-tint); color: var(--a); }
+.cfd .cfb-grp .cfb-li { min-height: 48px; margin: 0; padding: 6px 8px; }
+.cfd .cfb-grp .cfb-li:hover { background: var(--s); }
+.cfd .cfb-grp .cfb-li__title { font-size: 14px; font-weight: 500; }
+.cfd .cfb-grp .is-main .cfb-li__title { font-weight: 700; }
 .cfd .cfb-showall { align-self: flex-start; min-height: 44px; margin: 8px 0 -8px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--rc); background: var(--s); color: var(--a); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .cfd .cfb-showall:hover { background: var(--cfb-tint); }
 .cfd .cfb-date { display: flex; flex: none; flex-direction: column; align-items: center; justify-content: center; width: 48px; height: 52px; border-radius: var(--rc); background: var(--cfb-tint); color: var(--a); line-height: 1; }
@@ -288,6 +313,9 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 .cfd .cfb-card__x:hover { background: var(--cfb-tint); color: var(--a); }
 .cfd .cfb-card__title { margin: 0 0 4px; padding: 0; font-size: 22px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
 .cfd .cfb-card__when { margin: 0 0 14px; font-size: 14px; line-height: 1.4; color: var(--m); }
+/* 2.14.1: zdanie od wtyczki, co to za wydarzenie (np. zablokowany dzień), i jej własne przyciski (formularz POST jako komórka siatki). */
+.cfd .cfb-card__info { max-width: 46ch; margin: 0 0 18px; font-size: 15px; line-height: 1.5; color: var(--t); }
+.cfd .cfb-act { display: grid; margin: 0; }
 .cfd .cfb-card .cfb-dl { margin: 0 -8px 18px; }
 .cfd .cfb-card .cfb-actions { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .cfd .cfb-card__nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
@@ -345,6 +373,10 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 	.cfd .cfb-val { min-height: 44px; padding: 9px 8px; }
 	.cfd .cfb-showall { width: 100%; align-self: stretch; min-height: 48px; }
 	.cfd .cfb-li { min-height: 60px; padding: 8px 6px; }
+	.cfd .cfb-grp__btn { gap: 6px 12px; padding: 12px 10px; }
+	.cfd .cfb-grp__title { font-size: 16px; }
+	.cfd .cfb-grp__panel { padding: 10px 8px 8px; }
+	.cfd .cfb-grp__open { min-height: 44px; }
 	.cfd .cfb-pick { position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: auto; border-radius: var(--r) var(--r) 0 0; }
 	.cfd .cfb-card { top: auto !important; left: 0 !important; right: 0; bottom: 0; width: auto; max-width: none; max-height: 86vh; padding: 22px 18px 24px; border-radius: var(--r) var(--r) 0 0; transform: translateY(24px); }
 	.cfd .cfb-card.is-open { transform: none; }
@@ -390,6 +422,12 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 	.cfd .cfb-legend { margin-top: 10px; gap: 4px 16px; font-size: 12px; }
 	.cfd .cfb-keys { margin-top: 4px; font-size: 12px; }
 }
+/* 2.14.1: najwęższa siatka miesiąca (1024-1099 px, np. tablet poziomo z rozwiniętym menu). Chip miał 68 px na tekst,
+ * a "Zablokowany" potrzebuje 70: węższe marginesy kafla i chipa dają 8 px zapasu, pismo zostaje to samo. */
+@media (min-width: 1024px) and (max-width: 1099px) {
+	.cfd .cfb-cal { padding-left: 20px; padding-right: 20px; }
+	.cfd .cfb-ev { gap: 3px; padding: 2px 4px 2px 3px; }
+}
 
 /* ---------- Status w karcie: plakietka-lista (gdy wtyczka podała status_options i status_action) ---------- */
 .cfd .cfb-st { position: relative; display: inline-flex; flex: none; }
@@ -412,6 +450,6 @@ body.colorify-dark .cfd .cfb-kpi.is-warning .cfd-ico { background: #5a4220; colo
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.cfd .cfb-card, .cfd .cfb-card.is-open, .cfd .cfb-title svg, .cfd a.cfb-kpi, .cfd .cfb-ev, .cfd .cfb-li, .cfd .cfb-val, .cfd .cfb-val__i { transition: none; }
+	.cfd .cfb-card, .cfd .cfb-card.is-open, .cfd .cfb-title svg, .cfd a.cfb-kpi, .cfd .cfb-ev, .cfd .cfb-li, .cfd .cfb-val, .cfd .cfb-val__i, .cfd .cfb-grp__btn, .cfd .cfb-grp__chev svg { transition: none; }
 	.cfd .cfb-card { transform: none; }
 }
