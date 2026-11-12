@@ -752,11 +752,46 @@
 	min-height: 44px;
 }
 
+/* Checkbox: własny ptaszek (rdzeń WP rysuje go względem 16 px, przy 22 px ucieka w lewo i w górę).
+   Kwadrat 22 px, ptaszek 18 px dokładnie na środku (grid), etykieta z linią 22 px = kwadrat równo z pierwszą linią. */
+.colorify-ui .colorify-site__check {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 10px;
+	line-height: 22px;
+}
+
 .colorify-ui input[type="checkbox"] {
+	display: inline-grid;
+	place-content: center;
+	flex: none;
+	appearance: none;
+	-webkit-appearance: none;
 	width: 22px;
+	min-width: 22px;
 	height: 22px;
 	margin: 0;
-	accent-color: var(--colorify-ui-accent-fill);
+	padding: 0;
+	vertical-align: top;
+}
+
+.colorify-ui input[type="checkbox"]::before,
+.colorify-ui input[type="checkbox"]:checked::before {
+	content: "";
+	display: block;
+	float: none;
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	background: var(--colorify-ui-on-accent);
+	-webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M3.7 9.2l3.9 3.9 7.1-8.2' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+	mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M3.7 9.2l3.9 3.9 7.1-8.2' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+	transform: scale(0);
+	transition: transform 0.2s ease;
+}
+
+.colorify-ui input[type="checkbox"]:checked::before {
+	transform: scale(1);
 }
 
 /* Radio: własny rysunek (rdzeń zmienia rozmiar kropki przy 782 px). To kontrolka, nie przycisk: zostaje okrągła. */
