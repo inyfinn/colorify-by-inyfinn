@@ -976,7 +976,7 @@ function colorify_insights_mod_pricing(): string {
 	$btotal = (int) ( $d['budget_total'] ?? 0 );
 	$since  = (string) ( $d['since'] ?? '' );
 	$note   = (string) ( $d['note'] ?? __( 'Wyceny to liczba obliczeń w kalkulatorze, nie liczba osób.', 'colorify-by-inyfinn' ) );
-	$out    = '';
+	$out    = '<div class="cfi-head"><h2 class="cfi-h2">' . esc_html__( 'Cena i decyzje', 'colorify-by-inyfinn' ) . '</h2></div>';
 
 	// 1. Zainteresowanie: liczby obok siebie, bez procentów między nimi (to nie jest lejek osób).
 	$views = null;

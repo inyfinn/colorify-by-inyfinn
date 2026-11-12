@@ -1,5 +1,16 @@
 # Historia zmian
 
+## 2.15.3
+
+Moduł „Cena i decyzje” w kokpicie: czy ceny odstraszają.
+
+- Widoki Zapytania i Rezerwacje mają nowy blok „Cena i decyzje”, a Kalendarz zleceń ten sam blok zwinięty (obok „Ruch na stronie”). Dane podaje wtyczka zleceń filtrem `colorify_insights_pricing`; bez niego blok się nie pokazuje.
+- Zainteresowanie osobno, bez procentów między liczbami (to nie są te same osoby): odsłony strony z ofertą, obliczenia kalkulatora wyceny („obliczenia, nie osoby”), odpowiedzi na pytanie o budżet.
+- Prawdziwy lejek dopiero od zgłoszenia: zgłoszenie → odpowiedź → umowa lub zadatek → realizacja, z umowami przypisanymi do miesiąca zgłoszenia.
+- Przekroje osobno: pakiet z cennika (pakiety spoza cennika jako „Pakiet indywidualny”), przedział ceny, odległość, wolny lub zajęty termin (wyceny na zajęty termin nie wchodzą do oceny ceny); koszt usługi i dojazdu osobno; rozkład odpowiedzi o budżecie wg pakietu; powody rezygnacji z rozróżnieniem „para napisała” i „przypuszczenie”; zmiany wersji cennika jako osobne okresy.
+- Progi: poniżej 30 porównywalnych spraw tylko liczby i „Za mało danych do oceny”; 30–99 powtarzający się sygnał; od 100 udziały z przedziałem Wilsona. Moduł nigdy nie pisze „ceny są za wysokie”.
+- Bez listy „kto porzucił”: para nie zostawia danych, dopóki nie wyśle zgłoszenia, więc moduł mówi to wprost.
+
 ## 2.15.2
 
 - Analityka: migracja starego licznika (`wp colorify-analytics migrate` i przebieg cronu) pomija dni już ostateczne, więc nie cofa ręcznych korekt (np. usunięcia odsłon testowych).

@@ -1016,6 +1016,7 @@ final class Colorify_Dashboard {
 		);
 
 		$out .= self::insights_module( 'leads' );
+		$out .= function_exists( 'colorify_insights_mod_pricing' ) ? (string) colorify_insights_mod_pricing() : '';
 
 		if ( ! $f && $ext ) {
 			$nx    = $ext['next'];

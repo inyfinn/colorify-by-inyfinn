@@ -951,7 +951,7 @@ trait Colorify_Dashboard_Planner {
 		// najbliższe, zadatki. Kolejność w kodzie = kolejność na telefonie (najbliższe wesele i zadania przed kalendarzem).
 		return '<div class="cfb" data-cfb>' . $head
 			. '<div class="cfb-bento' . ( '' === $tile_dep ? ' no-dep' : '' ) . '">' . $strip . self::plan_next_tile( $next, $all, $today ) . $tile_todo . $cal . $tile_next . $tile_dep . '</div>'
-			. self::insights_fold() . $boot . '</div>';
+			. ( function_exists( 'colorify_insights_mod_pricing_fold' ) ? (string) colorify_insights_mod_pricing_fold() : '' ) . self::insights_fold() . $boot . '</div>';
 	}
 
 	/**
@@ -1048,6 +1048,7 @@ trait Colorify_Dashboard_Planner {
 		$out  .= '<div class="cfd-row cfd-row--even">'
 			. self::plan_upcoming( __( 'Kolejne zlecenia', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 6 ), self::plan_has_provider() ? __( 'Nic nie jest zaplanowane.', 'colorify-by-inyfinn' ) : '' )
 			. '</div>';
+		$out .= function_exists( 'colorify_insights_mod_pricing' ) ? (string) colorify_insights_mod_pricing() : '';
 		return $out . self::insights_fold() . self::plan_boot( $today->format( 'Y-m' ) );
 	}
 
