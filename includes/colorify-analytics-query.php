@@ -381,7 +381,7 @@ function colorify_analytics_pages( string $from, string $to, array $args = array
 	foreach ( $keys as $k ) {
 		$k    = (string) $k;
 		$info = colorify_analytics_page_info( $k );
-		if ( '' !== $q && false === mb_stripos( $info['title'] . ' ' . $k, $q ) ) {
+		if ( '' !== $q && false === ( function_exists( 'mb_stripos' ) ? mb_stripos( $info['title'] . ' ' . $k, $q ) : stripos( $info['title'] . ' ' . $k, $q ) ) ) {
 			continue;
 		}
 		$v      = $cur[ $k ]['views'] ?? 0;

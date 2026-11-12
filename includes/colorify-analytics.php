@@ -449,7 +449,7 @@ PRIMARY KEY  (day,h)
 	public static function norm_path( string $uri ): string {
 		$p = self::clean_path( $uri );
 		$p = (string) preg_replace( '~/(page/\d+|comment-page-\d+)/?$~i', '/', $p );
-		$p = mb_strtolower( $p, 'UTF-8' );
+		$p = function_exists( 'mb_strtolower' ) ? mb_strtolower( $p, 'UTF-8' ) : strtolower( $p ); // WordPress nie ma zamiennika mb_strtolower.
 		if ( '/' !== substr( $p, -1 ) && false === strpos( (string) strrchr( $p, '/' ), '.' ) ) {
 			$p .= '/';
 		}
