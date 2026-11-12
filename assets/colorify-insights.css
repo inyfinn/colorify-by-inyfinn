@@ -178,3 +178,11 @@ body.colorify-dark .cfi .cfi-grid{stroke-opacity:.14}
 	.cfi-row__main a{display:inline-flex;align-items:center;min-height:44px}
 	.cfi-fix a{display:inline-flex;align-items:center;min-height:44px}
 }
+/* Cena i decyzje */
+.cfi-verdict{margin:0;padding:14px 20px;border-radius:var(--rc);background:color-mix(in srgb,var(--a) 12%,var(--s));font-size:15px;font-weight:600;line-height:1.45}
+.cfi-verdict--soft{font-weight:500;background:var(--soft)}
+.cfi-grid2--wide{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
+.cfi-foot--out{margin:-8px 4px 0}
+.cfi-strip--2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cfi-row .cfi-pill{font-variant-numeric:tabular-nums}
+@media (max-width:600px){.cfi-table--n{min-width:440px}.cfi-table--n td:first-child,.cfi-table--n th:first-child{min-width:120px;overflow-wrap:normal}.cfi-scroll{-webkit-overflow-scrolling:touch}}

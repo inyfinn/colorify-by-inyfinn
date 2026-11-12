@@ -879,3 +879,200 @@ function colorify_insights_mod_sales(): string {
 	}
 	return '<section class="cfi-card cfi-strip cfi-strip--3">' . $stat . '</section>' . colorify_insights_rows_card( __( 'Braki wśród bestsellerów', 'colorify-by-inyfinn' ), $rows, __( 'Żaden produkt nie jest wyprzedany.', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_type=product' ), __( 'Produkty', 'colorify-by-inyfinn' ) );
 }
+
+/* ---------- Cena i decyzje: zainteresowanie osobno, prawdziwy lejek dopiero od zgłoszenia ---------- */
+
+/**
+ * Dane z wtyczki rezerwacji (filtr colorify_insights_pricing): since, note, quotes, sent, booked, by_package, by_price, by_distance,
+ * by_availability, budget, budget_total, budget_by_package, by_month, reasons, reasons_summary, price_versions.
+ * Zwraca null, gdy wtyczka nic nie podaje (moduł się wtedy nie pokazuje).
+ */
+function colorify_insights_pricing_data( string $from, string $to ): ?array {
+	$d = apply_filters( 'colorify_insights_pricing', null, $from, $to );
+	return is_array( $d ) ? $d : null;
+}
+
+/** Próg wiarygodności: 0 = poniżej 30 (tylko liczby), 1 = 30-99 (powtarzający się sygnał), 2 = 100 i więcej (udziały z przedziałem). */
+function colorify_insights_tier( int $n ): int {
+	return $n >= 100 ? 2 : ( $n >= 30 ? 1 : 0 );
+}
+
+/** Przedział Wilsona (95%) dla k z n, w procentach: [od, do]. */
+function colorify_insights_wilson( int $k, int $n ): array {
+	if ( $n <= 0 ) {
+		return array( 0.0, 0.0 );
+	}
+	$z = 1.96;
+	$p = $k / $n;
+	$d = 1 + $z * $z / $n;
+	$c = ( $p + $z * $z / ( 2 * $n ) ) / $d;
+	$m = $z * sqrt( $p * ( 1 - $p ) / $n + $z * $z / ( 4 * $n * $n ) ) / $d;
+	return array( max( 0, ( $c - $m ) * 100 ), min( 100, ( $c + $m ) * 100 ) );
+}
+
+/** Udział k z n według progu: poniżej 30 sama liczba, 30-99 procent, od 100 procent z przedziałem. */
+function colorify_insights_share_text( int $k, int $n ): string {
+	$t = colorify_insights_tier( $n );
+	if ( 0 === $t || $n <= 0 ) {
+		return colorify_insights_n( $k ) . ' ' . __( 'z', 'colorify-by-inyfinn' ) . ' ' . colorify_insights_n( $n );
+	}
+	$s = colorify_insights_n( $k / $n * 100, 0 ) . '%';
+	if ( 2 === $t ) {
+		$w  = colorify_insights_wilson( $k, $n );
+		$s .= ' (' . colorify_insights_n( $w[0], 0 ) . '–' . colorify_insights_n( $w[1], 0 ) . '%)';
+	}
+	return $s;
+}
+
+/** Tabela z samymi liczbami: kolumny [klucz => nagłówek], wiersze jako tablice. Wiersz bez żadnej liczby też zostaje (pokazuje pustą kategorię). */
+function colorify_insights_count_table( string $title, string $first, array $cols, array $rows, string $foot = '' ): string {
+	if ( ! $rows ) {
+		return '';
+	}
+	$b = '<div class="cfi-scroll"><table class="cfi-table' . ( count( $cols ) > 2 ? ' cfi-table--n' : '' ) . '"><thead><tr><th>' . esc_html( $first ) . '</th>';
+	foreach ( $cols as $h ) {
+		$b .= '<th class="is-num">' . esc_html( $h ) . '</th>';
+	}
+	$b .= '</tr></thead><tbody>';
+	foreach ( $rows as $r ) {
+		$b .= '<tr><td>' . esc_html( (string) $r['label'] ) . '</td>';
+		foreach ( array_keys( $cols ) as $k ) {
+			$v  = $r[ $k ] ?? null;
+			$b .= '<td class="is-num">' . ( null === $v ? '<span class="cfi-muted">—</span>' : esc_html( is_numeric( $v ) && false !== strpos( (string) $k, 'avg' ) ? colorify_insights_n( $v ) . ' zł' : colorify_insights_n( $v ) ) ) . '</td>';
+		}
+		$b .= '</tr>';
+	}
+	return colorify_insights_card( $title, $b . '</tbody></table></div>' . ( '' !== $foot ? '<p class="cfi-foot">' . esc_html( $foot ) . '</p>' : '' ) );
+}
+
+/** Jedno zdanie werdyktu z odpowiedzi o budżecie; tylko od 30 odpowiedzi i nigdy o tym, że cena jest za wysoka. */
+function colorify_insights_pricing_verdict( array $d ): string {
+	$total = (int) ( $d['budget_total'] ?? 0 );
+	if ( colorify_insights_tier( $total ) < 1 ) {
+		return '';
+	}
+	$by = array();
+	foreach ( (array) ( $d['budget'] ?? array() ) as $b ) {
+		$by[ (string) $b['key'] ] = (int) $b['count'];
+	}
+	$over = ( $by['troche'] ?? 0 ) + ( $by['zdecydowanie'] ?? 0 ) + ( $by['brak_budzetu'] ?? 0 );
+	if ( $over / $total >= 0.4 ) {
+		/* translators: 1: liczba odpowiedzi, 2: wszystkich */
+		return sprintf( __( 'Powtarzający się sygnał: klienci wskazują budżet jako przeszkodę (%1$d z %2$d odpowiedzi).', 'colorify-by-inyfinn' ), $over, $total );
+	}
+	/* translators: 1: liczba odpowiedzi, 2: wszystkich */
+	return sprintf( __( 'Powtarzający się sygnał: cena najczęściej mieści się w budżecie (%1$d z %2$d odpowiedzi).', 'colorify-by-inyfinn' ), $by['miesci'] ?? 0, $total );
+}
+
+function colorify_insights_mod_pricing(): string {
+	$r = colorify_insights_available() ? colorify_insights_range() : array( 'from' => wp_date( 'Y-m-d', time() - 89 * DAY_IN_SECONDS ), 'to' => wp_date( 'Y-m-d' ) );
+	$d = colorify_insights_pricing_data( $r['from'], $r['to'] );
+	if ( ! $d ) {
+		return '';
+	}
+	$quotes = (int) ( $d['quotes'] ?? 0 );
+	$sent   = (int) ( $d['sent'] ?? 0 );
+	$booked = (int) ( $d['booked'] ?? 0 );
+	$btotal = (int) ( $d['budget_total'] ?? 0 );
+	$since  = (string) ( $d['since'] ?? '' );
+	$note   = (string) ( $d['note'] ?? __( 'Wyceny to liczba obliczeń w kalkulatorze, nie liczba osób.', 'colorify-by-inyfinn' ) );
+	$out    = '';
+
+	// 1. Zainteresowanie: liczby obok siebie, bez procentów między nimi (to nie jest lejek osób).
+	$views = null;
+	$pages = (array) apply_filters( 'colorify_insights_pricing_pages', array() );
+	if ( $pages && function_exists( 'colorify_analytics_page_report' ) ) {
+		$views = 0;
+		foreach ( $pages as $p ) {
+			$views += (int) ( colorify_analytics_page_report( (string) $p, $r['from'], $r['to'] )['views'] ?? 0 );
+		}
+	}
+	$stats  = ( null !== $views ? colorify_insights_stat( __( 'Odsłony strony z ofertą', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $views ) ), '', __( 'Wejścia na stronę, nie osoby', 'colorify-by-inyfinn' ) ) : '' )
+		. colorify_insights_stat( __( 'Obliczenia wyceny', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $quotes ) ), '', __( 'Obliczenia kalkulatora, nie osoby', 'colorify-by-inyfinn' ) )
+		. colorify_insights_stat( __( 'Odpowiedzi o budżecie', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $btotal ) ), '', __( 'Pary, które odpowiedziały na pytanie o budżet', 'colorify-by-inyfinn' ) );
+	$since_t = '' !== $since && $since > $r['from'] ? sprintf( /* translators: %s: data */ __( 'Wyceny liczymy od %s.', 'colorify-by-inyfinn' ), colorify_insights_date( $since, 'j F' ) ) : '';
+	$out    .= '<section class="cfi-card cfi-strip cfi-strip--' . ( null !== $views ? '3' : '2' ) . '" aria-label="' . esc_attr__( 'Zainteresowanie ofertą', 'colorify-by-inyfinn' ) . '">' . $stats . '</section><p class="cfi-foot cfi-foot--out">' . esc_html( trim( $note . ' ' . $since_t ) ) . '</p>';
+
+	if ( ! $quotes && ! $sent && ! $btotal ) {
+		return $out . colorify_insights_card( __( 'Cena i decyzje', 'colorify-by-inyfinn' ), colorify_insights_state( __( 'Tu pojawią się wyceny z kalkulatora i odpowiedzi o budżecie, gdy ktoś policzy cenę.', 'colorify-by-inyfinn' ) ) );
+	}
+
+	// 2. Prawdziwy lejek: dopiero od wysłanego zgłoszenia (liczone po sprawie, grupy wg miesiąca zgłoszenia).
+	$funnel = apply_filters( 'colorify_insights_funnel', null, $r['from'], $r['to'] );
+	$steps  = is_array( $funnel ) && ! empty( $funnel['steps'] ) ? $funnel['steps'] : array( array( __( 'Zgłoszenia', 'colorify-by-inyfinn' ), $sent ), array( __( 'Umowa lub zadatek', 'colorify-by-inyfinn' ), $booked ) );
+	$first  = max( 1, (int) $steps[0][1] );
+	$rows   = array();
+	foreach ( $steps as $s ) {
+		$rows[] = array( (string) $s[0], (int) $s[1], (int) $s[1] / $first );
+	}
+	$tier  = colorify_insights_tier( $first );
+	$fnote = 0 === $tier ? __( 'Za mało danych do oceny: poniżej 30 zgłoszeń pokazujemy same liczby.', 'colorify-by-inyfinn' ) : __( 'Procent to część wszystkich zgłoszeń z tego okresu.', 'colorify-by-inyfinn' );
+	$fun   = colorify_insights_hbars( $rows, $tier > 0 ) . '<p class="cfi-foot">' . esc_html( $fnote ) . '</p>';
+	$mon   = array();
+	foreach ( array_slice( (array) ( $d['by_month'] ?? array() ), -6 ) as $m ) {
+		$mon[] = array( 'label' => colorify_insights_date( $m['month'] . '-01', 'F Y' ), 'sent' => (int) $m['sent'], 'booked' => (int) $m['booked'] );
+	}
+	$mtab = colorify_insights_count_table( __( 'Zgłoszenia według miesiąca', 'colorify-by-inyfinn' ), __( 'Miesiąc zgłoszenia', 'colorify-by-inyfinn' ), array( 'sent' => __( 'Zgłoszenia', 'colorify-by-inyfinn' ), 'booked' => __( 'Umowa lub zadatek', 'colorify-by-inyfinn' ) ), $mon, __( 'Umowę przypisujemy do miesiąca, w którym przyszło zgłoszenie.', 'colorify-by-inyfinn' ) );
+	$out  .= '<div class="cfi-grid2 cfi-grid2--wide">' . colorify_insights_card( __( 'Od zgłoszenia do umowy', 'colorify-by-inyfinn' ), $fun ) . $mtab . '</div>';
+
+	// 3. Przekroje wycen: same liczby (wyceny to obliczenia, a zgłoszenia to osobny zbiór, więc nie liczymy z nich procentu).
+	$verdict = colorify_insights_pricing_verdict( $d );
+	if ( '' !== $verdict ) {
+		$out = '<p class="cfi-verdict">' . esc_html( $verdict ) . '</p>' . $out;
+	} elseif ( $btotal > 0 && $btotal < 30 ) {
+		$out = '<p class="cfi-verdict cfi-verdict--soft">' . esc_html__( 'Za mało danych do oceny: odpowiedzi o budżecie pokazujemy jako liczby.', 'colorify-by-inyfinn' ) . '</p>' . $out;
+	}
+	$grid  = colorify_insights_count_table( __( 'Wyceny według pakietu', 'colorify-by-inyfinn' ), __( 'Pakiet', 'colorify-by-inyfinn' ), array( 'quotes' => __( 'Wyceny', 'colorify-by-inyfinn' ), 'avg_service' => __( 'Śr. usługa', 'colorify-by-inyfinn' ), 'avg_travel' => __( 'Śr. dojazd', 'colorify-by-inyfinn' ), 'sent' => __( 'Zgłoszenia', 'colorify-by-inyfinn' ), 'booked' => __( 'Umowa', 'colorify-by-inyfinn' ) ), (array) ( $d['by_package'] ?? array() ), __( 'Koszt usługi i dojazdu pokazujemy osobno, żeby było widać, co składa się na cenę.', 'colorify-by-inyfinn' ) )
+		. colorify_insights_count_table( __( 'Wyceny według ceny', 'colorify-by-inyfinn' ), __( 'Cena', 'colorify-by-inyfinn' ), array( 'quotes' => __( 'Wyceny', 'colorify-by-inyfinn' ), 'sent' => __( 'Zgłoszenia', 'colorify-by-inyfinn' ), 'booked' => __( 'Umowa', 'colorify-by-inyfinn' ) ), (array) ( $d['by_price'] ?? array() ) )
+		. colorify_insights_count_table( __( 'Wyceny według odległości', 'colorify-by-inyfinn' ), __( 'Dojazd', 'colorify-by-inyfinn' ), array( 'quotes' => __( 'Wyceny', 'colorify-by-inyfinn' ), 'sent' => __( 'Zgłoszenia', 'colorify-by-inyfinn' ), 'booked' => __( 'Umowa', 'colorify-by-inyfinn' ) ), (array) ( $d['by_distance'] ?? array() ) )
+		. colorify_insights_count_table( __( 'Termin w wycenie', 'colorify-by-inyfinn' ), __( 'Termin', 'colorify-by-inyfinn' ), array( 'quotes' => __( 'Wyceny', 'colorify-by-inyfinn' ) ), (array) ( $d['by_availability'] ?? array() ), __( 'Wyceny na zajęty termin nie mówią nic o tym, czy cena odstrasza, więc ich nie wliczamy do oceny ceny.', 'colorify-by-inyfinn' ) );
+	$out .= '<div class="cfi-grid2 cfi-grid2--wide">' . $grid . '</div>';
+
+	// 4. Budżet: rozkład odpowiedzi i podział wg pakietu.
+	if ( $btotal > 0 ) {
+		$bt   = colorify_insights_tier( $btotal );
+		$rows = array();
+		foreach ( (array) ( $d['budget'] ?? array() ) as $b ) {
+			$rows[] = array( (string) $b['label'], (int) $b['count'], (int) $b['count'] / $btotal );
+		}
+		$bh   = colorify_insights_hbars( $rows, $bt > 0 ) . ( 0 === $bt ? '<p class="cfi-foot">' . esc_html__( 'Za mało danych do oceny: poniżej 30 odpowiedzi pokazujemy same liczby.', 'colorify-by-inyfinn' ) . '</p>' : ( 1 === $bt ? '<p class="cfi-foot">' . esc_html__( 'Odpowiedzi jest jeszcze niewiele, procenty traktuj orientacyjnie.', 'colorify-by-inyfinn' ) . '</p>' : '' ) );
+		$bp   = colorify_insights_count_table( __( 'Budżet według pakietu', 'colorify-by-inyfinn' ), __( 'Pakiet', 'colorify-by-inyfinn' ), array( 'miesci' => __( 'Mieści się', 'colorify-by-inyfinn' ), 'troche' => __( 'Trochę przekracza', 'colorify-by-inyfinn' ), 'zdecydowanie' => __( 'Zdecydowanie przekracza', 'colorify-by-inyfinn' ), 'brak_budzetu' => __( 'Brak budżetu', 'colorify-by-inyfinn' ) ), (array) ( $d['budget_by_package'] ?? array() ) );
+		$out .= '<div class="cfi-grid2 cfi-grid2--wide">' . colorify_insights_card( __( 'Czy cena mieści się w budżecie', 'colorify-by-inyfinn' ), $bh ) . $bp . '</div>';
+	}
+
+	// 5. Powody rezygnacji ze zleceń (para napisała kontra przypuszczenie) i uczciwe zdanie o tym, czego nie wiemy.
+	$rs  = (array) ( $d['reasons'] ?? array() );
+	$sum = (array) ( $d['reasons_summary'] ?? array() );
+	$rt  = (int) ( $sum['total'] ?? 0 );
+	$li  = array();
+	foreach ( $rs as $x ) {
+		if ( (int) $x['count'] > 0 ) {
+			$li[] = colorify_insights_row( (string) $x['label'], '', sprintf( /* translators: 1: napisała, 2: przypuszczenie */ __( 'para napisała: %1$d · nasze przypuszczenie: %2$d', 'colorify-by-inyfinn' ), (int) $x['stated'], (int) $x['guess'] ), colorify_insights_n( $x['count'] ) );
+		}
+	}
+	$rfoot = ( $rt > 0 && null !== ( $sum['unknown_share'] ?? null ) ? sprintf( /* translators: %s: udział */ __( 'Powód nieznany w %s zleceń z rezygnacją. ', 'colorify-by-inyfinn' ), colorify_insights_n( $sum['unknown_share'] * 100, 0 ) . '%' ) : '' ) . ( $rt < 30 ? __( 'Za mało danych do oceny. ', 'colorify-by-inyfinn' ) : '' );
+	$left  = colorify_insights_card( __( 'Powody rezygnacji ze zleceń', 'colorify-by-inyfinn' ), ( $li ? '<ul class="cfi-rows">' . implode( '', $li ) . '</ul>' : colorify_insights_state( __( 'Nie ma jeszcze zleceń z zapisanym powodem rezygnacji.', 'colorify-by-inyfinn' ) ) ) . ( '' !== trim( $rfoot ) ? '<p class="cfi-foot">' . esc_html( trim( $rfoot ) ) . '</p>' : '' ) );
+	$right = colorify_insights_card( __( 'Kto zrezygnował', 'colorify-by-inyfinn' ), '<p class="cfi-p">' . esc_html__( 'Nie wiemy, kto zrezygnował: para nie zostawia danych, dopóki nie wyśle zgłoszenia. Najlepiej mówią o tym odpowiedzi o budżecie i powody w zleceniach.', 'colorify-by-inyfinn' ) . '</p>' );
+	$out  .= '<div class="cfi-grid2 cfi-grid2--wide">' . $left . $right . '</div>';
+
+	// 6. Zmiana cennika: okresy liczymy osobno.
+	$ver = (array) ( $d['price_versions'] ?? array() );
+	if ( count( $ver ) > 1 ) {
+		$vr = array();
+		foreach ( array_values( $ver ) as $i => $v ) {
+			$vr[] = array( 'label' => sprintf( /* translators: %d: numer */ __( 'Cennik, wersja %d', 'colorify-by-inyfinn' ), $i + 1 ) . ( $i === count( $ver ) - 1 ? ' ' . __( '(obecna)', 'colorify-by-inyfinn' ) : '' ), 'quotes' => (int) $v['quotes'], 'from' => (string) $v['from'], 'to' => (string) $v['to'] );
+		}
+		$vt = '<div class="cfi-scroll"><table class="cfi-table"><thead><tr><th>' . esc_html__( 'Wersja', 'colorify-by-inyfinn' ) . '</th><th class="is-num">' . esc_html__( 'Wyceny', 'colorify-by-inyfinn' ) . '</th><th class="is-num">' . esc_html__( 'Od', 'colorify-by-inyfinn' ) . '</th><th class="is-num">' . esc_html__( 'Do', 'colorify-by-inyfinn' ) . '</th></tr></thead><tbody>';
+		foreach ( $vr as $v ) {
+			$vt .= '<tr><td>' . esc_html( $v['label'] ) . '</td><td class="is-num">' . esc_html( colorify_insights_n( $v['quotes'] ) ) . '</td><td class="is-num">' . esc_html( $v['from'] ? colorify_insights_date( $v['from'], 'j.m.Y' ) : '—' ) . '</td><td class="is-num">' . esc_html( $v['to'] ? colorify_insights_date( $v['to'], 'j.m.Y' ) : '—' ) . '</td></tr>';
+		}
+		$out .= colorify_insights_card( __( 'Cennik zmienił się w tym okresie', 'colorify-by-inyfinn' ), $vt . '</tbody></table></div><p class="cfi-foot">' . esc_html__( 'Wyceny z różnych wersji cennika porównuj osobno: ceny nie były te same.', 'colorify-by-inyfinn' ) . '</p>' );
+	}
+	return $out;
+}
+
+/** Ten sam moduł zwinięty (widok Kalendarz zleceń): nagłówek "Cena i decyzje" rozwija całość. */
+function colorify_insights_mod_pricing_fold(): string {
+	$m = colorify_insights_mod_pricing();
+	return '' === $m ? '' : '<details class="cfd-fold" ontoggle="window.dispatchEvent(new Event(&quot;resize&quot;))"><summary class="cfd-fold__s"><span>' . esc_html__( 'Cena i decyzje', 'colorify-by-inyfinn' ) . '</span><svg class="cfd-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>' . $m . '</details>';
+}
