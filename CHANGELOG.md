@@ -1,5 +1,9 @@
 # Historia zmian
 
+## 2.15.1
+
+- Moduł analityki ładuje się z pliku głównego wtyczki (w 2.15.0 brakowało `require_once` i bez tymczasowego mu-pluginu kolektor oraz `wp colorify-analytics` nie działały).
+
 ## 2.15.0
 
 Kokpit z prawdziwą analityką i zarządzaniem stroną. Wydanie zbiera 2.14.1, 2.14.2 i nowy moduł analityki.
