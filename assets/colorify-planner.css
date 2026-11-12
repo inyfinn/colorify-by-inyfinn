@@ -35,6 +35,11 @@ body.colorify-dark .cfd {
 	--line: color-mix(in srgb, currentColor 18%, transparent);
 	--cfb-soft: color-mix(in srgb, currentColor 7%, var(--s));
 	--cfb-neutral-bg: color-mix(in srgb, currentColor 13%, var(--s));
+	/* 2.14.2: z --line opartego na currentColor silnik liczył własną zmienną obrysu i wychodziła zieleń (#3ea055) na
+	 * wszystkich przyciskach i liniach z ramką (strzałki miesiąca, Dziś, Trasa, Otwórz terminarz). Dostaje gotową wartość:
+	 * kolor tekstu elementu w 22%, czyli neutralny obrys jak w trybie jasnym. */
+	--darkreader-border--line: color-mix(in srgb, currentColor 22%, transparent) !important;
+	--darkreader-bg--line: color-mix(in srgb, currentColor 14%, transparent) !important; /* to samo dla tła z --line (szare plakietki): było ciemnozielone #183e21 */
 }
 body.colorify-dark .cfd .cfb-day.is-weekend:not(.has-ev) { background: color-mix(in srgb, currentColor 11%, var(--s)); }
 body.colorify-dark .cfd .cfb-day.is-out:not(.has-ev) { background: color-mix(in srgb, currentColor 3%, var(--s)); }
