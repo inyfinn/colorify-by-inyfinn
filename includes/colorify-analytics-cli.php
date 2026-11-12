@@ -64,11 +64,12 @@ class Colorify_Analytics_CLI {
 
 	/**
 	 * Przenosi historię starego licznika (opcja colorify_visits, bez zmian w niej) do tabel z metodą legacy.
+	 * Dni już przeniesione ostatecznie pomija (nie cofa korekt).
 	 */
 	public function migrate() {
 		Colorify_Analytics::maybe_install();
 		$r = Colorify_Analytics::migrate_legacy();
-		WP_CLI::success( sprintf( 'Stary licznik: %d dni, %d wierszy stron (metoda legacy).', $r['days'], $r['pages'] ) );
+		WP_CLI::success( sprintf( 'Stary licznik: %d dni, %d wierszy stron (metoda legacy); pominięte dni już ostateczne: %d.', $r['days'], $r['pages'], $r['skipped'] ) );
 	}
 
 	/**

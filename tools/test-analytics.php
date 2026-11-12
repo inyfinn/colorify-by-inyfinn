@@ -256,9 +256,28 @@ try {
 		'2026-07-02' => array( 'v' => 99, 'u' => 9, 'p' => array( 17 => 99 ) ),
 		'zly-klucz'  => array( 'v' => 7 ),
 	);
-	Colorify_Analytics::migrate_legacy( $legacy );
+	$m1 = Colorify_Analytics::migrate_legacy( $legacy );
 	$m2 = Colorify_Analytics::migrate_legacy( $legacy );
-	cft( 2 === $m2['days'] && 3 === $m2['pages'] && '2' === $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Colorify_Analytics::t( 'daily_totals' ) . " WHERE method = 'legacy'" ), 'migracja: 2 dni i 3 wiersze stron, powtórka bez dubli, dzień po końcu starego licznika pominięty', $m2 );
+	cft( 2 === $m1['days'] && 3 === $m1['pages'] && 0 === $m2['days'] && 2 === $m2['skipped'] && '2' === $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Colorify_Analytics::t( 'daily_totals' ) . " WHERE method = 'legacy'" ) && '2026-06-30' === Colorify_Analytics::registry()['legacy_done'] && Colorify_Analytics::registry()['legacy_final'], 'migracja: 2 dni i 3 wiersze stron, dzień po końcu starego licznika pominięty, powtórka pomija dni ostateczne', array( $m1, $m2 ) );
+	$lt = Colorify_Analytics::t( 'daily_totals' );
+	$wpdb->query( "UPDATE {$lt} SET views = views - 1 WHERE day = '2026-06-28' AND method = 'legacy'" );
+	Colorify_Analytics::migrate_legacy( $legacy );
+	cft( '4' === $wpdb->get_var( "SELECT views FROM {$lt} WHERE day = '2026-06-28' AND method = 'legacy'" ), 'ręczna korekta dnia ostatecznego zostaje po ponownej migracji' );
+	$wpdb->query( "UPDATE {$lt} SET views = views + 1 WHERE day = '2026-06-28' AND method = 'legacy'" );
+	$saved = Colorify_Analytics::registry();
+	$now_d = wp_date( 'Y-m-d' );
+	$tmp   = $saved;
+	unset( $tmp['legacy_done'] );
+	$tmp['methods'][0]['to'] = $now_d;
+	$tmp['legacy_final']     = false;
+	Colorify_Analytics::save_registry( $tmp );
+	$open = array( $now_d => array( 'v' => 3, 'u' => 1 ) );
+	$a    = Colorify_Analytics::migrate_legacy( $open );
+	$open[ $now_d ]['v'] = 4;
+	$b    = Colorify_Analytics::migrate_legacy( $open );
+	cft( 1 === $a['days'] && 1 === $b['days'] && '4' === $wpdb->get_var( $wpdb->prepare( "SELECT views FROM {$lt} WHERE day = %s AND method = 'legacy'", $now_d ) ) && ! Colorify_Analytics::registry()['legacy_final'], 'trwający dzień starego licznika przepisywany przy każdej migracji, aż się skończy', array( $a, $b ) );
+	$wpdb->query( $wpdb->prepare( "DELETE FROM {$lt} WHERE day = %s AND method = 'legacy'", $now_d ) );
+	Colorify_Analytics::save_registry( $saved );
 	Colorify_Analytics::record( array( 'time' => $at( '2026-06-28 12:00' ), 'ip' => '198.51.100.3' ) + $req );
 	$s = colorify_analytics_series( '2026-06-27', '2026-07-02' );
 	$v = array_map( static fn( $p ) => $p['views'], $s['points'] );

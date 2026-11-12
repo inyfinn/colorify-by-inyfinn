@@ -91,11 +91,14 @@ przywróceniu bazy) = ponowna instalacja przy następnym żądaniu.
 **Rejestr metod** (opcja `colorify_an_registry`, autoload): `methods` = ciągłe przedziały dni `[method, from, to,
 started]`, dla każdego dnia prawdą jest dokładnie jedna metoda, a raporty czytają tylko jej wiersze (nigdy suma).
 Metody: `legacy` (stary licznik z opcji `colorify_visits`), `php1` (licznik serwerowy), `log1` (dziennik odsłon).
-Dodatkowo: `cache` (wynik detekcji), `beacon` (`auto`/`on`/`off`), `legacy_final`, `daily`.
+Dodatkowo: `cache` (wynik detekcji), `beacon` (`auto`/`on`/`off`), `legacy_done` (ostatni dzień starego licznika
+przeniesiony ostatecznie), `legacy_final` (przeniesione wszystkie), `daily`.
 
 **Migracja starego licznika**: przy instalacji dni z `colorify_visits` (opcja zostaje nietknięta) trafiają do
 `daily_totals`/`daily_pages` z metodą `legacy`; stary licznik jest prawdą do dnia instalacji włącznie, nowy od
 następnego dnia (pierwszy pełny). Dzień instalacji dochodzi kolejnym przebiegiem dziennym, gdy się skończy.
+Dzień zakończony w chwili importu jest ostateczny: kolejne migracje (także `wp colorify-analytics migrate`) go
+pomijają, więc ręczna korekta w tabelach zostaje (12.11.2026 na ej.patrz.com.pl odjęto testowe odsłony agenta).
 Stary licznik nie zapisywał dni bez wejść, więc w jego okresie są luki (`measured: false`), oraz liczył część botów.
 
 **Cron** `colorify_an_cron` co godzinę: wiersz dnia z zerami („pomiar działał”, dzień bez wejść to 0, nie luka),
@@ -276,7 +279,7 @@ polityką wpisaną ręcznie trzeba dopisać akapit „Sygnał odsłony”.
 
 ```
 wp colorify-analytics status            # schemat, tabele, metoda i „dane od”, dziś, boty, cache, dziennik, cron, stary vs nowy licznik
-wp colorify-analytics migrate           # ponowna migracja starego licznika (idempotentna)
+wp colorify-analytics migrate           # migracja starego licznika; dni już ostateczne pomija
 wp colorify-analytics purge [--dry-run] # retencja 800 dni + skróty z poprzednich dni
 wp colorify-analytics beacon <auto|on|off>
 ```

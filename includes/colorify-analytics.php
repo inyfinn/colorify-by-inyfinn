@@ -93,7 +93,8 @@ final class Colorify_Analytics {
 
 	/**
 	 * Rejestr: methods = [[method, from, to, started]] (ciągłe przedziały dni), cache = wynik detekcji,
-	 * beacon = auto|on|off (dziennik odsłon), legacy_final, daily = dzień ostatniego przebiegu dziennego.
+	 * beacon = auto|on|off (dziennik odsłon), legacy_done = ostatni dzień starego licznika przeniesiony ostatecznie,
+	 * legacy_final = przeniesione wszystkie dni, daily = dzień ostatniego przebiegu dziennego.
 	 */
 	public static function registry(): array {
 		$r = get_option( self::opt( 'registry' ), array() );
@@ -235,9 +236,10 @@ PRIMARY KEY  (day,h)
 
 	/**
 	 * Stary licznik (opcja colorify_visits, czytana, nigdy zmieniana) do daily_totals i daily_pages z metodą 'legacy'.
-	 * Idempotentne: ponowny przebieg nadpisuje te same wiersze. Dzień instalacji dochodzi kolejnym przebiegiem (cron), gdy się skończy.
+	 * Dzień instalacji dochodzi kolejnym przebiegiem (cron), gdy się skończy. Dni już ostateczne (zakończone w chwili importu,
+	 * rejestr legacy_done) są pomijane, więc ponowna migracja nie cofa ręcznych korekt w tabelach.
 	 *
-	 * @return array{days:int,pages:int}
+	 * @return array{days:int,pages:int,skipped:int}
 	 */
 	public static function migrate_legacy( ?array $legacy = null ): array {
 		global $wpdb;
@@ -249,16 +251,22 @@ PRIMARY KEY  (day,h)
 				$to = $row['to'];
 			}
 		}
-		$out = array(
-			'days'  => 0,
-			'pages' => 0,
+		$out  = array(
+			'days'    => 0,
+			'pages'   => 0,
+			'skipped' => 0,
 		);
+		$done = (string) ( $reg['legacy_done'] ?? ( empty( $reg['legacy_final'] ) ? '' : $to ) );
 		if ( '' === $to || ! is_array( $legacy ) ) {
 			return $out;
 		}
 		foreach ( $legacy as $day => $row ) {
 			$day = (string) $day;
 			if ( ! self::is_day( $day ) || $day > $to || ! is_array( $row ) ) {
+				continue;
+			}
+			if ( '' !== $done && $day <= $done ) {
+				++$out['skipped'];
 				continue;
 			}
 			$v = (int) ( $row['v'] ?? 0 );
@@ -272,9 +280,11 @@ PRIMARY KEY  (day,h)
 				}
 			}
 		}
-		if ( $to < wp_date( 'Y-m-d' ) && empty( $reg['legacy_final'] ) ) {
+		$last = min( $to, self::day_add( wp_date( 'Y-m-d' ), -1 ) );
+		if ( $last > $done ) {
 			$reg                 = self::registry();
-			$reg['legacy_final'] = true;
+			$reg['legacy_done']  = $last;
+			$reg['legacy_final'] = $last === $to;
 			self::save_registry( $reg );
 		}
 		return $out;
