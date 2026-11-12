@@ -56,11 +56,14 @@ trait Colorify_Dashboard_Planner {
 		if ( ! self::plan_has_provider() ) {
 			return null;
 		}
-		$ev   = array_values(
+		// Wszystkie przyszłe zlecenia z okna kalendarza (25 miesięcy w przód), nie tylko najbliższe pół roku: przy weselach
+		// planowanych z rocznym wyprzedzeniem okno 180 dni pokazywało "0" i "Brak nadchodzących zleceń".
+		$today = wp_date( 'Y-m-d' );
+		$ev    = array_values(
 			array_filter(
-				self::plan_events( wp_date( 'Y-m-d' ), wp_date( 'Y-m-d', time() + 180 * DAY_IN_SECONDS ) ),
-				static function ( $e ) {
-					return 'blokada' !== $e['type'] && 'anulowane' !== $e['status'];
+				self::plan_all(),
+				static function ( $e ) use ( $today ) {
+					return $e['date'] >= $today && 'wesele' === $e['type'] && 'anulowane' !== $e['status'];
 				}
 			)
 		);
@@ -948,7 +951,7 @@ trait Colorify_Dashboard_Planner {
 		// najbliższe, zadatki. Kolejność w kodzie = kolejność na telefonie (najbliższe wesele i zadania przed kalendarzem).
 		return '<div class="cfb" data-cfb>' . $head
 			. '<div class="cfb-bento' . ( '' === $tile_dep ? ' no-dep' : '' ) . '">' . $strip . self::plan_next_tile( $next, $all, $today ) . $tile_todo . $cal . $tile_next . $tile_dep . '</div>'
-			. $boot . '</div>';
+			. self::insights_fold() . $boot . '</div>';
 	}
 
 	/**
@@ -1045,7 +1048,7 @@ trait Colorify_Dashboard_Planner {
 		$out  .= '<div class="cfd-row cfd-row--even">'
 			. self::plan_upcoming( __( 'Kolejne zlecenia', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 6 ), self::plan_has_provider() ? __( 'Nic nie jest zaplanowane.', 'colorify-by-inyfinn' ) : '' )
 			. '</div>';
-		return $out . self::plan_boot( $today->format( 'Y-m' ) );
+		return $out . self::insights_fold() . self::plan_boot( $today->format( 'Y-m' ) );
 	}
 
 	/* ===================== Motyw: Portfolio ===================== */
@@ -1076,6 +1079,7 @@ trait Colorify_Dashboard_Planner {
 				array( 'globe', __( 'Zobacz stronę', 'colorify-by-inyfinn' ), home_url( '/' ) ),
 			)
 		);
+		$out .= self::insights_module( 'portfolio' );
 		$out .= '<section class="cfd-card cfd-strip">';
 		$out .= self::stat( 'image', __( 'Zdjęcia i grafiki', 'colorify-by-inyfinn' ), esc_html( self::num( $imgs ) ), '', '', admin_url( 'upload.php?attachment-filter=post_mime_type:image' ) );
 		$out .= self::stat( 'film', __( 'Filmy', 'colorify-by-inyfinn' ), esc_html( self::num( $vids ) ), '', '', admin_url( 'upload.php?attachment-filter=post_mime_type:video' ) );
@@ -1110,10 +1114,9 @@ trait Colorify_Dashboard_Planner {
 			: self::promo( __( 'Dodaj nowe prace', 'colorify-by-inyfinn' ), __( 'Pokaż, co ostatnio zrobiłaś', 'colorify-by-inyfinn' ), array( __( 'Nowe zdjęcia pojawią się obok. Licznik wejść zbiera dane od dziś.', 'colorify-by-inyfinn' ) ), __( 'Dodaj zdjęcia', 'colorify-by-inyfinn' ), admin_url( 'media-new.php' ), true );
 		$out .= '<div class="cfd-row">' . $grid . $aside . '</div>';
 		$out .= '<div class="cfd-row cfd-row--even">'
-			. self::list_card( __( 'Popularne podstrony', 'colorify-by-inyfinn' ), self::top_pages_rows( $tcur['pages'] ), __( 'Licznik zbiera dane od dziś.', 'colorify-by-inyfinn' ), '', '', true )
 			. self::list_card( __( 'Ostatnio zmieniane strony', 'colorify-by-inyfinn' ), self::recent_posts( 'page', array( 'publish', 'draft' ) ), __( 'Brak stron.', 'colorify-by-inyfinn' ), __( 'Wszystkie', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_type=page' ) )
 			. '</div>';
-		return $out;
+		return $out . self::insights();
 	}
 
 

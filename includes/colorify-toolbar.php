@@ -245,7 +245,8 @@ function colorify_ui_enqueue(): void {
 		$deps[] = 'colorify-chrome';
 	}
 
-	wp_enqueue_style( 'colorify-ui', COLORIFY_PLUGIN_URL . 'assets/colorify-ui.css', $deps, COLORIFY_PLUGIN_VERSION );
+	// Wersja + czas pliku: poprawka arkusza omija pamięć przeglądarki (assety mają cache na rok).
+	wp_enqueue_style( 'colorify-ui', COLORIFY_PLUGIN_URL . 'assets/colorify-ui.css', $deps, COLORIFY_PLUGIN_VERSION . '-' . (int) @filemtime( COLORIFY_PLUGIN_DIR . 'assets/colorify-ui.css' ) );
 	wp_enqueue_script( 'colorify-ui', COLORIFY_PLUGIN_URL . 'assets/colorify-ui.js', array( 'wp-a11y' ), COLORIFY_PLUGIN_VERSION, true );
 
 	$decode = static function ( string $text ): string {

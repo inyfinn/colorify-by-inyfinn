@@ -11,7 +11,9 @@ Kalendarz kokpitu: zaznaczanie dni i blokowanie kilku naraz.
 - Blokowanie włącza wtyczka zleceń filtrem `colorify_calendar_block` (adres admin-ajax, akcja, nonce, adres terminarza); bez niego kalendarz działa jak dotąd. Opis żądania i odpowiedzi: nagłówek `includes/colorify-dashboard-planner.php`.
 - Karta zablokowanego dnia pokazuje `info` z podziałem na linie (np. druga linia „Zablokowane przez: …”), a jej drugi przycisk ma całą szerokość.
 - Telefon 320–390 px: kafle skrótów nie wychodzą poza ekran (poniżej 360 px jedna kolumna), długie etykiety liczb łamią się zamiast rozpychać siatkę, przycisk „Widok” stoi w jednym rzędzie z podtytułem, a zakres 7 / 30 / 90 dni pod spodem na całą szerokość; cele dotyku 44 px.
-- Widoki „Zapytania” i „Firma” pokazują na końcu panel ruchu z modułu analityki (`includes/colorify-dashboard-insights.php`).
+- Moduł analityki (`includes/colorify-dashboard-insights.php`) w widokach: każdy z widoków Zapytania, Firma, Redakcja, Portfolio i Sprzedaż zaczyna się własnym modułem (`colorify_insights_module()`), a stary pasek ruchu i karty „Popularne podstrony” / „Najczęściej czytane” zastąpił panel ruchu (`colorify_insights_traffic_panel()`). W „Firmie” moduł niesie kondycję, aktualizacje i listę rzeczy do zrobienia, więc dawny pasek liczb i karta „Wymaga uwagi” wypadły. „Kalendarz zleceń” i „Rezerwacje” mają panel ruchu na dole, zwinięty pod nagłówkiem „Ruch na stronie”.
+- „Zapytania” na stronie z wtyczką zleceń: najbliższe zlecenie i liczba nadchodzących liczą się z całego okna kalendarza, nie z najbliższych 180 dni (przy weselach planowanych z rocznym wyprzedzeniem widok mówił „0” i „Brak nadchodzących zleceń”).
+- `colorify-ui.css` i `colorify-modern.css` mają wersję z czasem pliku, jak arkusz planera.
 
 ## 2.14.1
 
