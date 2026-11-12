@@ -319,7 +319,7 @@ final class Colorify_Dashboard {
 			. '.cfd-vclassic .cfd-vback{min-height:36px;margin-left:0}.cfd-vclassic .cfd-vpick{display:inline-block;vertical-align:middle}.cfd-vclassic .cfd-vpick__btn{min-height:36px;box-shadow:inset 0 0 0 1px var(--line)}'
 			. '.cfd-vclassic .cfd-vpick__menu{left:0;right:auto;width:min(400px,calc(100vw - 24px))}'
 			. '.cfd-vclassic a:focus-visible{outline:1px solid var(--a);outline-offset:2px}'
-			. '@media (max-width:600px){.cfd-vclassic{display:block;margin:8px 0 4px}.cfd-vclassic .cfd-vpick__btn{min-height:44px}}'
+			. '@media (max-width:782px){.cfd-vclassic .cfd-vpick__btn,.cfd-vclassic .cfd-vback{min-height:44px}}@media (max-width:600px){.cfd-vclassic{display:block;margin:8px 0 4px}}'
 			. self::pick_css() . '</style>';
 		echo '<div class="cfd-vclassic">' . self::view_back() . $pick . '</div>';
 		echo '<script>document.addEventListener("DOMContentLoaded",function(){var w=document.querySelector(".cfd-vclassic"),h=document.querySelector("#wpbody-content .wrap h1");if(w&&h){h.style.display="inline-block";h.insertAdjacentElement("afterend",w)}});</script>'; // tytuł jest w dokumencie niżej niż komunikaty
@@ -562,6 +562,7 @@ final class Colorify_Dashboard {
 			'close'   => '<path d="M6 6l12 12M18 6L6 18"/>',
 			'check'   => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 			'chev'    => '<path d="M6 9l6 6 6-6"/>',
+			'unlock'  => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.6-1.7"/>',
 			'undo'    => '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
 		);
 		return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . ( $paths[ $name ] ?? '' ) . '</svg>';
@@ -690,6 +691,11 @@ final class Colorify_Dashboard {
 			$rows[] = array( $title, (string) get_edit_post_link( (int) $id, 'raw' ), sprintf( __( '%s wyśw.', 'colorify-by-inyfinn' ), self::num( (float) $views ) ) );
 		}
 		return $rows;
+	}
+
+	/** Panel ruchu z modułu analityki (colorify-dashboard-insights.php); pusty tekst, gdy modułu nie ma. */
+	private static function insights(): string {
+		return function_exists( 'colorify_insights_traffic_panel' ) ? (string) colorify_insights_traffic_panel() : '';
 	}
 
 	/* ===================== Render ===================== */
@@ -1072,7 +1078,7 @@ final class Colorify_Dashboard {
 		}
 		$side[] = self::list_card( __( 'Ostatnio zmieniane strony', 'colorify-by-inyfinn' ), self::recent_posts( 'page', array( 'publish', 'draft' ) ), __( 'Brak stron.', 'colorify-by-inyfinn' ), __( 'Wszystkie', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_type=page' ) );
 		$out   .= '<div class="cfd-row cfd-row--even">' . implode( '', $side ) . '</div>';
-		return $out;
+		return $out . self::insights();
 	}
 
 	/** @return array<int,array<int,string>> */
@@ -1219,7 +1225,7 @@ final class Colorify_Dashboard {
 			$cards[] = self::list_card( __( 'Brakujące tłumaczenia', 'colorify-by-inyfinn' ), array_slice( $missing, 0, 5 ), '' );
 		}
 		$out .= '<div class="cfd-row cfd-row--even">' . implode( '', $cards ) . '</div>';
-		return $out;
+		return $out . self::insights();
 	}
 
 	/* ===================== Wygląd ===================== */
@@ -1258,8 +1264,8 @@ body.colorify-dark .cfd-quick__a:hover{background:color-mix(in srgb,#fff 5%,var(
 .cfd-stat{padding:0 28px;display:flex;flex-direction:column;gap:8px;min-width:0;color:inherit;text-decoration:none}
 .cfd-stat+.cfd-stat{border-left:1px solid var(--line)}
 a.cfd-stat:hover .cfd-stat__label{color:var(--a)}
-.cfd-stat__top{display:flex;align-items:center;gap:10px}
-.cfd-stat__label{font-size:14px;color:var(--m)}
+.cfd-stat__top{display:flex;align-items:center;gap:10px;min-width:0}
+.cfd-stat__label{min-width:0;font-size:14px;color:var(--m);overflow-wrap:anywhere}
 .cfd-stat__row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-width:0}
 .cfd-stat__value{font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .cfd-stat__value--text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:16px;line-height:22px;font-weight:600;letter-spacing:0;overflow-wrap:break-word}
@@ -1315,7 +1321,9 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 <?php echo self::pick_css(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- stały arkusz. ?>
 @media (prefers-reduced-motion:reduce){.cfd-view__a,.cfd-quick__a,.cfd-vpick__btn svg{transition:none}}
 @media (max-width:1100px){.cfd-row,.cfd-row--b{grid-template-columns:minmax(0,1fr)}.cfd-strip{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}.cfd-stat:nth-child(3){border-left:0}.cfd-promo{order:-1}}
-@media (max-width:600px){.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:1fr 1fr}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
+@media (max-width:600px){.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:repeat(2,minmax(0,1fr))}.cfd-quick__a{min-width:0;padding:8px 14px}.cfd-quick__a span:last-child{min-width:0;overflow-wrap:anywhere}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
+@media (max-width:600px){.cfd-range{order:3;flex:1 1 100%;display:flex}.cfd-range a{flex:1 1 0;justify-content:center;min-height:44px;padding:0 8px}.cfd-link{padding:12px 0;margin:-12px 0}}
+@media (max-width:359px){.cfd-quick{grid-template-columns:minmax(0,1fr)}}
 </style>
 		<?php
 	}

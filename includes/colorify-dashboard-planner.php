@@ -20,6 +20,16 @@
  *             'confirm' => pytanie przed wysłaniem ]; z 'post' przycisk wysyła formularz POST (tylko na adres panelu
  *             tej strony, np. admin-post.php z nonce wtyczki), bez 'post' jest zwykłym odnośnikiem
  *
+ * Blokowanie dni z kalendarza kokpitu (2.14.2): zaznaczanie dni (klik, Ctrl, Shift, przytrzymanie na telefonie),
+ * menu kontekstowe i pasek akcji pojawiają się, gdy wtyczka zleceń poda
+ *   apply_filters( 'colorify_calendar_block', null )
+ *       [ 'ajax' => adres admin-ajax.php, 'action' => nazwa akcji wp_ajax_*, 'nonce' => nonce tej akcji,
+ *         'calendar' => adres terminarza wtyczki (kokpit dokleja &m=RRRR-MM&d=RRRR-MM-DD) ]
+ * Kokpit wysyła POST: action, _wpnonce, tryb=zablokuj|odblokuj, daty[]=RRRR-MM-DD (wiele), potwierdzam=1 (użytkownik
+ * widział już listę dat i wydarzenia w tych dniach). Odpowiedź JSON { success: true } przeładowuje kokpit w tym
+ * samym miesiącu; { success: false, data: 'komunikat' } pokazuje komunikat w oknie potwierdzenia. Zablokowane dni
+ * wracają jako wydarzenia typu 'blokada' ('info' może mieć drugą linię po znaku nowej linii, np. kto i kiedy).
+ *
  * Bez danych kokpit pokazuje pusty kalendarz z podpowiedzią, nigdy błąd. Portfolio korzysta wyłącznie z mediów
  * i stron WordPressa. Trait należy do Colorify_Dashboard i używa jej pomocników (stat, list_card, promo...).
  *
@@ -158,6 +168,26 @@ trait Colorify_Dashboard_Planner {
 			);
 		}
 		return array_slice( $out, 0, 4 );
+	}
+
+	/**
+	 * Blokowanie dni z kalendarza: konfiguracja od wtyczki zleceń (filtr colorify_calendar_block) albo null. Żądanie
+	 * idzie tylko na adres panelu tej strony, więc nonce nie wyjdzie poza witrynę.
+	 *
+	 * @return array{ajax:string,action:string,nonce:string,calendar:string}|null
+	 */
+	private static function plan_block(): ?array {
+		$raw = self::plan_can_see() ? apply_filters( 'colorify_calendar_block', null ) : null;
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$ajax   = esc_url_raw( (string) ( $raw['ajax'] ?? '' ) );
+		$action = sanitize_key( (string) ( $raw['action'] ?? '' ) );
+		$nonce  = preg_replace( '/[^a-zA-Z0-9]/', '', (string) ( $raw['nonce'] ?? '' ) );
+		if ( '' === $action || '' === $nonce || 0 !== strpos( $ajax, admin_url() ) ) {
+			return null;
+		}
+		return array( 'ajax' => $ajax, 'action' => $action, 'nonce' => $nonce, 'calendar' => esc_url_raw( (string) ( $raw['calendar'] ?? '' ) ) );
 	}
 
 	/**
@@ -737,7 +767,7 @@ trait Colorify_Dashboard_Planner {
 			$payload[] = $p;
 		}
 		$icons = array();
-		foreach ( array( 'ring', 'phone', 'box', 'lock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
+		foreach ( array( 'ring', 'phone', 'box', 'lock', 'unlock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
 			$icons[ $n ] = self::icon_svg( $n );
 		}
 		$months = array();
@@ -761,6 +791,7 @@ trait Colorify_Dashboard_Planner {
 			'base'   => admin_url( 'index.php' ),
 			'ajax'   => admin_url( 'admin-ajax.php' ),
 			'statusSets' => $sets,
+			'block'  => self::plan_block(),
 			'i18n'   => array(
 				'prevMonth' => __( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ),
 				'nextMonth' => __( 'Następny miesiąc', 'colorify-by-inyfinn' ),
@@ -788,6 +819,26 @@ trait Colorify_Dashboard_Planner {
 				'stChange'  => __( 'Zmień status', 'colorify-by-inyfinn' ),
 				'stSaved'   => __( 'Zapisano status: %s', 'colorify-by-inyfinn' ),
 				'stFail'    => __( 'Nie udało się zapisać statusu. Spróbuj jeszcze raz.', 'colorify-by-inyfinn' ),
+				'selCount'  => __( 'Zaznaczono: %s', 'colorify-by-inyfinn' ),
+				'day1'      => __( 'dzień', 'colorify-by-inyfinn' ),
+				'dayN'      => __( 'dni', 'colorify-by-inyfinn' ),
+				'block1'    => __( 'Zablokuj dzień', 'colorify-by-inyfinn' ),
+				'blockN'    => __( 'Zablokuj dni (%d)', 'colorify-by-inyfinn' ),
+				'unblock1'  => __( 'Odblokuj dzień', 'colorify-by-inyfinn' ),
+				'unblockN'  => __( 'Odblokuj dni (%d)', 'colorify-by-inyfinn' ),
+				'clear'     => __( 'Wyczyść', 'colorify-by-inyfinn' ),
+				'cancel'    => __( 'Anuluj', 'colorify-by-inyfinn' ),
+				'askBlock'  => __( 'Zablokować %s?', 'colorify-by-inyfinn' ),
+				'askUnblock' => __( 'Odblokować %s?', 'colorify-by-inyfinn' ),
+				'whatBlock' => __( 'W zablokowane dni nie przyjmujesz zleceń, a termin jest pokazywany jako zajęty.', 'colorify-by-inyfinn' ),
+				'whatUnblock' => __( 'Te dni znów będą wolne do rezerwacji.', 'colorify-by-inyfinn' ),
+				'busy'      => __( 'Uwaga, w tym dniu jest: %s', 'colorify-by-inyfinn' ),
+				'doBlock'   => __( 'Zablokuj', 'colorify-by-inyfinn' ),
+				'doUnblock' => __( 'Odblokuj', 'colorify-by-inyfinn' ),
+				'saving'    => __( 'Zapisuję…', 'colorify-by-inyfinn' ),
+				'saveFail'  => __( 'Nie udało się zapisać. Spróbuj jeszcze raz.', 'colorify-by-inyfinn' ),
+				'dayMenu'   => __( 'Działania na zaznaczonych dniach', 'colorify-by-inyfinn' ),
+				'nothing'   => __( 'W zaznaczeniu nie ma dni do zmiany.', 'colorify-by-inyfinn' ),
 			),
 		);
 		wp_add_inline_script( 'colorify-planner', 'window.colorifyPlanner=' . wp_json_encode( $cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . ';', 'before' );
@@ -838,6 +889,7 @@ trait Colorify_Dashboard_Planner {
 			. '<div class="cfb-nav" role="group" aria-label="' . esc_attr__( 'Miesiąc', 'colorify-by-inyfinn' ) . '"><button type="button" class="cfb-nav__a" data-cfb-nav="-1" aria-label="' . esc_attr__( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'prev' ) . '</button><button type="button" class="cfb-nav__a cfb-nav__today" data-cfb-today>' . esc_html__( 'Dziś', 'colorify-by-inyfinn' ) . '</button><button type="button" class="cfb-nav__a" data-cfb-nav="1" aria-label="' . esc_attr__( 'Następny miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'next' ) . '</button></div></div>'
 			. '<div class="cfb-grid-wrap" data-cfb-grid></div>' . $legend
 			. '<p class="cfb-keys">' . esc_html__( 'Strzałki ← → zmieniają miesiąc, Shift + strzałki rok. Najedź na wydarzenie albo kliknij je, żeby zobaczyć szczegóły.', 'colorify-by-inyfinn' ) . '</p>'
+			. ( self::plan_block() ? '<p class="cfb-keys cfb-keys--block">' . self::icon_svg( 'lock' ) . '<span>' . esc_html__( 'Kliknij dzień, żeby go zaznaczyć (Ctrl dodaje kolejne, Shift zaznacza zakres). Prawy przycisk albo przytrzymanie: blokuj dni.', 'colorify-by-inyfinn' ) . '</span></p>' : '' )
 			. '</section>';
 
 		// Najbliższe wesele (albo wydarzenie), od dziś.

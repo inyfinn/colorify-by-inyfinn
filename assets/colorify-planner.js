@@ -6,7 +6,9 @@
  *    albo fokusie, znika po 0,5 s, gdy kursor jej opuści, i nie znika, gdy kursor wróci na wydarzenie albo wejdzie na kartę;
  *    klik/dotyk/Enter przypina kartę; w karcie: Skopiuj informacje, Otwórz zlecenie, Zadzwoń, Trasa, Poprzednie/Następne;
  *  - status w karcie jest listą do wyboru, gdy wtyczka podała status_options i status_action: wybór zapisuje się
- *    od razu (admin-ajax wtyczki), a kalendarz, karta i plakietki na listach odświeżają się bez przeładowania.
+ *    od razu (admin-ajax wtyczki), a kalendarz, karta i plakietki na listach odświeżają się bez przeładowania;
+ *  - zaznaczanie dni i ich blokowanie (gdy wtyczka podała cfg.block): klik, Ctrl i Shift, menu pod prawym przyciskiem,
+ *    na telefonie mała siatka miesiąca nad listą dni, przytrzymanie dnia i pasek akcji u dołu.
  * Tekst wstawiamy zawsze przez textContent; innerHTML tylko dla ikon z serwera.
  */
 ( function () {
@@ -130,7 +132,7 @@
 		return b;
 	}
 
-	/** Telefon: lista dni miesiąca z wydarzeniami zamiast siatki 7 kolumn. */
+	/** Telefon i tablet: lista dni miesiąca z wydarzeniami (pod małą siatką miesiąca, gdy kalendarz umie blokować dni). */
 	function renderAgenda( wrap ) {
 		var ul = el( 'ol', 'cfb-agenda' );
 		var days = new Date( view.y, view.m + 1, 0 ).getDate();
@@ -142,6 +144,7 @@
 			}
 			var dt = new Date( view.y, view.m, d );
 			var li = el( 'li', key === cfg.today ? 'is-today' : '' );
+			li.setAttribute( 'data-agenda', key );
 			var badge = el( 'span', 'cfb-agenda__d' );
 			badge.appendChild( el( 'b', '', String( d ) ) );
 			badge.appendChild( el( 'i', '', cfg.dows[ ( dt.getDay() + 6 ) % 7 ] ) );
@@ -153,7 +156,6 @@
 			li.appendChild( box );
 			ul.appendChild( li );
 		}
-		wrap.textContent = '';
 		if ( ul.children.length ) {
 			wrap.appendChild( ul );
 		} else {
@@ -161,18 +163,15 @@
 		}
 	}
 
-	function renderGrid() {
-		var wrap = cal.querySelector( '[data-cfb-grid]' );
-		var label = cal.querySelector( '[data-cfb-label]' );
-		if ( mobileQuery.matches ) {
-			renderAgenda( wrap );
-			label.textContent = cfg.months[ view.m ] + ' ' + view.y;
-			return;
-		}
+	/**
+	 * Siatka miesiąca. Pełna (komputer): do dwóch chipów w dniu, reszta pod "+N więcej". Mała (telefon, tablet): numer dnia
+	 * i kropki rodzajów wydarzeń; dotknięcie dnia przewija listę pod spodem, przytrzymanie zaczyna zaznaczanie.
+	 */
+	function buildTable( mini ) {
 		var first = new Date( view.y, view.m, 1 );
 		var offset = ( first.getDay() + 6 ) % 7;
 		var max = 2;
-		var table = el( 'table', 'cfb-grid' );
+		var table = el( 'table', 'cfb-grid' + ( mini ? ' is-mini' : '' ) );
 		var thead = el( 'thead' );
 		var hr = el( 'tr' );
 		cfg.dows.forEach( function ( d ) {
@@ -192,7 +191,7 @@
 				body.appendChild( row );
 			}
 			var items = byDate[ key ] || [];
-			var cls = 'cfb-day' + ( d.getMonth() !== view.m ? ' is-out' : '' ) + ( key === cfg.today ? ' is-today' : '' ) + ( d.getDay() % 6 === 0 ? ' is-weekend' : '' ) + ( items.length ? ' has-ev' : '' );
+			var cls = 'cfb-day' + ( d.getMonth() !== view.m ? ' is-out' : '' ) + ( key === cfg.today ? ' is-today' : '' ) + ( d.getDay() % 6 === 0 ? ' is-weekend' : '' ) + ( items.length ? ' has-ev' : '' ) + ( isBlocked( key ) ? ' is-blocked' : '' );
 			var td = el( 'td', cls );
 			td.setAttribute( 'data-date', key );
 			td.setAttribute( 'data-n', items.length );
@@ -201,6 +200,14 @@
 			}
 			td.appendChild( el( 'span', 'cfb-num', String( d.getDate() ) ) );
 			var box = el( 'div', 'cfb-day__evs' );
+			if ( mini ) {
+				items.slice( 0, 3 ).forEach( function ( e ) {
+					box.appendChild( el( 'i', 'cfb-mdot ' + typeClass( e ) ) );
+				} );
+				td.appendChild( box );
+				row.appendChild( td );
+				continue;
+			}
 			var shown = Math.min( items.length, max );
 			items.slice( 0, shown ).forEach( function ( e ) {
 				box.appendChild( chip( e ) );
@@ -222,9 +229,21 @@
 			row.appendChild( td );
 		}
 		table.appendChild( body );
+		return table;
+	}
+
+	function renderGrid() {
+		var wrap = cal.querySelector( '[data-cfb-grid]' );
+		var mini = mobileQuery.matches;
 		wrap.textContent = '';
-		wrap.appendChild( table );
-		label.textContent = cfg.months[ view.m ] + ' ' + view.y;
+		if ( ! mini || block ) {
+			wrap.appendChild( buildTable( mini ) );
+		}
+		if ( mini ) {
+			renderAgenda( wrap );
+		}
+		cal.querySelector( '[data-cfb-label]' ).textContent = cfg.months[ view.m ] + ' ' + view.y;
+		paintSel();
 	}
 
 	function setMonth( y, m, keepUrl ) {
@@ -1038,6 +1057,13 @@
 
 	root.addEventListener( 'click', function ( ev ) {
 		var t = triggerOf( ev.target );
+		// Ctrl, Cmd albo Shift na chipie w siatce znaczy "zaznacz ten dzień", nie "otwórz wydarzenie" (chip zajmuje prawie całą komórkę).
+		var chipDay = t && block && ( ev.ctrlKey || ev.metaKey || ev.shiftKey ) ? t.closest( '.cfb-grid .cfb-day' ) : null;
+		if ( chipDay ) {
+			ev.preventDefault();
+			pick( chipDay.getAttribute( 'data-date' ), ev );
+			return;
+		}
 		if ( t ) {
 			ev.preventDefault();
 			var i = parseInt( t.getAttribute( 'data-ev' ), 10 );
@@ -1051,7 +1077,23 @@
 			}
 			return;
 		}
-		// kliknięcie w dzień z wydarzeniami (poza chipem) otwiera pierwsze wydarzenie dnia
+		// Klik w dzień (poza chipem). Kalendarz z blokowaniem dni: zaznacza dzień (telefon: przewija listę do tego dnia,
+		// a po przytrzymaniu dodaje go do zaznaczenia). Bez blokowania: dzień z wydarzeniami otwiera pierwsze z nich.
+		var day = block && ev.target.closest ? ev.target.closest( '.cfb-grid .cfb-day' ) : null;
+		if ( day && cal && cal.contains( day ) && ! ev.target.closest( '[data-more]' ) ) {
+			var dkey = day.getAttribute( 'data-date' );
+			if ( held ) {
+				held = false;
+			} else if ( mobileQuery.matches && ! selTouch ) {
+				var arow = cal.querySelector( '[data-agenda="' + dkey + '"]' );
+				if ( arow ) {
+					arow.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+				}
+			} else {
+				pick( dkey, ev );
+			}
+			return;
+		}
 		var td = ev.target.closest ? ev.target.closest( '.cfb-day.has-ev' ) : null;
 		if ( td && cal && cal.contains( td ) && ! ev.target.closest( '[data-more]' ) ) {
 			var list = byDate[ td.getAttribute( 'data-date' ) ] || [];
@@ -1073,6 +1115,9 @@
 		if ( picker && ! picker.hidden && ! picker.contains( ev.target ) && ! pickBtn.contains( ev.target ) ) {
 			closePicker( false );
 		}
+		if ( ctx && ! ctx.hidden && ! ctx.contains( ev.target ) ) {
+			closeCtx( false );
+		}
 		if ( ! ( ev.target.closest && ev.target.closest( '.cfb-day.is-expanded' ) ) ) {
 			root.querySelectorAll( '.cfb-day.is-expanded' ).forEach( function ( d ) {
 				d.classList.remove( 'is-expanded' );
@@ -1088,6 +1133,8 @@
 				closePicker( true );
 			} else if ( state.i !== null ) {
 				closeCard( true );
+			} else if ( block && selKeys().length ) {
+				clearSel(); // Esc bez otwartej karty czyści zaznaczenie dni
 			}
 			return;
 		}
@@ -1122,6 +1169,488 @@
 			place();
 		}
 	} );
+
+	/* ---------- Zaznaczanie dni i blokady (2.14.2) ----------
+	 * Działa, gdy wtyczka zleceń podała cfg.block (filtr colorify_calendar_block). Klik w dzień zaznacza go (Ctrl/Cmd dodaje,
+	 * Shift bierze zakres), prawy przycisk albo Shift+F10 otwiera menu, na telefonie przytrzymanie dnia włącza zaznaczanie
+	 * dotykiem i pasek akcji u dołu. Zapis: jedno żądanie na wszystkie dni, po potwierdzeniu z listą dat. */
+
+	var block = cfg.block || null;
+	var sel = {};         // zaznaczone dni: 'RRRR-MM-DD' => true
+	var selAnchor = '';   // ostatnio kliknięty dzień (Shift zaznacza zakres od niego)
+	var selTouch = false; // telefon: zaznaczanie dotykiem po przytrzymaniu dnia
+	var held = false;     // przytrzymanie właśnie zadziałało: następny klik tego samego dotyku jest pomijany
+	var focusKey = '';    // dzień z fokusem klawiatury (jedyny w kolejności Tab)
+	var selBar = null;
+	var ctx = null;
+	var dlg = null;
+
+	function isBlocked( key ) {
+		return ( byDate[ key ] || [] ).some( function ( e ) {
+			return 'blokada' === e.type;
+		} );
+	}
+
+	function selKeys() {
+		return Object.keys( sel ).sort();
+	}
+
+	function dayWord( n ) {
+		return n + ' ' + ( 1 === n ? T.day1 : T.dayN );
+	}
+
+	function longDate( key ) {
+		var p = key.split( '-' );
+		try {
+			return new Intl.DateTimeFormat( document.documentElement.lang || 'pl', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } ).format( new Date( +p[ 0 ], +p[ 1 ] - 1, +p[ 2 ], 12 ) );
+		} catch ( err ) {
+			return key;
+		}
+	}
+
+	/** Co da się zrobić z zaznaczeniem: dni do zablokowania (od dziś, jeszcze wolne) i dni do odblokowania. */
+	function selPlan() {
+		var keys = selKeys();
+		return {
+			all: keys,
+			add: keys.filter( function ( k ) {
+				return ! isBlocked( k ) && k >= cfg.today;
+			} ),
+			remove: keys.filter( isBlocked ),
+		};
+	}
+
+	function actionList( p ) {
+		var list = [];
+		if ( p.add.length ) {
+			list.push( { key: 'add', icon: 'lock', label: 1 === p.add.length ? T.block1 : T.blockN.replace( '%d', p.add.length ) } );
+		}
+		if ( p.remove.length ) {
+			list.push( { key: 'remove', icon: 'unlock', label: 1 === p.remove.length ? T.unblock1 : T.unblockN.replace( '%d', p.remove.length ) } );
+		}
+		if ( block.calendar ) {
+			list.push( { key: 'open', icon: 'calendar', label: T.openCal } );
+		}
+		return list;
+	}
+
+	function fillActions( box, p, cls, role ) {
+		box.textContent = '';
+		actionList( p ).forEach( function ( a, i ) {
+			var b = el( 'button', cls + ( 0 === i && 'open' !== a.key && 'cfb-btn' === cls ? ' is-main' : '' ) );
+			b.type = 'button';
+			b.setAttribute( 'data-act', a.key );
+			if ( role ) {
+				b.setAttribute( 'role', role );
+			}
+			b.appendChild( icon( a.icon ) );
+			b.appendChild( el( 'span', '', a.label ) );
+			box.appendChild( b );
+		} );
+	}
+
+	function runAction( key ) {
+		var p = selPlan();
+		closeCtx( false );
+		if ( 'open' === key ) {
+			var d = p.all[ 0 ] || cfg.today;
+			window.location.href = block.calendar + ( block.calendar.indexOf( '?' ) > -1 ? '&' : '?' ) + 'm=' + d.slice( 0, 7 ) + '&d=' + d;
+			return;
+		}
+		askSave( 'add' === key ? 'zablokuj' : 'odblokuj', 'add' === key ? p.add : p.remove );
+	}
+
+	/** Jeden dzień siatki w kolejności Tab: ten z fokusem, zaznaczony, dziś albo pierwszy dzień miesiąca. */
+	function roving() {
+		var tds = cal.querySelectorAll( '.cfb-grid .cfb-day' );
+		if ( ! tds.length ) {
+			return;
+		}
+		var want = ( focusKey && cal.querySelector( '.cfb-day[data-date="' + focusKey + '"]' ) ) || cal.querySelector( '.cfb-day.is-sel' ) || cal.querySelector( '.cfb-day.is-today' ) || cal.querySelector( '.cfb-day:not(.is-out)' );
+		tds.forEach( function ( td ) {
+			td.tabIndex = td === want ? 0 : -1;
+		} );
+	}
+
+	function paintSel() {
+		if ( ! cal || ! block ) {
+			return;
+		}
+		var grid = cal.querySelector( '.cfb-grid' );
+		if ( grid ) {
+			grid.setAttribute( 'role', 'grid' );
+			grid.setAttribute( 'aria-multiselectable', 'true' );
+		}
+		cal.querySelectorAll( '.cfb-day' ).forEach( function ( td ) {
+			var on = !! sel[ td.getAttribute( 'data-date' ) ];
+			td.classList.toggle( 'is-sel', on );
+			td.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+		} );
+		if ( ! selBar ) {
+			selBar = el( 'div', 'cfb-selbar' );
+			selBar.setAttribute( 'role', 'region' );
+			selBar.setAttribute( 'aria-label', T.dayMenu );
+			selBar.appendChild( el( 'span', 'cfb-selbar__n' ) );
+			selBar.appendChild( el( 'span', 'cfb-selbar__acts' ) );
+			var clear = el( 'button', 'cfb-selbar__x', T.clear );
+			clear.type = 'button';
+			clear.addEventListener( 'click', clearSel );
+			selBar.appendChild( clear );
+			selBar.addEventListener( 'click', function ( ev ) {
+				var b = ev.target.closest( '[data-act]' );
+				if ( b ) {
+					runAction( b.getAttribute( 'data-act' ) );
+				}
+			} );
+			cal.querySelector( '[data-cfb-grid]' ).insertAdjacentElement( 'afterend', selBar );
+		}
+		var p = selPlan();
+		selBar.hidden = ! p.all.length;
+		cal.classList.toggle( 'is-selecting', !! p.all.length );
+		if ( p.all.length ) {
+			selBar.querySelector( '.cfb-selbar__n' ).textContent = T.selCount.replace( '%s', dayWord( p.all.length ) );
+			fillActions( selBar.querySelector( '.cfb-selbar__acts' ), p, 'cfb-btn', '' );
+		}
+		roving();
+	}
+
+	function clearSel() {
+		sel = {};
+		selAnchor = '';
+		selTouch = false;
+		paintSel();
+	}
+
+	/** Dni od a do b włącznie (najwyżej 400, tyle przyjmuje serwer). */
+	function dayRange( a, b ) {
+		var from = a < b ? a : b;
+		var to = a < b ? b : a;
+		var p = from.split( '-' );
+		var d = new Date( +p[ 0 ], +p[ 1 ] - 1, +p[ 2 ], 12 );
+		var out = [];
+		while ( ymd( d ) <= to && out.length < 400 ) {
+			out.push( ymd( d ) );
+			d.setDate( d.getDate() + 1 );
+		}
+		return out;
+	}
+
+	/** Klik w dzień: sam = tylko ten dzień (ponowny klik odznacza), Ctrl/Cmd albo tryb dotyku = dodaj lub usuń, Shift = zakres. */
+	function pick( key, ev ) {
+		var more = ev && ( ev.ctrlKey || ev.metaKey );
+		if ( ev && ev.shiftKey && selAnchor ) {
+			if ( ! more ) {
+				sel = {};
+			}
+			dayRange( selAnchor, key ).forEach( function ( k ) {
+				sel[ k ] = true;
+			} );
+		} else if ( more || selTouch ) {
+			if ( sel[ key ] ) {
+				delete sel[ key ];
+			} else {
+				sel[ key ] = true;
+			}
+			selAnchor = key;
+		} else {
+			var only = sel[ key ] && 1 === selKeys().length;
+			sel = {};
+			if ( ! only ) {
+				sel[ key ] = true;
+			}
+			selAnchor = key;
+		}
+		if ( ! selKeys().length ) {
+			selTouch = false;
+		}
+		focusKey = key;
+		paintSel();
+		announce( T.selCount.replace( '%s', dayWord( selKeys().length ) ) );
+	}
+
+	/** Przytrzymanie dnia na ekranie dotykowym: zaczyna zaznaczanie dotykiem (kolejne dotknięcia dodają i usuwają dni). */
+	function startTouchSel( key ) {
+		if ( ! selTouch ) {
+			selTouch = true;
+			sel = {};
+		}
+		sel[ key ] = true;
+		selAnchor = key;
+		held = true;
+		paintSel();
+		if ( navigator.vibrate ) {
+			navigator.vibrate( 12 );
+		}
+		announce( T.selCount.replace( '%s', dayWord( selKeys().length ) ) );
+	}
+
+	function closeCtx( refocus ) {
+		if ( ctx && ! ctx.hidden ) {
+			ctx.hidden = true;
+			if ( refocus && ctx.cfbFrom && document.body.contains( ctx.cfbFrom ) ) {
+				ctx.cfbFrom.focus();
+			}
+		}
+	}
+
+	/** Menu kontekstowe pod klikniętym dniem (gdy brak miejsca: nad nim), żeby nie zasłaniało jego wiersza; zawsze w całości na ekranie. */
+	function openCtx( x, from ) {
+		var p = selPlan();
+		if ( ! ctx ) {
+			ctx = el( 'div', 'cfb-ctx' );
+			ctx.setAttribute( 'role', 'menu' );
+			ctx.setAttribute( 'aria-label', T.dayMenu );
+			ctx.addEventListener( 'click', function ( ev ) {
+				var b = ev.target.closest( '[data-act]' );
+				if ( b ) {
+					runAction( b.getAttribute( 'data-act' ) );
+				}
+			} );
+			ctx.addEventListener( 'keydown', function ( ev ) {
+				var items = Array.prototype.slice.call( ctx.querySelectorAll( '[data-act]' ) );
+				var k = items.indexOf( document.activeElement );
+				if ( 'ArrowDown' === ev.key || 'ArrowUp' === ev.key ) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					items[ ( k + ( 'ArrowDown' === ev.key ? 1 : -1 ) + items.length ) % items.length ].focus();
+				} else if ( 'Escape' === ev.key ) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					closeCtx( true );
+				} else if ( 'Tab' === ev.key ) {
+					closeCtx( false );
+				}
+			} );
+			ctx.addEventListener( 'contextmenu', function ( ev ) {
+				ev.preventDefault();
+			} );
+			root.appendChild( ctx );
+		}
+		ctx.cfbFrom = from;
+		ctx.textContent = '';
+		ctx.appendChild( el( 'p', 'cfb-ctx__t', T.selCount.replace( '%s', dayWord( p.all.length ) ) ) );
+		var box = el( 'div', 'cfb-ctx__acts' );
+		fillActions( box, p, 'cfb-ctx__a', 'menuitem' );
+		ctx.appendChild( box );
+		ctx.hidden = false;
+		var top = 8 + ( ( document.getElementById( 'wpadminbar' ) || {} ).offsetHeight || 0 );
+		ctx.style.left = Math.round( Math.max( 8, Math.min( x, document.documentElement.clientWidth - ctx.offsetWidth - 8 ) ) ) + 'px';
+		var cell = from.getBoundingClientRect();
+		var under = cell.bottom + 4;
+		ctx.style.top = Math.round( Math.max( top, under + ctx.offsetHeight <= window.innerHeight - 8 ? under : cell.top - ctx.offsetHeight - 4 ) ) + 'px';
+		var first = ctx.querySelector( '[data-act]' );
+		if ( first ) {
+			first.focus( { preventScroll: true } );
+		}
+	}
+
+	/** Potwierdzenie z listą dat (i tym, co już jest w tych dniach), potem jedno żądanie na wszystkie dni. */
+	function askSave( mode, days ) {
+		if ( ! days.length ) {
+			announce( T.nothing );
+			return;
+		}
+		closeCard( false );
+		var add = 'zablokuj' === mode;
+		var back = document.activeElement;
+		if ( ! dlg ) {
+			dlg = el( 'div', 'cfb-dlg' );
+			dlg.setAttribute( 'role', 'dialog' );
+			dlg.setAttribute( 'aria-modal', 'true' );
+			dlg.setAttribute( 'aria-labelledby', 'cfb-dlg-t' );
+			root.appendChild( dlg );
+		}
+		dlg.textContent = '';
+		var box = el( 'div', 'cfb-dlg__box' );
+		var h = el( 'p', 'cfb-dlg__t', ( add ? T.askBlock : T.askUnblock ).replace( '%s', dayWord( days.length ) ) );
+		h.id = 'cfb-dlg-t';
+		h.setAttribute( 'role', 'heading' );
+		h.setAttribute( 'aria-level', '2' );
+		box.appendChild( h );
+		box.appendChild( el( 'p', 'cfb-dlg__p', add ? T.whatBlock : T.whatUnblock ) );
+		var ul = el( 'ul', 'cfb-dlg__list' );
+		days.forEach( function ( k ) {
+			var li = el( 'li' );
+			li.appendChild( el( 'span', '', longDate( k ) ) );
+			var busy = add ? ( byDate[ k ] || [] ).filter( function ( e ) {
+				return 'blokada' !== e.type;
+			} ) : [];
+			if ( busy.length ) {
+				li.appendChild( el( 'b', 'cfb-dlg__busy', T.busy.replace( '%s', busy.map( function ( e ) {
+					return e.tl + ' (' + e.title + ')';
+				} ).join( ', ' ) ) ) );
+			}
+			ul.appendChild( li );
+		} );
+		box.appendChild( ul );
+		var err = el( 'p', 'cfb-dlg__err' );
+		err.setAttribute( 'role', 'alert' );
+		err.hidden = true;
+		box.appendChild( err );
+		var acts = el( 'div', 'cfb-dlg__acts' );
+		var no = el( 'button', 'cfb-btn', T.cancel );
+		no.type = 'button';
+		var yes = el( 'button', 'cfb-btn is-main', add ? T.doBlock : T.doUnblock );
+		yes.type = 'button';
+		acts.appendChild( no );
+		acts.appendChild( yes );
+		box.appendChild( acts );
+		dlg.appendChild( box );
+
+		function onKey( ev ) {
+			if ( 'Escape' === ev.key ) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				close();
+			} else if ( 'Tab' === ev.key ) { // fokus zostaje w oknie
+				ev.preventDefault();
+				( document.activeElement === yes ? no : yes ).focus();
+			}
+		}
+		function close() {
+			dlg.hidden = true;
+			document.removeEventListener( 'keydown', onKey, true );
+			if ( back && document.body.contains( back ) ) {
+				back.focus();
+			}
+		}
+		document.addEventListener( 'keydown', onKey, true );
+		no.addEventListener( 'click', close );
+		dlg.onclick = function ( ev ) {
+			if ( ev.target === dlg ) {
+				close();
+			}
+		};
+		yes.addEventListener( 'click', function () {
+			var fd = new FormData();
+			fd.append( 'action', block.action );
+			fd.append( '_wpnonce', block.nonce );
+			fd.append( 'tryb', mode );
+			fd.append( 'potwierdzam', '1' ); // lista dat i wydarzenia w tych dniach były w tym oknie
+			days.forEach( function ( k ) {
+				fd.append( 'daty[]', k );
+			} );
+			yes.disabled = true;
+			no.disabled = true;
+			yes.textContent = T.saving;
+			err.hidden = true;
+			window.fetch( block.ajax, { method: 'POST', credentials: 'same-origin', body: fd } )
+				.then( function ( r ) {
+					return r.json();
+				} )
+				.then( function ( r ) {
+					if ( ! r || ! r.success || ( r.data && false === r.data.zapisano ) ) {
+						var e = new Error( r && 'string' === typeof r.data ? r.data : T.saveFail );
+						e.cfb = true;
+						throw e;
+					}
+					window.location.reload(); // kalendarz wraca w tym samym miesiącu (adres niesie ?cfd_month=)
+				} )
+				.catch( function ( e ) {
+					yes.disabled = false;
+					no.disabled = false;
+					yes.textContent = add ? T.doBlock : T.doUnblock;
+					err.textContent = e && e.cfb ? e.message : T.saveFail;
+					err.hidden = false;
+				} );
+		} );
+		dlg.hidden = false;
+		yes.focus();
+	}
+
+	if ( cal && block ) {
+		cal.addEventListener( 'contextmenu', function ( ev ) {
+			var td = ev.target.closest( '.cfb-day' );
+			if ( ! td ) {
+				return;
+			}
+			ev.preventDefault();
+			var key = td.getAttribute( 'data-date' );
+			if ( mobileQuery.matches ) { // przytrzymanie na dotyku (Android zgłasza je jako menu kontekstowe)
+				startTouchSel( key );
+				return;
+			}
+			if ( ! sel[ key ] ) {
+				sel = {};
+				sel[ key ] = true;
+				selAnchor = key;
+				paintSel();
+			}
+			closeCard( false );
+			openCtx( ev.clientX, td );
+		} );
+
+		// Przytrzymanie dnia palcem (iOS nie zgłasza menu kontekstowego): 480 ms bez przesunięcia.
+		var holdTimer = 0;
+		var holdAt = null;
+		cal.addEventListener( 'pointerdown', function ( ev ) {
+			var td = ev.target.closest( '.cfb-day' );
+			held = false;
+			window.clearTimeout( holdTimer );
+			if ( ! td || 'mouse' === ev.pointerType ) {
+				return;
+			}
+			holdAt = { x: ev.clientX, y: ev.clientY };
+			holdTimer = window.setTimeout( function () {
+				startTouchSel( td.getAttribute( 'data-date' ) );
+			}, 480 );
+		} );
+		cal.addEventListener( 'pointermove', function ( ev ) {
+			if ( holdAt && ( Math.abs( ev.clientX - holdAt.x ) > 10 || Math.abs( ev.clientY - holdAt.y ) > 10 ) ) {
+				window.clearTimeout( holdTimer );
+			}
+		} );
+		[ 'pointerup', 'pointercancel', 'pointerleave' ].forEach( function ( n ) {
+			cal.addEventListener( n, function () {
+				window.clearTimeout( holdTimer );
+			} );
+		} );
+
+		// Klawiatura w siatce: strzałki chodzą po dniach (z Shift zaznaczają zakres), Spacja albo Enter zaznacza, Shift+F10 otwiera menu.
+		cal.addEventListener( 'keydown', function ( ev ) {
+			var td = ev.target;
+			if ( ! td.classList || ! td.classList.contains( 'cfb-day' ) ) {
+				return;
+			}
+			var key = td.getAttribute( 'data-date' );
+			var step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[ ev.key ];
+			if ( step ) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				var p = key.split( '-' );
+				var d = new Date( +p[ 0 ], +p[ 1 ] - 1, +p[ 2 ] + step, 12 );
+				var nk = ymd( d );
+				if ( ! cal.querySelector( '.cfb-day[data-date="' + nk + '"]' ) ) {
+					setMonth( d.getFullYear(), d.getMonth() );
+				}
+				if ( ev.shiftKey ) {
+					selAnchor = selAnchor || key;
+					sel = {};
+					dayRange( selAnchor, nk ).forEach( function ( k ) {
+						sel[ k ] = true;
+					} );
+				}
+				focusKey = nk;
+				paintSel();
+				var n = cal.querySelector( '.cfb-day[data-date="' + nk + '"]' );
+				if ( n ) {
+					n.focus();
+				}
+			} else if ( ' ' === ev.key || 'Enter' === ev.key ) {
+				ev.preventDefault();
+				pick( key, { ctrlKey: true } );
+			} else if ( 'ContextMenu' === ev.key || ( 'F10' === ev.key && ev.shiftKey ) ) {
+				ev.preventDefault();
+				if ( ! sel[ key ] ) {
+					sel = {};
+					sel[ key ] = true;
+					selAnchor = key;
+					paintSel();
+				}
+				openCtx( td.getBoundingClientRect().left, td );
+			}
+		} );
+	}
 
 	/* ---------- Start ---------- */
 
