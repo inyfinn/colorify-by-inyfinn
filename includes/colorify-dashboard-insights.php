@@ -206,27 +206,32 @@ function colorify_insights_bars( array $points, string $unit, array $notes = arr
 	if ( ! $n ) {
 		return colorify_insights_state( __( 'Brak punktów do pokazania.', 'colorify-by-inyfinn' ) );
 	}
-	$W = 800; $H = 240; $L = 40; $R = 6; $T = 12; $B = 28;
-	$pw   = $W - $L - $R;
+	// Oś w HTML (prawdziwe 11-12 px, na telefonie mniej etykiet), sam wykres w SVG o stałej wysokości 220 px.
+	$W = 800; $H = 220; $T = 10; $B = 10;
 	$ph   = $H - $T - $B;
 	$vals = array_filter( array_column( $points, 'value' ), static fn( $v ) => null !== $v );
 	$max  = colorify_insights_nice_max( $vals ? (float) max( $vals ) : 4 );
-	$slot = $pw / $n;
+	$slot = $W / $n;
 	$bw   = max( 2.0, min( 36.0, $slot * 0.72 ) );
 	$svg  = '<svg class="cfi-chart" viewBox="0 0 ' . $W . ' ' . $H . '" role="img" aria-label="' . esc_attr( $aria ) . '" preserveAspectRatio="none" data-n="' . (int) $n . '">';
+	$ay   = '<div class="cfi-ax cfi-ax--y" aria-hidden="true">';
 	for ( $i = 0; $i <= 4; $i++ ) {
 		$y    = $T + $ph - $ph * $i / 4;
-		$svg .= '<line class="cfi-grid" x1="' . $L . '" x2="' . ( $W - $R ) . '" y1="' . round( $y, 1 ) . '" y2="' . round( $y, 1 ) . '"/><text class="cfi-axis" x="' . ( $L - 8 ) . '" y="' . round( $y + 4, 1 ) . '" text-anchor="end">' . esc_html( colorify_insights_n( $max * $i / 4 ) ) . '</text>';
+		$svg .= '<line class="cfi-grid" x1="0" x2="' . $W . '" y1="' . round( $y, 1 ) . '" y2="' . round( $y, 1 ) . '"/>';
+		$ay  .= '<span style="top:' . round( $y, 1 ) . 'px">' . esc_html( colorify_insights_n( $max * $i / 4 ) ) . '</span>';
 	}
+	$ay  .= '</div>';
 	$step = max( 1, (int) ceil( $n / 6 ) );
+	$ax   = '<div class="cfi-ax cfi-ax--x" aria-hidden="true">';
 	$top  = null;
 	foreach ( $points as $i => $p ) {
 		if ( null !== $p['value'] && ( null === $top || $p['value'] > $points[ $top ]['value'] ) ) {
 			$top = $i;
 		}
 	}
+	$k = 0;
 	foreach ( $points as $i => $p ) {
-		$x = $L + $slot * $i + ( $slot - $bw ) / 2;
+		$x = $slot * $i + ( $slot - $bw ) / 2;
 		if ( null === $p['value'] ) {
 			$svg .= '<line class="cfi-gap" x1="' . round( $x, 1 ) . '" x2="' . round( $x + $bw, 1 ) . '" y1="' . ( $T + $ph - 1 ) . '" y2="' . ( $T + $ph - 1 ) . '"/>';
 		} else {
@@ -234,20 +239,22 @@ function colorify_insights_bars( array $points, string $unit, array $notes = arr
 			$svg .= '<path class="cfi-bar' . ( $i === $top ? ' is-top' : '' ) . '" d="' . colorify_insights_bar_path( $x, $T + $ph, $bw, $h ) . '"/>';
 		}
 		if ( 0 === $i % $step ) {
-			$svg .= '<text class="cfi-axis" x="' . round( $L + $slot * ( $i + 0.5 ), 1 ) . '" y="' . ( $H - 8 ) . '" text-anchor="middle">' . esc_html( colorify_insights_date( (string) $p['date'], 'j.m' ) ) . '</text>';
+			$ax .= '<span class="' . ( 0 === $k % 2 ? '' : 'is-alt' ) . '" style="left:' . round( ( $i + 0.5 ) / $n * 100, 2 ) . '%">' . esc_html( colorify_insights_date( (string) $p['date'], 'j.m' ) ) . '</span>';
+			++$k;
 		}
-		$svg .= '<rect class="cfi-hit" x="' . round( $L + $slot * $i, 1 ) . '" y="' . $T . '" width="' . round( $slot, 1 ) . '" height="' . $ph . '" data-tip="' . esc_attr( (string) $p['label'] ) . '" data-x="' . round( ( $L + $slot * ( $i + 0.5 ) ) / $W * 100, 2 ) . '"><title>' . esc_html( (string) $p['label'] ) . '</title></rect>';
+		$svg .= '<rect class="cfi-hit" x="' . round( $slot * $i, 1 ) . '" y="' . $T . '" width="' . round( $slot, 1 ) . '" height="' . $ph . '" data-tip="' . esc_attr( (string) $p['label'] ) . '"><title>' . esc_html( (string) $p['label'] ) . '</title></rect>';
 	}
 	foreach ( $notes as $a ) {
 		foreach ( $points as $i => $p ) {
 			if ( (string) $p['date'] === (string) ( $a['date'] ?? '' ) ) {
-				$x    = round( $L + $slot * $i, 1 );
+				$x    = round( $slot * $i, 1 );
 				$svg .= '<line class="cfi-note" x1="' . $x . '" x2="' . $x . '" y1="' . $T . '" y2="' . ( $T + $ph ) . '"/>';
 			}
 		}
 	}
 	$svg .= '</svg>';
-	return '<div class="cfi-chartwrap">' . $svg . '<div class="cfi-tip" role="status" hidden></div></div>'
+	$ax  .= '</div>';
+	return '<div class="cfi-chartwrap">' . $ay . '<div class="cfi-plot">' . $svg . $ax . '</div><div class="cfi-tip" role="status" hidden></div></div>'
 		. ( $notes ? '<p class="cfi-foot">' . esc_html( implode( ' · ', array_map( static fn( $a ) => colorify_insights_date( (string) $a['date'], 'j.m' ) . ': ' . (string) $a['label'], $notes ) ) ) . '</p>' : '' );
 }
 
@@ -379,7 +386,7 @@ function colorify_insights_pages_card( array $pg, array $r ): string {
 		. '<th class="is-num"><button type="button" data-sort="n" aria-sort="descending" class="is-sorted">' . esc_html__( 'Odsłony', 'colorify-by-inyfinn' ) . '</button></th>'
 		. '<th class="is-num cfi-hide-s"><button type="button" data-sort="p">' . esc_html__( 'Udział', 'colorify-by-inyfinn' ) . '</button></th>'
 		. '<th class="is-num cfi-hide-s"><button type="button" data-sort="e">' . esc_html__( 'Wejścia', 'colorify-by-inyfinn' ) . '</button></th>'
-		. '<th class="is-num"><button type="button" data-sort="c">' . esc_html__( 'Zmiana', 'colorify-by-inyfinn' ) . '</button></th>'
+		. '<th class="is-num cfi-hide-s"><button type="button" data-sort="c">' . esc_html__( 'Zmiana', 'colorify-by-inyfinn' ) . '</button></th>'
 		. '</tr></thead><tbody>';
 	foreach ( $rows as $x ) {
 		$path = (string) wp_parse_url( (string) $x['url'], PHP_URL_PATH );
@@ -389,11 +396,11 @@ function colorify_insights_pages_card( array $pg, array $r ): string {
 		$stl  = array( 'draft' => __( 'szkic', 'colorify-by-inyfinn' ), 'private' => __( 'prywatna', 'colorify-by-inyfinn' ), 'pending' => __( 'oczekuje', 'colorify-by-inyfinn' ), 'future' => __( 'zaplanowana', 'colorify-by-inyfinn' ), 'trash' => __( 'w koszu', 'colorify-by-inyfinn' ) )[ $stt ] ?? '';
 		$chg  = $allowed && null !== $x['change'] ? (float) $x['change'] : null;
 		$b   .= '<tr data-t="' . esc_attr( mb_strtolower( $x['title'] . ' ' . $path ) ) . '" data-n="' . (int) $x['views'] . '" data-p="' . (float) $x['share'] . '" data-e="' . (int) ( $ent[ (string) $x['key'] ] ?? 0 ) . '" data-c="' . ( null === $chg ? -999999 : $chg ) . '">'
-			. '<td><a class="cfi-pg" href="' . esc_url( colorify_insights_detail_url( array( 'strona' => (string) $x['key'] ), $r ) ) . '"><span class="cfi-pg__t">' . esc_html( $x['title'] ) . '</span><span class="cfi-pg__u">' . esc_html( '' !== $path ? $path : (string) $x['key'] ) . ( '' !== $stl ? ' · ' . $stl : '' ) . '</span></a></td>'
+			. '<td><a class="cfi-pg" href="' . esc_url( colorify_insights_detail_url( array( 'strona' => (string) $x['key'] ), $r ) ) . '"><span class="cfi-pg__t">' . esc_html( $x['title'] ) . '</span><span class="cfi-pg__u">' . esc_html( '' !== $path ? $path : (string) $x['key'] ) . ( '' !== $stl ? ' · ' . $stl : '' ) . '</span><span class="cfi-pg__m">' . esc_html( colorify_insights_n( $x['share'] * 100, 1 ) . '% ' . __( 'ruchu', 'colorify-by-inyfinn' ) . ( $dims_ok ? ' · ' . colorify_insights_n( $ent[ (string) $x['key'] ] ?? 0 ) . ' ' . __( 'wejść z zewnątrz', 'colorify-by-inyfinn' ) : '' ) . ( null !== $chg && (float) $x['prev_views'] > 0 ? ' · ' . ( $x['views'] >= $x['prev_views'] ? '+' : '' ) . colorify_insights_n( ( $x['views'] - $x['prev_views'] ) / $x['prev_views'] * 100, 0 ) . '%' : '' ) ) . '</span></a></td>'
 			. '<td class="is-num"><span class="cfi-meter"><span class="cfi-meter__bar" style="width:' . round( $x['views'] / $max * 100, 1 ) . '%"></span><span class="cfi-meter__v">' . esc_html( colorify_insights_n( $x['views'] ) ) . '</span></span></td>'
 			. '<td class="is-num cfi-hide-s">' . esc_html( colorify_insights_n( $x['share'] * 100, 1 ) ) . '%</td>'
 			. '<td class="is-num cfi-hide-s">' . ( $dims_ok ? '<span' . ( '' !== $dr['note'] ? ' title="' . esc_attr( $dr['note'] ) . '"' : '' ) . '>' . esc_html( colorify_insights_n( $ent[ (string) $x['key'] ] ?? 0 ) ) . '</span>' : '<span class="cfi-muted" title="' . esc_attr( $dims_txt ) . '">—</span>' ) . '</td>'
-			. '<td class="is-num">' . ( null === $chg ? '<span class="cfi-muted">—</span>' : colorify_insights_delta( (float) $x['views'], (float) $x['prev_views'], true ) ) . '</td></tr>';
+			. '<td class="is-num cfi-hide-s">' . ( null === $chg ? '<span class="cfi-muted">—</span>' : colorify_insights_delta( (float) $x['views'], (float) $x['prev_views'], true ) ) . '</td></tr>';
 	}
 	$b .= '</tbody></table></div>';
 	if ( ! $allowed ) {
