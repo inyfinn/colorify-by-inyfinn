@@ -289,11 +289,11 @@ function colorify_insights_traffic_panel(): string {
 		$o .= '<p class="cfi-notice" role="status">' . esc_html( (string) $r['error'] ) . '</p>';
 	}
 
-	$inq = apply_filters( 'colorify_insights_inquiries', null, $r['from'], $r['to'] );
+	$inq = colorify_insights_inquiries_count( $r['from'], $r['to'] );
 	$o  .= '<section class="cfi-card cfi-strip" aria-label="' . esc_attr__( 'Najważniejsze liczby', 'colorify-by-inyfinn' ) . '">'
 		. colorify_insights_stat( __( 'Odsłony', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $t['views'] ) ), colorify_insights_delta( $t['views'], $t['prev']['views'] ?? null, $allowed, $why ), sprintf( /* translators: %s: liczba */ __( '%s dziennie, ze zmierzonych dni', 'colorify-by-inyfinn' ), colorify_insights_n( (float) ( $t['views_per_day'] ?? 0 ), 1 ) ), colorify_insights_detail_url( array( 'metryka' => 'views' ), $r ) )
 		. colorify_insights_stat( __( 'Odwiedzający dziennie · szacunek', 'colorify-by-inyfinn' ), null === $t['visitors_avg'] ? '—' : esc_html( colorify_insights_n( $t['visitors_avg'], 1 ) ), colorify_insights_delta( $t['visitors_avg'], $t['prev']['visitors_avg'] ?? null, $allowed, $why ), __( 'Średnia dzienna, nie suma osób', 'colorify-by-inyfinn' ), colorify_insights_detail_url( array( 'metryka' => 'visitors' ), $r ) )
-		. colorify_insights_stat( __( 'Zapytania', 'colorify-by-inyfinn' ), null === $inq ? '—' : esc_html( colorify_insights_n( $inq ) ), '', null === $inq ? __( 'Brak źródła zapytań', 'colorify-by-inyfinn' ) : __( 'W tym okresie', 'colorify-by-inyfinn' ) )
+		. colorify_insights_stat( __( 'Zapytania', 'colorify-by-inyfinn' ), null === $inq ? '—' : esc_html( colorify_insights_n( $inq ) ), '', null === $inq ? __( 'Pojawią się, gdy ktoś napisze', 'colorify-by-inyfinn' ) : __( 'W tym okresie', 'colorify-by-inyfinn' ) )
 		. colorify_insights_stat( __( 'Strony z ruchem', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $pg['total_rows'] ?? 0 ) ), '', __( 'Pokaż wszystkie', 'colorify-by-inyfinn' ), '#cfi-strony' )
 		. '</section>';
 
@@ -460,14 +460,14 @@ function colorify_insights_404_card( array $e, array $r ): string {
 		$ref  = ! empty( $x['refs'][0] ) ? $x['refs'][0] : null;
 		$line = $fix ? 'Redirect 301 ' . $x['path'] . ' ' . $fix['url'] : '';
 		$b   .= '<tr><td><code class="cfi-code">' . esc_html( $x['path'] ) . '</code><span class="cfi-sub2">' . esc_html( sprintf( /* translators: %s: data */ __( 'ostatnio %s', 'colorify-by-inyfinn' ), colorify_insights_date( (string) $x['last_day'], 'j.m' ) ) ) . '</span></td><td class="is-num">' . esc_html( colorify_insights_n( $x['hits'] ) ) . '</td><td class="cfi-hide-s">' . ( $ref ? esc_html( $ref['label'] ) : '<span class="cfi-muted">—</span>' ) . '</td><td>'
-			. ( $fix ? '<span class="cfi-fix">' . esc_html__( 'Prawdopodobnie chodziło o', 'colorify-by-inyfinn' ) . ' <a href="' . esc_url( $fix['url'] ) . '" target="_blank" rel="noopener">' . esc_html( $fix['title'] ) . '</a></span><button type="button" class="cfi-btn cfi-btn--s" data-cfi-copy="' . esc_attr( $line ) . '">' . esc_html__( 'Zaproponuj naprawę: kopiuj przekierowanie', 'colorify-by-inyfinn' ) . '</button>' : '<span class="cfi-muted">' . esc_html__( 'Brak podobnej strony. Utwórz ją albo zostaw.', 'colorify-by-inyfinn' ) . '</span>' )
+			. ( $fix ? '<span class="cfi-fix">' . esc_html__( 'Prawdopodobnie chodziło o', 'colorify-by-inyfinn' ) . ' <a href="' . esc_url( $fix['url'] ) . '" target="_blank" rel="noopener">' . esc_html( $fix['title'] ) . '</a></span>' . ( colorify_insights_is_owner() ? '<button type="button" class="cfi-btn cfi-btn--s" data-cfi-copy="' . esc_attr( $line ) . '">' . esc_html__( 'Kopiuj przekierowanie 301', 'colorify-by-inyfinn' ) . '</button>' : '' ) : '<span class="cfi-muted">' . esc_html__( 'Brak podobnej strony. Utwórz ją albo zostaw.', 'colorify-by-inyfinn' ) . '</span>' )
 			. '</td></tr>';
 	}
-	return colorify_insights_card( sprintf( /* translators: %s: liczba */ __( 'Strony, których nie ma (404): %s wejść', 'colorify-by-inyfinn' ), colorify_insights_n( $e['hits'] ?? 0 ) ), $b . '</tbody></table></div><p class="cfi-foot">' . esc_html__( 'Przekierowanie wklejasz do .htaccess albo wtyczki do przekierowań. Skanery plików są odfiltrowane.', 'colorify-by-inyfinn' ) . '</p>', '', '', 'cfi-404' );
+	return colorify_insights_card( sprintf( /* translators: %s: liczba */ __( 'Strony, których nie ma (404): %s wejść', 'colorify-by-inyfinn' ), colorify_insights_n( $e['hits'] ?? 0 ) ), $b . '</tbody></table></div><p class="cfi-foot">' . esc_html__( 'Adresy, w które ktoś trafił, a strony tam nie ma. Wpisy z prób włamań i skanerów pomijamy.', 'colorify-by-inyfinn' ) . '</p>', '', '', 'cfi-404' );
 }
 
 function colorify_insights_quality_card( array $c, array $t ): string {
-	$b = '<dl class="cfi-dl"><dt>' . esc_html__( 'Jak liczymy', 'colorify-by-inyfinn' ) . '</dt><dd>' . esc_html( (string) $c['method_label'] ) . '. ' . esc_html( (string) $c['method_about'] ) . '</dd>'
+	$b = '<dl class="cfi-dl"><dt>' . esc_html__( 'Jak liczymy', 'colorify-by-inyfinn' ) . '</dt><dd>' . esc_html( (string) $c['method_label'] ) . '<details class="cfi-tab"><summary>' . esc_html__( 'Szczegóły metody', 'colorify-by-inyfinn' ) . '</summary><p class="cfi-foot">' . esc_html( (string) $c['method_about'] ) . '</p></details></dd>'
 		. '<dt>' . esc_html__( 'Dane od', 'colorify-by-inyfinn' ) . '</dt><dd>' . esc_html( ! empty( $c['data_since'] ) ? colorify_insights_date( (string) $c['data_since'] ) : '—' ) . ( ! empty( $c['next_from'] ) ? ' ' . esc_html( sprintf( /* translators: %s: data */ __( '(nowa metoda od %s)', 'colorify-by-inyfinn' ), colorify_insights_date( (string) $c['next_from'], 'j F' ) ) ) : '' ) . '</dd>'
 		. '<dt>' . esc_html__( 'Boty', 'colorify-by-inyfinn' ) . '</dt><dd>' . ( ! empty( $c['bots']['ready'] ) && null !== $c['bots']['share'] ? esc_html( colorify_insights_n( $c['bots']['share'] * 100, 1 ) ) . '% ' . esc_html__( 'wejść odfiltrowane', 'colorify-by-inyfinn' ) : esc_html__( 'Za wcześnie na udział botów (potrzeba 7 dni nowej metody).', 'colorify-by-inyfinn' ) ) . '</dd>';
 	if ( ! empty( $c['gaps'] ) ) {
@@ -618,13 +618,13 @@ function colorify_insights_mod_company(): string {
 	$tiles  = '<section class="cfi-card cfi-strip cfi-strip--3">'
 		. colorify_insights_stat( __( 'Aktualizacje', 'colorify-by-inyfinn' ), esc_html( (string) count( $upd ) ), '', $upd ? __( 'Do zrobienia, kolejność wg ważności', 'colorify-by-inyfinn' ) : __( 'Wszystko aktualne', 'colorify-by-inyfinn' ), admin_url( 'update-core.php' ) )
 		. colorify_insights_stat( __( 'Kondycja witryny', 'colorify-by-inyfinn' ), is_array( $health ) ? esc_html( (int) ( $health['critical'] ?? 0 ) . ' / ' . (int) ( $health['recommended'] ?? 0 ) ) : '—', '', is_array( $health ) ? __( 'Krytyczne / zalecane, z ostatniego testu', 'colorify-by-inyfinn' ) : __( 'Test jeszcze nie był robiony. Otwórz Kondycję witryny.', 'colorify-by-inyfinn' ), admin_url( 'site-health.php' ) )
-		. colorify_insights_stat( __( 'Ostatnia kopia zapasowa', 'colorify-by-inyfinn' ), null === $bk ? '—' : esc_html( colorify_insights_age( $bk ) ), null === $bk ? '' : '<span class="cfi-delta ' . ( $bage > 14 ? 'is-down' : ( $bage > 7 ? '' : 'is-up' ) ) . '">' . esc_html( $bage > 14 ? __( 'za stara', 'colorify-by-inyfinn' ) : ( $bage > 7 ? __( 'warto odświeżyć', 'colorify-by-inyfinn' ) : __( 'świeża', 'colorify-by-inyfinn' ) ) ) . '</span>', null === $bk ? __( 'Nie znam żadnej kopii (All-in-One WP Migration, UpdraftPlus)', 'colorify-by-inyfinn' ) : wp_date( 'j F Y, H:i', $bk ) )
+		. colorify_insights_stat( __( 'Ostatnia kopia zapasowa', 'colorify-by-inyfinn' ), null === $bk ? '—' : esc_html( colorify_insights_age( $bk ) ), null === $bk ? '' : '<span class="cfi-delta ' . ( $bage > 14 ? 'is-down' : ( $bage > 7 ? '' : 'is-up' ) ) . '">' . esc_html( $bage > 14 ? __( 'za stara', 'colorify-by-inyfinn' ) : ( $bage > 7 ? __( 'warto odświeżyć', 'colorify-by-inyfinn' ) : __( 'świeża', 'colorify-by-inyfinn' ) ) ) . '</span>', null === $bk ? __( 'Nie znalazłem żadnej kopii zapasowej', 'colorify-by-inyfinn' ) : wp_date( 'j F Y, H:i', $bk ) )
 		. '</section>';
 
 	$left    = colorify_insights_rows_card( __( 'Aktualizacje do zrobienia', 'colorify-by-inyfinn' ), $rows, __( 'Nic nie czeka na aktualizację.', 'colorify-by-inyfinn' ), admin_url( 'update-core.php' ), __( 'Zaktualizuj', 'colorify-by-inyfinn' ) );
 	$contact = function_exists( 'colorify_tresci_slug' ) ? admin_url( 'admin.php?page=' . colorify_tresci_slug() ) : '';
 	$right   = '<div class="cfi-stack">'
-		. colorify_insights_card( __( 'Dane kontaktowe firmy', 'colorify-by-inyfinn' ), '<p class="cfi-p">' . esc_html__( 'Telefon, e-mail, adres i godziny zmieniasz w jednym miejscu, a zmiana jest od razu na stronie.', 'colorify-by-inyfinn' ) . '</p>' . ( '' !== $contact ? '<a class="cfi-btn" href="' . esc_url( $contact ) . '">' . esc_html__( 'Zmień dane kontaktowe', 'colorify-by-inyfinn' ) . '</a>' : '<p class="cfi-foot">' . esc_html__( 'Edytor treści strony nie jest włączony.', 'colorify-by-inyfinn' ) . '</p>' ) );
+		. colorify_insights_card( __( 'Dane kontaktowe firmy', 'colorify-by-inyfinn' ), '<p class="cfi-p">' . esc_html__( 'Telefon, e-mail, adres i godziny zmieniasz w jednym miejscu, a zmiana jest od razu na stronie.', 'colorify-by-inyfinn' ) . '</p>' . ( '' !== $contact ? '<a class="cfi-btn" href="' . esc_url( $contact ) . '">' . esc_html__( 'Zmień dane kontaktowe', 'colorify-by-inyfinn' ) . '</a>' : '<p class="cfi-foot">' . esc_html__( 'Dane kontaktowe zmienisz w edycji strony.', 'colorify-by-inyfinn' ) . '</p>' ) );
 	$rows404 = array();
 	$more    = '';
 	if ( colorify_insights_available() && function_exists( 'colorify_analytics_errors404' ) ) {
@@ -642,38 +642,90 @@ function colorify_insights_mod_company(): string {
 
 /* ---------- Zapytania: kto czeka na odpowiedź, skąd przyszedł, ile kończy się zleceniem ---------- */
 
+/** Czy zalogowany jest właścicielem wtyczki (tylko on widzi wskazówki techniczne). */
+function colorify_insights_is_owner(): bool {
+	return function_exists( 'colorify_jest_wlascicielem' ) && colorify_jest_wlascicielem();
+}
+
+/** Typ wpisu z zapisanymi zgłoszeniami formularza, jeśli taki jest (Flamingo, MetForm). */
+function colorify_insights_forms_cpt(): string {
+	foreach ( array( 'flamingo_inbound', 'metform-entry' ) as $pt ) {
+		if ( post_type_exists( $pt ) ) {
+			return $pt;
+		}
+	}
+	return '';
+}
+
+/** Liczba zapytań w zakresie: z pluginu rezerwacji (filtr) albo z zapisanych zgłoszeń formularza; null, gdy nie ma skąd. */
+function colorify_insights_inquiries_count( string $from, string $to ): ?int {
+	$n = apply_filters( 'colorify_insights_inquiries', null, $from, $to );
+	if ( null !== $n ) {
+		return (int) $n;
+	}
+	$pt = colorify_insights_forms_cpt();
+	if ( '' === $pt ) {
+		return null;
+	}
+	$q = new WP_Query( array( 'post_type' => $pt, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'date_query' => array( array( 'after' => $from . ' 00:00:00', 'before' => $to . ' 23:59:59', 'inclusive' => true ) ) ) );
+	return (int) $q->found_posts;
+}
+
+/** Lista spraw: [ lista, czy_znamy_odpowiedzi ] albo null. Najpierw dane wtyczki rezerwacji, potem zapisane zgłoszenia formularza. */
+function colorify_insights_leads_data( string $from, string $to ): ?array {
+	$l = apply_filters( 'colorify_insights_leads', null, $from, $to );
+	if ( is_array( $l ) ) {
+		return array( $l, true );
+	}
+	$pt = colorify_insights_forms_cpt();
+	if ( '' === $pt ) {
+		return null;
+	}
+	$out = array();
+	foreach ( get_posts( array( 'post_type' => $pt, 'post_status' => 'any', 'numberposts' => 10, 'orderby' => 'date', 'order' => 'DESC' ) ) as $p ) {
+		$out[] = array( 'title' => get_the_title( $p ) ?: __( 'Zapytanie z formularza', 'colorify-by-inyfinn' ), 'url' => (string) get_edit_post_link( $p->ID, 'raw' ), 'date' => $p->post_date, 'source' => '', 'answered' => false );
+	}
+	return array( $out, false );
+}
+
 function colorify_insights_mod_leads(): string {
-	// Filtr colorify_insights_leads: [ ['title','url','date'=>'Y-m-d H:i:s','source','answered'=>bool], ... ] albo null (formularze nie zapisują zgłoszeń).
-	$leads  = apply_filters( 'colorify_insights_leads', null );
-	$funnel = apply_filters( 'colorify_insights_funnel', null ); // ['steps'=>[['etykieta', liczba], ...]] albo null.
+	$r      = colorify_insights_available() ? colorify_insights_range() : array( 'from' => wp_date( 'Y-m-d', time() - 89 * DAY_IN_SECONDS ), 'to' => wp_date( 'Y-m-d' ) );
+	$data   = colorify_insights_leads_data( $r['from'], $r['to'] );
+	$funnel = apply_filters( 'colorify_insights_funnel', null, $r['from'], $r['to'] ); // ['steps'=>[['etykieta', liczba], ...]] albo null.
 	$out    = '';
-	if ( is_array( $leads ) ) {
-		$open = array_values( array_filter( $leads, static fn( $l ) => empty( $l['answered'] ) ) );
-		usort( $open, static fn( $a, $b ) => strcmp( (string) $a['date'], (string) $b['date'] ) );
+	if ( $data ) {
+		list( $leads, $known ) = $data;
+		$open = $known ? array_values( array_filter( $leads, static fn( $l ) => empty( $l['answered'] ) ) ) : $leads;
+		usort( $open, static fn( $a, $b ) => $known ? strcmp( (string) $a['date'], (string) $b['date'] ) : strcmp( (string) $b['date'], (string) $a['date'] ) );
 		$rows = array();
 		foreach ( array_slice( $open, 0, 10 ) as $l ) {
 			$ts     = (int) strtotime( (string) $l['date'] );
-			$rows[] = colorify_insights_row( (string) $l['title'], (string) ( $l['url'] ?? '' ), ! empty( $l['source'] ) ? sprintf( /* translators: %s: źródło */ __( 'Źródło: %s', 'colorify-by-inyfinn' ), $l['source'] ) : '', sprintf( /* translators: %s: wiek */ __( 'czeka %s', 'colorify-by-inyfinn' ), colorify_insights_age( $ts ) ), ( time() - $ts ) > 2 * DAY_IN_SECONDS ? 'is-hi' : 'is-mid' );
+			$rows[] = colorify_insights_row( (string) $l['title'], (string) ( $l['url'] ?? '' ), ! empty( $l['source'] ) ? sprintf( /* translators: %s: źródło */ __( 'Źródło: %s', 'colorify-by-inyfinn' ), $l['source'] ) : '', $known ? sprintf( /* translators: %s: wiek */ __( 'czeka %s', 'colorify-by-inyfinn' ), colorify_insights_age( $ts ) ) : wp_date( 'j.m', $ts ), $known && ( time() - $ts ) > 2 * DAY_IN_SECONDS ? 'is-hi' : 'is-mid' );
 		}
-		$out .= '<section class="cfi-card cfi-hero"><div class="cfi-hero__n"><span class="cfi-hero__v">' . esc_html( (string) count( $open ) ) . '</span><span class="cfi-hero__l">' . esc_html( _n( 'sprawa czeka na odpowiedź', 'spraw czeka na odpowiedź', count( $open ), 'colorify-by-inyfinn' ) ) . '</span>' . ( $open ? '<span class="cfi-hero__s">' . esc_html( sprintf( /* translators: %s: wiek */ __( 'Najstarsza: %s', 'colorify-by-inyfinn' ), colorify_insights_age( (int) strtotime( (string) $open[0]['date'] ) ) ) ) . '</span>' : '' ) . '</div><ul class="cfi-rows cfi-hero__list">' . ( $rows ? implode( '', $rows ) : '<li class="cfi-row"><span class="cfi-row__main"><b>' . esc_html__( 'Na wszystko odpowiedziano.', 'colorify-by-inyfinn' ) . '</b></span></li>' ) . '</ul></section>';
+		$label = $known ? _n( 'sprawa czeka na odpowiedź', 'spraw czeka na odpowiedź', count( $open ), 'colorify-by-inyfinn' ) : _n( 'ostatnie zapytanie', 'ostatnich zapytań', count( $open ), 'colorify-by-inyfinn' );
+		$sub   = $known && $open ? sprintf( /* translators: %s: wiek */ __( 'Najstarsza: %s', 'colorify-by-inyfinn' ), colorify_insights_age( (int) strtotime( (string) $open[0]['date'] ) ) ) : '';
+		$empty = $known ? __( 'Na wszystkie zapytania odpowiedziano.', 'colorify-by-inyfinn' ) : __( 'Tu pojawią się zapytania z formularza, gdy ktoś napisze.', 'colorify-by-inyfinn' );
+		$out  .= '<section class="cfi-card cfi-hero"><div class="cfi-hero__n"><span class="cfi-hero__v">' . esc_html( (string) count( $open ) ) . '</span><span class="cfi-hero__l">' . esc_html( $label ) . '</span>' . ( '' !== $sub ? '<span class="cfi-hero__s">' . esc_html( $sub ) . '</span>' : '' ) . '</div><ul class="cfi-rows cfi-hero__list">' . ( $rows ? implode( '', $rows ) : '<li class="cfi-row"><span class="cfi-row__main"><b>' . esc_html( $empty ) . '</b></span></li>' ) . '</ul></section>';
 	} else {
-		$out .= '<section class="cfi-card">' . colorify_insights_state( __( 'Formularze nie podają listy spraw. Włącz zapisywanie zgłoszeń (MetForm: Store Entries, Contact Form 7: Flamingo) albo zarejestruj filtr colorify_insights_leads, a pokażę tu, kto czeka i od jak dawna.', 'colorify-by-inyfinn' ), __( 'Brak źródła spraw', 'colorify-by-inyfinn' ) ) . '</section>';
+		$out .= '<section class="cfi-card">' . colorify_insights_state( __( 'Tu pojawią się zapytania z formularza, gdy ktoś napisze.', 'colorify-by-inyfinn' ), __( 'Jeszcze nic tu nie ma', 'colorify-by-inyfinn' ) );
+		if ( colorify_insights_is_owner() ) {
+			$out .= '<details class="cfi-tab"><summary>' . esc_html__( 'Dla administratora', 'colorify-by-inyfinn' ) . '</summary><p class="cfi-foot">' . esc_html__( 'Moduł czyta zgłoszenia z wtyczki rezerwacji albo z zapisanych wpisów Flamingo (Contact Form 7) lub MetForm. Można też dostarczyć dane filtrem colorify_insights_leads (title, url, date, source, answered).', 'colorify-by-inyfinn' ) . '</p></details>';
+		}
+		$out .= '</section>';
 	}
+	$side = '';
 	if ( is_array( $funnel ) && ! empty( $funnel['steps'] ) ) {
 		$first = max( 1, (int) $funnel['steps'][0][1] );
 		$rows  = array();
 		foreach ( $funnel['steps'] as $s ) {
 			$rows[] = array( (string) $s[0], (int) $s[1], (int) $s[1] / $first );
 		}
-		$side = colorify_insights_card( __( 'Od zapytania do zlecenia', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) );
-	} else {
-		$side = colorify_insights_card( __( 'Od zapytania do zlecenia', 'colorify-by-inyfinn' ), colorify_insights_state( __( 'Lejek pokażę, gdy podasz liczbę zapytań i zleceń (filtr colorify_insights_funnel).', 'colorify-by-inyfinn' ) ) );
+		$side .= colorify_insights_card( __( 'Od zapytania do zlecenia', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) );
 	}
 	if ( colorify_insights_available() ) {
-		$r     = colorify_insights_range();
 		$side .= colorify_insights_sources_card( colorify_analytics_sources( $r['from'], $r['to'] ) );
 	}
-	return $out . '<div class="cfi-grid2">' . $side . '</div>';
+	return $out . ( '' !== $side ? '<div class="cfi-grid2">' . $side . '</div>' : '' );
 }
 
 /* ---------- Redakcja: co rośnie, co spada, co się spóźniło ---------- */
@@ -732,19 +784,19 @@ function colorify_insights_mod_portfolio(): string {
 	$n_dsc = (int) $wpdb->get_var( "SELECT COUNT(*) $base AND p.post_content='' AND p.post_excerpt=''" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$n_un  = (int) $wpdb->get_var( "SELECT COUNT(*) $base AND p.post_parent=0" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$rows  = array(
-		array( __( 'Z tekstem alternatywnym (alt)', 'colorify-by-inyfinn' ), $all - $n_alt, ( $all - $n_alt ) / $all ),
+		array( __( 'Z opisem zdjęcia (alt)', 'colorify-by-inyfinn' ), $all - $n_alt, ( $all - $n_alt ) / $all ),
 		array( __( 'Z opisem albo podpisem', 'colorify-by-inyfinn' ), $all - $n_dsc, ( $all - $n_dsc ) / $all ),
 		array( __( 'Dodane do wpisu lub strony', 'colorify-by-inyfinn' ), $all - $n_un, ( $all - $n_un ) / $all ),
 	);
 	$list  = array();
 	foreach ( $wpdb->get_results( "SELECT p.ID, p.post_title $base $noalt ORDER BY p.post_date DESC LIMIT 8" ) as $a ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$list[] = colorify_insights_row( $a->post_title ?: __( '(bez nazwy)', 'colorify-by-inyfinn' ), (string) get_edit_post_link( (int) $a->ID, 'raw' ), '', __( 'dodaj alt', 'colorify-by-inyfinn' ), 'is-mid' );
+		$list[] = colorify_insights_row( $a->post_title ?: __( '(bez nazwy)', 'colorify-by-inyfinn' ), (string) get_edit_post_link( (int) $a->ID, 'raw' ), '', __( 'dodaj opis', 'colorify-by-inyfinn' ), 'is-mid' );
 	}
 	return '<section class="cfi-card cfi-strip cfi-strip--3">'
 		. colorify_insights_stat( __( 'Zdjęć w bibliotece', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $all ) ), '', '', admin_url( 'upload.php' ) )
-		. colorify_insights_stat( __( 'Bez tekstu alt', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $n_alt ) ), '', __( 'Alt pomaga wyszukiwarkom i czytnikom ekranu', 'colorify-by-inyfinn' ) )
-		. colorify_insights_stat( __( 'Nigdzie nie dodane', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $n_un ) ), '', __( 'Mogą być zbędne albo wstawione blokiem', 'colorify-by-inyfinn' ) ) . '</section>'
-		. '<div class="cfi-grid2">' . colorify_insights_card( __( 'Kompletność zdjęć', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) ) . colorify_insights_rows_card( __( 'Do uzupełnienia', 'colorify-by-inyfinn' ), $list, __( 'Wszystkie zdjęcia mają alt.', 'colorify-by-inyfinn' ), admin_url( 'upload.php?mode=list' ), __( 'Biblioteka', 'colorify-by-inyfinn' ) ) . '</div>';
+		. colorify_insights_stat( __( 'Bez opisu zdjęcia', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $n_alt ) ), '', __( 'Opis pomaga Google i osobom niewidzącym', 'colorify-by-inyfinn' ) )
+		. colorify_insights_stat( __( 'Nigdzie nie dodane', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $n_un ) ), '', __( 'Mogą być zbędne', 'colorify-by-inyfinn' ) ) . '</section>'
+		. '<div class="cfi-grid2">' . colorify_insights_card( __( 'Kompletność zdjęć', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) ) . colorify_insights_rows_card( __( 'Do uzupełnienia', 'colorify-by-inyfinn' ), $list, __( 'Wszystkie zdjęcia mają opis.', 'colorify-by-inyfinn' ), admin_url( 'upload.php?mode=list' ), __( 'Biblioteka', 'colorify-by-inyfinn' ) ) . '</div>';
 }
 
 /* ---------- Sprzedaż: wyjątki zamówień i braki (tylko z WooCommerce) ---------- */
