@@ -208,21 +208,43 @@ final class Colorify_Settings {
 		}
 		echo '</div></div>';
 
-		// Styl kokpitu: Klasyczny albo jeden z czterech motywów.
+		// Styl kokpitu domyślny dla strony: karta na styl (nazwa, co daje, co widać), klik karty = wybór. Zapis jak dotąd:
+		// zmiana pola radio wysyła formularz i przeładowuje ekran (colorify-ui.js, initStyleSwitch). Arkusz kart jest tutaj,
+		// bo dotyczy tylko tego wiersza.
 		$dstyle = Colorify_Dashboard::style();
-		$dl     = Colorify_Dashboard::labels();
-		echo '<div class="colorify-site colorify-style-row">';
+		echo '<style>'
+			. '.colorify-dash-row{align-items:flex-start}'
+			. '.colorify-dash-cards{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;min-width:0}'
+			. '.colorify-ui .colorify-dash-card{display:flex;flex-direction:column;gap:5px;box-sizing:border-box;min-width:0;min-height:44px;margin:0;padding:14px 16px;border:1px solid var(--cu-field);border-radius:var(--colorify-radius-control,10px);background:var(--colorify-ui-surface);color:var(--colorify-ui-text);cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}'
+			. '.colorify-ui .colorify-dash-card:hover{border-color:var(--colorify-ui-accent)}'
+			. '.colorify-ui .colorify-dash-card.is-checked,.colorify-ui .colorify-dash-card:has(input:checked){border-color:var(--colorify-ui-accent);box-shadow:inset 0 0 0 1px var(--colorify-ui-accent)}'
+			. '.colorify-ui .colorify-dash-card:has(input:focus-visible){outline:2px solid var(--colorify-ui-focus,currentColor);outline-offset:2px}'
+			. '.colorify-ui .colorify-dash-card.is-off{border-style:dashed;background:transparent;cursor:not-allowed}'
+			. '.colorify-dash-card__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}'
+			. '.colorify-dash-card__name{font-size:15px;line-height:1.3;font-weight:700}'
+			. '.colorify-dash-card__tag{padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--colorify-ui-text) 10%,transparent);font-size:12px;font-weight:600;line-height:1.5;white-space:nowrap}'
+			. '.colorify-dash-card.is-checked .colorify-dash-card__tag{background:var(--colorify-ui-accent);color:var(--colorify-ui-on-accent,#fff)}'
+			. '.colorify-dash-card__desc{font-size:14px;line-height:1.45}'
+			. '.colorify-dash-card__see{font-size:13px;line-height:1.45;color:var(--colorify-ui-text-muted)}'
+			. '@media (prefers-reduced-motion:reduce){.colorify-ui .colorify-dash-card{transition:none}}'
+			. '</style>';
+		echo '<div class="colorify-site colorify-style-row colorify-dash-row" id="colorify-dash-style">';
 		echo '<div class="colorify-site__text"><p class="colorify-site__title">' . esc_html__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '</p>';
-		echo '<p class="colorify-site__hint" id="colorify-dash-hint">' . esc_html( $dl[ $dstyle ][1] ) . '</p></div>';
-		echo '<div class="colorify-seg colorify-scope-seg colorify-style-seg colorify-dash-seg" role="radiogroup" aria-label="' . esc_attr__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '">';
-		foreach ( array( 'calendar', 'bookings', 'portfolio', 'sales', 'leads', 'editorial', 'company', 'classic' ) as $value ) {
+		echo '<p class="colorify-site__hint">' . esc_html( Colorify_Dashboard::nb( __( 'Wybierz domyślny widok kokpitu: dostają go konta bez własnego wyboru. Każda osoba może też wybrać własny widok przyciskiem „Widok” w prawym górnym rogu kokpitu.', 'colorify-by-inyfinn' ) ) ) . '</p></div>';
+		echo '<div class="colorify-dash-cards" role="radiogroup" aria-label="' . esc_attr__( 'Styl kokpitu', 'colorify-by-inyfinn' ) . '">';
+		foreach ( Colorify_Dashboard::catalog() as $card ) {
+			$on  = $dstyle === $card['key'];
+			$off = '' !== $card['why'];
+			$tag = $on ? __( 'Domyślny', 'colorify-by-inyfinn' ) : ( $off ? __( 'Niedostępny tutaj', 'colorify-by-inyfinn' ) : '' );
 			printf(
-				'<label class="colorify-seg__opt" aria-checked="%3$s" title="%5$s"><input type="radio" class="screen-reader-text" name="colorify_dashboard_style" value="%1$s" %4$s>%2$s</label>',
-				esc_attr( $value ),
-				esc_html( $dl[ $value ][0] ),
-				$dstyle === $value ? 'true' : 'false',
-				checked( $dstyle, $value, false ),
-				esc_attr( $dl[ $value ][1] )
+				'<label class="colorify-dash-card%1$s"><input type="radio" class="screen-reader-text" name="colorify_dashboard_style" value="%2$s"%3$s><span class="colorify-dash-card__top"><span class="colorify-dash-card__name">%4$s</span>%5$s</span><span class="colorify-dash-card__desc">%6$s</span><span class="colorify-dash-card__see">%7$s</span></label>',
+				( $on ? ' is-checked' : '' ) . ( $off ? ' is-off' : '' ),
+				esc_attr( $card['key'] ),
+				checked( $on, true, false ) . ( $off && ! $on ? ' disabled' : '' ),
+				esc_html( $card['name'] ),
+				'' !== $tag ? '<span class="colorify-dash-card__tag">' . esc_html( $tag ) . '</span>' : '',
+				esc_html( $card['desc'] ),
+				esc_html( $off ? $card['why'] : $card['see'] )
 			);
 		}
 		echo '</div></div>';

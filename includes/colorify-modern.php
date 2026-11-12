@@ -58,7 +58,7 @@ add_filter( 'admin_body_class', 'colorify_modern_body_class', 20 );
  */
 function colorify_modern_enqueue(): void {
 	if ( 'modern' === colorify_get_admin_style() && ! colorify_modern_screen_excluded() ) {
-		wp_enqueue_style( 'colorify-modern', COLORIFY_PLUGIN_URL . 'assets/colorify-modern.css', array(), COLORIFY_PLUGIN_VERSION );
+		wp_enqueue_style( 'colorify-modern', COLORIFY_PLUGIN_URL . 'assets/colorify-modern.css', array(), COLORIFY_PLUGIN_VERSION . '-' . (int) @filemtime( COLORIFY_PLUGIN_DIR . 'assets/colorify-modern.css' ) );
 	}
 	if ( get_current_user_id() > 0 ) {
 		wp_enqueue_script( 'colorify-notices', COLORIFY_PLUGIN_URL . 'assets/colorify-notices.js', array(), COLORIFY_PLUGIN_VERSION, true );

@@ -10,6 +10,26 @@
  *   apply_filters( 'colorify_dashboard_kpis', array() )
  *       lista [ 'label' => string, 'value' => string, 'hint' => string, 'url' => string ]
  *
+ * Pola opcjonalne wydarzenia (2.14.1; bez nich wszystko działa jak dotąd):
+ *   'id'      numer zlecenia: wydarzenia z tym samym id i wydarzeniem typu 'wesele' lista "Najbliższe" zwija do jednego
+ *             wiersza zlecenia z rozwinięciem (zadania po kolei, status raz); bez id wydarzenie jest zwykłym wierszem
+ *   'short'   krótka nazwa na chip w siatce miesiąca (pełny 'title' zostaje w karcie, na listach i w widoku telefonu)
+ *   'info'    jedno, dwa zdania zwykłym językiem, co to za wydarzenie (karta szczegółów, pod datą)
+ *   'actions' własne przyciski karty zamiast domyślnych (Skopiuj informacje, Otwórz zlecenie, Zadzwoń, Trasa):
+ *             lista [ 'label' => string, 'url' => string, 'icon' => nazwa ikony kokpitu, 'post' => [ pole => wartość ],
+ *             'confirm' => pytanie przed wysłaniem ]; z 'post' przycisk wysyła formularz POST (tylko na adres panelu
+ *             tej strony, np. admin-post.php z nonce wtyczki), bez 'post' jest zwykłym odnośnikiem
+ *
+ * Blokowanie dni z kalendarza kokpitu (2.14.2): zaznaczanie dni (klik, Ctrl, Shift, przytrzymanie na telefonie),
+ * menu kontekstowe i pasek akcji pojawiają się, gdy wtyczka zleceń poda
+ *   apply_filters( 'colorify_calendar_block', null )
+ *       [ 'ajax' => adres admin-ajax.php, 'action' => nazwa akcji wp_ajax_*, 'nonce' => nonce tej akcji,
+ *         'calendar' => adres terminarza wtyczki (kokpit dokleja &m=RRRR-MM&d=RRRR-MM-DD) ]
+ * Kokpit wysyła POST: action, _wpnonce, tryb=zablokuj|odblokuj, daty[]=RRRR-MM-DD (wiele), potwierdzam=1 (użytkownik
+ * widział już listę dat i wydarzenia w tych dniach). Odpowiedź JSON { success: true } przeładowuje kokpit w tym
+ * samym miesiącu; { success: false, data: 'komunikat' } pokazuje komunikat w oknie potwierdzenia. Zablokowane dni
+ * wracają jako wydarzenia typu 'blokada' ('info' może mieć drugą linię po znaku nowej linii, np. kto i kiedy).
+ *
  * Bez danych kokpit pokazuje pusty kalendarz z podpowiedzią, nigdy błąd. Portfolio korzysta wyłącznie z mediów
  * i stron WordPressa. Trait należy do Colorify_Dashboard i używa jej pomocników (stat, list_card, promo...).
  *
@@ -36,11 +56,14 @@ trait Colorify_Dashboard_Planner {
 		if ( ! self::plan_has_provider() ) {
 			return null;
 		}
-		$ev   = array_values(
+		// Wszystkie przyszłe zlecenia z okna kalendarza (25 miesięcy w przód), nie tylko najbliższe pół roku: przy weselach
+		// planowanych z rocznym wyprzedzeniem okno 180 dni pokazywało "0" i "Brak nadchodzących zleceń".
+		$today = wp_date( 'Y-m-d' );
+		$ev    = array_values(
 			array_filter(
-				self::plan_events( wp_date( 'Y-m-d' ), wp_date( 'Y-m-d', time() + 180 * DAY_IN_SECONDS ) ),
-				static function ( $e ) {
-					return 'blokada' !== $e['type'] && 'anulowane' !== $e['status'];
+				self::plan_all(),
+				static function ( $e ) use ( $today ) {
+					return $e['date'] >= $today && 'wesele' === $e['type'] && 'anulowane' !== $e['status'];
 				}
 			)
 		);
@@ -112,9 +135,69 @@ trait Colorify_Dashboard_Planner {
 	}
 
 	/**
+	 * Własne przyciski karty: null, gdy wtyczka nie podała pola (karta pokazuje domyślne), inaczej lista (może być pusta).
+	 * Formularz POST wolno wysłać tylko na adres panelu tej strony: nonce z pól nie wyjdzie poza witrynę.
+	 *
+	 * @param mixed $raw Surowe 'actions' z filtra.
+	 * @return array<int,array{l:string,u:string,i:string,p:array<string,string>,c:string}>|null
+	 */
+	private static function plan_actions( $raw ): ?array {
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$out = array();
+		foreach ( $raw as $a ) {
+			if ( ! is_array( $a ) ) {
+				continue;
+			}
+			$label = trim( wp_strip_all_tags( (string) ( $a['label'] ?? '' ) ) );
+			$url   = esc_url_raw( (string) ( $a['url'] ?? '' ) );
+			$post  = array();
+			foreach ( isset( $a['post'] ) && is_array( $a['post'] ) ? $a['post'] : array() as $k => $v ) {
+				$k = preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $k );
+				if ( '' !== $k && is_scalar( $v ) ) {
+					$post[ $k ] = (string) $v;
+				}
+			}
+			if ( '' === $label || '' === $url || ( $post && 0 !== strpos( $url, admin_url() ) ) ) {
+				continue;
+			}
+			$out[] = array(
+				'l' => mb_substr( $label, 0, 60 ),
+				'u' => $url,
+				'i' => sanitize_key( (string) ( $a['icon'] ?? '' ) ),
+				'p' => $post,
+				'c' => trim( wp_strip_all_tags( (string) ( $a['confirm'] ?? '' ) ) ),
+			);
+		}
+		return array_slice( $out, 0, 4 );
+	}
+
+	/**
+	 * Blokowanie dni z kalendarza: konfiguracja od wtyczki zleceń (filtr colorify_calendar_block) albo null. Żądanie
+	 * idzie tylko na adres panelu tej strony, więc nonce nie wyjdzie poza witrynę.
+	 *
+	 * @return array{ajax:string,action:string,nonce:string,calendar:string}|null
+	 */
+	private static function plan_block(): ?array {
+		$raw = self::plan_can_see() ? apply_filters( 'colorify_calendar_block', null ) : null;
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$ajax   = esc_url_raw( (string) ( $raw['ajax'] ?? '' ) );
+		$action = sanitize_key( (string) ( $raw['action'] ?? '' ) );
+		$nonce  = preg_replace( '/[^a-zA-Z0-9]/', '', (string) ( $raw['nonce'] ?? '' ) );
+		if ( '' === $action || '' === $nonce || 0 !== strpos( $ajax, admin_url() ) ) {
+			return null;
+		}
+		return array( 'ajax' => $ajax, 'action' => $action, 'nonce' => $nonce, 'calendar' => esc_url_raw( (string) ( $raw['calendar'] ?? '' ) ) );
+	}
+
+	/**
 	 * Wydarzenia z filtra, tylko poprawne (data, tytuł), posortowane po dacie.
 	 * Poza polami podstawowymi wtyczka może podać: id, phone, email, route_url, status_label, reminder_done, details,
-	 * status_options i status_action (status zmieniany z karty szczegółów, zapis przez admin-ajax wtyczki).
+	 * status_options i status_action (status zmieniany z karty szczegółów, zapis przez admin-ajax wtyczki),
+	 * short, info i actions (opis w nagłówku pliku).
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
@@ -151,6 +234,9 @@ trait Colorify_Dashboard_Planner {
 				'details'      => self::plan_details( $e['details'] ?? array() ),
 				'status_opts'  => self::plan_status_options( $e['status_options'] ?? null ),
 				'status_act'   => self::plan_status_action( $e['status_action'] ?? null ),
+				'short'        => trim( wp_strip_all_tags( (string) ( $e['short'] ?? '' ) ) ),
+				'info'         => mb_substr( trim( wp_strip_all_tags( (string) ( $e['info'] ?? '' ) ) ), 0, 400 ),
+				'actions'      => self::plan_actions( $e['actions'] ?? null ),
 			);
 		}
 		usort(
@@ -239,7 +325,7 @@ trait Colorify_Dashboard_Planner {
 			'wesele'  => __( 'Zlecenie', 'colorify-by-inyfinn' ),
 			'kontakt' => __( 'Kontakt', 'colorify-by-inyfinn' ),
 			'oddanie' => __( 'Oddanie materiałów', 'colorify-by-inyfinn' ),
-			'blokada' => __( 'Zablokowane', 'colorify-by-inyfinn' ),
+			'blokada' => __( 'Dzień zablokowany', 'colorify-by-inyfinn' ),
 			'przypomnienie' => __( 'Przypomnienie', 'colorify-by-inyfinn' ),
 			'przygotowanie' => __( 'Przygotowanie', 'colorify-by-inyfinn' ),
 		);
@@ -353,6 +439,10 @@ trait Colorify_Dashboard_Planner {
 			'rows'   => $rows,
 			'done'   => (bool) $e['done'],
 			'copy'   => implode( "\n", $lines ),
+			'short'  => $e['short'],
+			// Zablokowany dzień bez opisu od wtyczki i tak mówi, czym jest (wcześniej karta miała sam tytuł i "Otwórz zlecenie").
+			'info'   => '' !== $e['info'] ? $e['info'] : ( 'blokada' === $type ? __( 'Tego dnia nie przyjmujesz zleceń.', 'colorify-by-inyfinn' ) : '' ),
+			'acts'   => $e['actions'],
 		);
 	}
 
@@ -460,7 +550,8 @@ trait Colorify_Dashboard_Planner {
 		}
 		$out .= '<ol class="cfb-li-list">';
 		foreach ( $items as $i => $li ) {
-			$out .= $i >= $limit ? str_replace( '<li>', '<li data-extra hidden>', $li ) : $li;
+			// Tylko znacznik otwierający pozycję: wiersz zlecenia ma w środku własną listę zadań.
+			$out .= $i >= $limit ? '<li data-extra hidden' . substr( $li, 3 ) : $li;
 		}
 		$out .= '</ol>';
 		if ( count( $items ) > $limit ) {
@@ -482,11 +573,136 @@ trait Colorify_Dashboard_Planner {
 		$type = self::plan_type_key( (string) $e['type'] );
 		$ts   = strtotime( $e['date'] . ' 12:00:00' );
 		$who  = self::plan_split_title( (string) $e['title'] )[0];
-		$sub  = esc_html( self::plan_type_label( $type ) . "\u{00A0}· " . wp_date( 'l', $ts ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) );
+		$kind = self::plan_type_label( $type );
+		// Tytuł równy nazwie rodzaju (np. "Dzień zablokowany") nie jest powtarzany w drugiej linii.
+		$sub  = esc_html( ( 0 === strcasecmp( $kind, $who ) ? '' : $kind . "\u{00A0}· " ) . wp_date( 'l', $ts ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) );
 		return '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog">'
 			. self::plan_date_badge( $e['date'] )
 			. '<span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $who ) . '</strong><span class="cfb-li__sub"><span class="cfb-tico cfb-tico--' . esc_attr( $type ) . '">' . self::icon_svg( self::plan_type_icon( $type ) ) . '</span>' . $sub . '</span></span>'
 			. self::plan_pill( $e ) . '</button></li>';
+	}
+
+	/**
+	 * Zadanie zlecenia jako zwarty wiersz (ikona rodzaju, co zrobić, kiedy); zaległe na czerwono. Otwiera kartę szczegółów.
+	 * $title zastępuje nazwę zadania (wiersz samego zlecenia w rozwinięciu), $class trafia na <li>.
+	 *
+	 * @param array<string,mixed> $e
+	 */
+	private static function plan_task_li( array $e, DateTimeImmutable $today, string $title = '', string $class = '' ): string {
+		$t     = self::plan_type_key( (string) $e['type'] );
+		$late  = $e['date'] < $today->format( 'Y-m-d' ) && 'wesele' !== $t;
+		$label = self::plan_split_title( (string) $e['title'] );
+		$title = '' !== $title ? $title : ( '' !== $label[1] ? $label[1] : $label[0] );
+		return '<li' . ( '' !== $class ? ' class="' . esc_attr( $class ) . '"' : '' ) . '><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span><span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( $title ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( wp_date( 'l, j.m', strtotime( $e['date'] . ' 12:00:00' ) ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+	}
+
+	/** "1 zadanie", "3 zadania", "9 zadań" (polska odmiana bez pliku tłumaczeń). */
+	private static function plan_tasks_label( int $n ): string {
+		$f = ( 1 === $n ) ? 'zadanie' : ( ( $n % 10 >= 2 && $n % 10 <= 4 && ( $n % 100 < 12 || $n % 100 > 14 ) ) ? 'zadania' : 'zadań' );
+		return $n . "\u{00A0}" . $f;
+	}
+
+	/**
+	 * Wiersz zlecenia na liście "Najbliższe": data, para, ile dni, licznik zadań i najbliższe z nich. Cały wiersz jest
+	 * przyciskiem, który rozwija zadania zlecenia po kolei (z samym zleceniem na swoim miejscu w czasie); status zlecenia
+	 * stoi raz, w nagłówku rozwinięcia, a nie przy każdym zadaniu.
+	 *
+	 * @param array<string,mixed>            $main  Wydarzenie zlecenia (typ 'wesele').
+	 * @param array<int,array<string,mixed>> $tasks Niezrobione zadania tego zlecenia, po dacie.
+	 */
+	private static function plan_group_li( array $main, array $tasks, DateTimeImmutable $today ): string {
+		$tstr = $today->format( 'Y-m-d' );
+		$ts   = strtotime( $main['date'] . ' 12:00:00' );
+		$pid  = 'cfb-grp-' . (int) $main['id'];
+		$late = 0;
+		$next = null;
+		foreach ( $tasks as $t ) {
+			if ( $t['date'] < $tstr ) {
+				++$late;
+			} elseif ( null === $next ) {
+				$next = $t;
+			}
+		}
+		$sum = '';
+		if ( $tasks ) {
+			$sum = '<span class="cfb-grp__sum">' . esc_html( self::plan_tasks_label( count( $tasks ) ) )
+				/* translators: %d: liczba zadań po terminie */
+				. ( $late ? ', <b class="is-late">' . esc_html( sprintf( __( '%d po terminie', 'colorify-by-inyfinn' ), $late ) ) . '</b>' : '' );
+			if ( $next ) {
+				$label = self::plan_split_title( (string) $next['title'] );
+				/* translators: 1: nazwa zadania, 2: data */
+				$sum  .= esc_html( "\u{00A0}· " . sprintf( __( 'najbliższe: %1$s, %2$s', 'colorify-by-inyfinn' ), '' !== $label[1] ? $label[1] : $label[0], wp_date( 'j.m', strtotime( $next['date'] . ' 12:00:00' ) ) ) );
+			}
+			$sum .= '</span>';
+		}
+		$out = '<li class="cfb-grp"><button type="button" class="cfb-grp__btn" data-cfb-grp aria-expanded="false" aria-controls="' . esc_attr( $pid ) . '">'
+			. '<span class="cfb-date is-main" aria-hidden="true"><b>' . esc_html( wp_date( 'j', $ts ) ) . '</b><i>' . esc_html( wp_date( 'M', $ts ) ) . '</i></span>'
+			. '<span class="cfb-li__main"><strong class="cfb-grp__title">' . esc_html( $main['title'] ) . '</strong>'
+			. '<span class="cfb-grp__when">' . esc_html( wp_date( 'l, j F Y', $ts ) . "\u{00A0}· " . self::plan_rel( $main['date'], $today ) ) . '</span>' . $sum . '</span>'
+			. '<span class="cfb-grp__chev" aria-hidden="true">' . self::icon_svg( 'chev' ) . '</span></button>';
+		$out .= '<div class="cfb-grp__panel" id="' . esc_attr( $pid ) . '" hidden><div class="cfb-grp__bar">' . self::plan_pill( $main )
+			. ( '' !== $main['url'] ? '<a class="cfb-grp__open" href="' . esc_url( $main['url'] ) . '">' . self::icon_svg( 'ext' ) . '<span>' . esc_html__( 'Otwórz zlecenie', 'colorify-by-inyfinn' ) . '</span></a>' : '' )
+			. '</div><ol class="cfb-li-list is-compact">';
+		$main_li = self::plan_task_li( $main, $today, self::plan_type_label( 'wesele' ), 'is-main' );
+		foreach ( $tasks as $t ) {
+			if ( '' !== $main_li && $t['date'] > $main['date'] ) { // zlecenie na swoim miejscu między zadaniami
+				$out    .= $main_li;
+				$main_li = '';
+			}
+			$out .= self::plan_task_li( $t, $today );
+		}
+		return $out . $main_li . '</ol></div></li>';
+	}
+
+	/**
+	 * Pozycje listy "Najbliższe", od najbliższej: zlecenie (wydarzenie typu 'wesele' z id) to jeden wiersz z rozwinięciem,
+	 * w którym są jego zadania; wydarzenia bez zlecenia (zablokowany dzień, luźny kontakt, zadanie zlecenia bez daty)
+	 * zostają zwykłymi wierszami, jak przed 2.14.1. Zlecenie po terminie zostaje na liście, dopóki ma zadanie od dziś.
+	 *
+	 * @param array<int,array<string,mixed>> $all Wydarzenia z plan_all().
+	 * @return array<int,string> Elementy <li>.
+	 */
+	private static function plan_upcoming_items( array $all, DateTimeImmutable $today ): array {
+		$tstr   = $today->format( 'Y-m-d' );
+		$groups = array();
+		foreach ( $all as $e ) {
+			if ( $e['id'] > 0 && 'wesele' === $e['type'] && 'anulowane' !== $e['status'] && ! isset( $groups[ $e['id'] ] ) ) {
+				$groups[ $e['id'] ] = array( 'main' => $e, 'tasks' => array() );
+			}
+		}
+		$rows = array(); // [ data, kolejność, HTML ]
+		foreach ( $all as $e ) {
+			if ( 'anulowane' === $e['status'] ) {
+				continue;
+			}
+			if ( $e['id'] > 0 && isset( $groups[ $e['id'] ] ) && 'blokada' !== $e['type'] ) {
+				if ( 'wesele' !== $e['type'] && ! $e['done'] ) {
+					$groups[ $e['id'] ]['tasks'][] = $e;
+				}
+				continue; // pokaże je wiersz zlecenia
+			}
+			if ( $e['date'] >= $tstr ) {
+				$rows[] = array( $e['date'], count( $rows ), self::plan_li( $e, $today ) );
+			}
+		}
+		foreach ( $groups as $g ) {
+			$when = $g['main']['date'] >= $tstr ? $g['main']['date'] : '';
+			foreach ( $g['tasks'] as $t ) {
+				if ( '' === $when && $t['date'] >= $tstr ) {
+					$when = $t['date'];
+				}
+			}
+			if ( '' !== $when ) {
+				$rows[] = array( $when, count( $rows ), self::plan_group_li( $g['main'], $g['tasks'], $today ) );
+			}
+		}
+		usort(
+			$rows,
+			static function ( $a, $b ) {
+				return array( $a[0], $a[1] ) <=> array( $b[0], $b[1] );
+			}
+		);
+		return array_column( array_slice( $rows, 0, 40 ), 2 );
 	}
 
 	/** Duży kafel: najbliższe wesele (albo wydarzenie) ze wszystkimi szczegółami, bez przewijania. @param array<string,mixed>|null $next */
@@ -519,10 +735,7 @@ trait Colorify_Dashboard_Planner {
 		if ( $rem ) {
 			$out .= '<div class="cfb-rem"><p class="cfb-rem__t">' . esc_html__( 'Przy tym zleceniu', 'colorify-by-inyfinn' ) . '</p><ol class="cfb-li-list is-compact">';
 			foreach ( array_slice( $rem, 0, 5 ) as $e ) {
-				$t     = self::plan_type_key( (string) $e['type'] );
-				$late  = $e['date'] < $today->format( 'Y-m-d' );
-				$label = self::plan_split_title( (string) $e['title'] );
-				$out  .= '<li><button type="button" class="cfb-li" data-ev="' . (int) $e['i'] . '" aria-haspopup="dialog"><span class="cfb-tico cfb-tico--' . esc_attr( $t ) . '">' . self::icon_svg( self::plan_type_icon( $t ) ) . '</span><span class="cfb-li__main"><strong class="cfb-li__title">' . esc_html( '' !== $label[1] ? $label[1] : $label[0] ) . '</strong><span class="cfb-li__sub' . ( $late ? ' is-late' : '' ) . '">' . esc_html( wp_date( 'l, j.m', strtotime( $e['date'] . ' 12:00:00' ) ) . "\u{00A0}· " . self::plan_rel( $e['date'], $today ) ) . '</span></span></button></li>';
+				$out .= self::plan_task_li( $e, $today );
 			}
 			$out .= '</ol></div>';
 		}
@@ -557,7 +770,7 @@ trait Colorify_Dashboard_Planner {
 			$payload[] = $p;
 		}
 		$icons = array();
-		foreach ( array( 'ring', 'phone', 'box', 'lock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
+		foreach ( array( 'ring', 'phone', 'box', 'lock', 'unlock', 'bell', 'copy', 'ext', 'route', 'prev', 'next', 'close', 'check', 'chev', 'calendar', 'list' ) as $n ) {
 			$icons[ $n ] = self::icon_svg( $n );
 		}
 		$months = array();
@@ -581,6 +794,7 @@ trait Colorify_Dashboard_Planner {
 			'base'   => admin_url( 'index.php' ),
 			'ajax'   => admin_url( 'admin-ajax.php' ),
 			'statusSets' => $sets,
+			'block'  => self::plan_block(),
 			'i18n'   => array(
 				'prevMonth' => __( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ),
 				'nextMonth' => __( 'Następny miesiąc', 'colorify-by-inyfinn' ),
@@ -593,6 +807,7 @@ trait Colorify_Dashboard_Planner {
 				'copied'    => __( 'Skopiowano', 'colorify-by-inyfinn' ),
 				'copyFail'  => __( 'Nie udało się skopiować', 'colorify-by-inyfinn' ),
 				'open'      => __( 'Otwórz zlecenie', 'colorify-by-inyfinn' ),
+				'openCal'   => __( 'Otwórz terminarz', 'colorify-by-inyfinn' ),
 				'call'      => __( 'Zadzwoń', 'colorify-by-inyfinn' ),
 				'route'     => __( 'Trasa', 'colorify-by-inyfinn' ),
 				'prev'      => __( 'Poprzednie', 'colorify-by-inyfinn' ),
@@ -607,6 +822,26 @@ trait Colorify_Dashboard_Planner {
 				'stChange'  => __( 'Zmień status', 'colorify-by-inyfinn' ),
 				'stSaved'   => __( 'Zapisano status: %s', 'colorify-by-inyfinn' ),
 				'stFail'    => __( 'Nie udało się zapisać statusu. Spróbuj jeszcze raz.', 'colorify-by-inyfinn' ),
+				'selCount'  => __( 'Zaznaczono: %s', 'colorify-by-inyfinn' ),
+				'day1'      => __( 'dzień', 'colorify-by-inyfinn' ),
+				'dayN'      => __( 'dni', 'colorify-by-inyfinn' ),
+				'block1'    => __( 'Zablokuj dzień', 'colorify-by-inyfinn' ),
+				'blockN'    => __( 'Zablokuj dni (%d)', 'colorify-by-inyfinn' ),
+				'unblock1'  => __( 'Odblokuj dzień', 'colorify-by-inyfinn' ),
+				'unblockN'  => __( 'Odblokuj dni (%d)', 'colorify-by-inyfinn' ),
+				'clear'     => __( 'Wyczyść', 'colorify-by-inyfinn' ),
+				'cancel'    => __( 'Anuluj', 'colorify-by-inyfinn' ),
+				'askBlock'  => __( 'Zablokować %s?', 'colorify-by-inyfinn' ),
+				'askUnblock' => __( 'Odblokować %s?', 'colorify-by-inyfinn' ),
+				'whatBlock' => __( 'W zablokowane dni nie przyjmujesz zleceń, a termin jest pokazywany jako zajęty.', 'colorify-by-inyfinn' ),
+				'whatUnblock' => __( 'Te dni znów będą wolne do rezerwacji.', 'colorify-by-inyfinn' ),
+				'busy'      => __( 'Uwaga, w tym dniu jest: %s', 'colorify-by-inyfinn' ),
+				'doBlock'   => __( 'Zablokuj', 'colorify-by-inyfinn' ),
+				'doUnblock' => __( 'Odblokuj', 'colorify-by-inyfinn' ),
+				'saving'    => __( 'Zapisuję…', 'colorify-by-inyfinn' ),
+				'saveFail'  => __( 'Nie udało się zapisać. Spróbuj jeszcze raz.', 'colorify-by-inyfinn' ),
+				'dayMenu'   => __( 'Działania na zaznaczonych dniach', 'colorify-by-inyfinn' ),
+				'nothing'   => __( 'W zaznaczeniu nie ma dni do zmiany.', 'colorify-by-inyfinn' ),
 			),
 		);
 		wp_add_inline_script( 'colorify-planner', 'window.colorifyPlanner=' . wp_json_encode( $cfg, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . ';', 'before' );
@@ -657,6 +892,7 @@ trait Colorify_Dashboard_Planner {
 			. '<div class="cfb-nav" role="group" aria-label="' . esc_attr__( 'Miesiąc', 'colorify-by-inyfinn' ) . '"><button type="button" class="cfb-nav__a" data-cfb-nav="-1" aria-label="' . esc_attr__( 'Poprzedni miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'prev' ) . '</button><button type="button" class="cfb-nav__a cfb-nav__today" data-cfb-today>' . esc_html__( 'Dziś', 'colorify-by-inyfinn' ) . '</button><button type="button" class="cfb-nav__a" data-cfb-nav="1" aria-label="' . esc_attr__( 'Następny miesiąc', 'colorify-by-inyfinn' ) . '">' . self::icon_svg( 'next' ) . '</button></div></div>'
 			. '<div class="cfb-grid-wrap" data-cfb-grid></div>' . $legend
 			. '<p class="cfb-keys">' . esc_html__( 'Strzałki ← → zmieniają miesiąc, Shift + strzałki rok. Najedź na wydarzenie albo kliknij je, żeby zobaczyć szczegóły.', 'colorify-by-inyfinn' ) . '</p>'
+			. ( self::plan_block() ? '<p class="cfb-keys cfb-keys--block">' . self::icon_svg( 'lock' ) . '<span>' . esc_html__( 'Kliknij dzień, żeby go zaznaczyć (Ctrl dodaje kolejne, Shift zaznacza zakres). Prawy przycisk albo przytrzymanie: blokuj dni.', 'colorify-by-inyfinn' ) . '</span></p>' : '' )
 			. '</section>';
 
 		// Najbliższe wesele (albo wydarzenie), od dziś.
@@ -672,12 +908,8 @@ trait Colorify_Dashboard_Planner {
 		}
 		$next = $next ?? ( $ahead[0] ?? null );
 
-		// Najbliższe: zwięźle, data + para + rodzaj.
-		$items = array();
-		foreach ( array_slice( $ahead, 0, 40 ) as $e ) {
-			$items[] = self::plan_li( $e, $today );
-		}
-		$tile_next = self::plan_list_tile( __( 'Najbliższe', 'colorify-by-inyfinn' ), '', $items, __( 'Nic nie jest zaplanowane na najbliższe miesiące.', 'colorify-by-inyfinn' ), 'cfb-upc' );
+		// Najbliższe: jeden wiersz na zlecenie (rozwija jego zadania), pozostałe wydarzenia zwykłymi wierszami.
+		$tile_next = self::plan_list_tile( __( 'Najbliższe', 'colorify-by-inyfinn' ), '', self::plan_upcoming_items( $all, $today ), __( 'Nic nie jest zaplanowane na najbliższe miesiące.', 'colorify-by-inyfinn' ), 'cfb-upc' );
 
 		// Do zrobienia w tym tygodniu: przypomnienia po terminie i na 7 dni do przodu.
 		$week   = $today->modify( '+7 days' )->format( 'Y-m-d' );
@@ -719,7 +951,7 @@ trait Colorify_Dashboard_Planner {
 		// najbliższe, zadatki. Kolejność w kodzie = kolejność na telefonie (najbliższe wesele i zadania przed kalendarzem).
 		return '<div class="cfb" data-cfb>' . $head
 			. '<div class="cfb-bento' . ( '' === $tile_dep ? ' no-dep' : '' ) . '">' . $strip . self::plan_next_tile( $next, $all, $today ) . $tile_todo . $cal . $tile_next . $tile_dep . '</div>'
-			. $boot . '</div>';
+			. self::insights_fold() . $boot . '</div>';
 	}
 
 	/**
@@ -816,7 +1048,7 @@ trait Colorify_Dashboard_Planner {
 		$out  .= '<div class="cfd-row cfd-row--even">'
 			. self::plan_upcoming( __( 'Kolejne zlecenia', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 6 ), self::plan_has_provider() ? __( 'Nic nie jest zaplanowane.', 'colorify-by-inyfinn' ) : '' )
 			. '</div>';
-		return $out . self::plan_boot( $today->format( 'Y-m' ) );
+		return $out . self::insights_fold() . self::plan_boot( $today->format( 'Y-m' ) );
 	}
 
 	/* ===================== Motyw: Portfolio ===================== */
@@ -847,6 +1079,7 @@ trait Colorify_Dashboard_Planner {
 				array( 'globe', __( 'Zobacz stronę', 'colorify-by-inyfinn' ), home_url( '/' ) ),
 			)
 		);
+		$out .= self::insights_module( 'portfolio' );
 		$out .= '<section class="cfd-card cfd-strip">';
 		$out .= self::stat( 'image', __( 'Zdjęcia i grafiki', 'colorify-by-inyfinn' ), esc_html( self::num( $imgs ) ), '', '', admin_url( 'upload.php?attachment-filter=post_mime_type:image' ) );
 		$out .= self::stat( 'film', __( 'Filmy', 'colorify-by-inyfinn' ), esc_html( self::num( $vids ) ), '', '', admin_url( 'upload.php?attachment-filter=post_mime_type:video' ) );
@@ -881,10 +1114,9 @@ trait Colorify_Dashboard_Planner {
 			: self::promo( __( 'Dodaj nowe prace', 'colorify-by-inyfinn' ), __( 'Pokaż, co ostatnio zrobiłaś', 'colorify-by-inyfinn' ), array( __( 'Nowe zdjęcia pojawią się obok. Licznik wejść zbiera dane od dziś.', 'colorify-by-inyfinn' ) ), __( 'Dodaj zdjęcia', 'colorify-by-inyfinn' ), admin_url( 'media-new.php' ), true );
 		$out .= '<div class="cfd-row">' . $grid . $aside . '</div>';
 		$out .= '<div class="cfd-row cfd-row--even">'
-			. self::list_card( __( 'Popularne podstrony', 'colorify-by-inyfinn' ), self::top_pages_rows( $tcur['pages'] ), __( 'Licznik zbiera dane od dziś.', 'colorify-by-inyfinn' ), '', '', true )
 			. self::list_card( __( 'Ostatnio zmieniane strony', 'colorify-by-inyfinn' ), self::recent_posts( 'page', array( 'publish', 'draft' ) ), __( 'Brak stron.', 'colorify-by-inyfinn' ), __( 'Wszystkie', 'colorify-by-inyfinn' ), admin_url( 'edit.php?post_type=page' ) )
 			. '</div>';
-		return $out;
+		return $out . self::insights();
 	}
 
 
@@ -892,7 +1124,11 @@ trait Colorify_Dashboard_Planner {
 
 	/** Arkusz i skrypt trzech styli planera (kalendarz, rezerwacje, portfolio); dane skryptu dokłada plan_boot(). */
 	public static function planner_assets(): void {
-		wp_enqueue_style( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.css', array(), COLORIFY_PLUGIN_VERSION );
-		wp_enqueue_script( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.js', array(), COLORIFY_PLUGIN_VERSION, true );
+		// Wersja + czas pliku, jak w panelu Treści strony: każda poprawka omija pamięć przeglądarki (assety mają cache na rok).
+		$v = static function ( $f ) {
+			return COLORIFY_PLUGIN_VERSION . '-' . (int) @filemtime( COLORIFY_PLUGIN_DIR . 'assets/' . $f );
+		};
+		wp_enqueue_style( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.css', array(), $v( 'colorify-planner.css' ) );
+		wp_enqueue_script( 'colorify-planner', COLORIFY_PLUGIN_URL . 'assets/colorify-planner.js', array(), $v( 'colorify-planner.js' ), true );
 	}
 }

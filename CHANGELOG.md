@@ -1,5 +1,31 @@
 # Historia zmian
 
+## 2.14.2
+
+Kalendarz kokpitu: zaznaczanie dni i blokowanie kilku naraz.
+
+- Klik w dzień zaznacza go, Ctrl (Cmd) dodaje i usuwa kolejne, Shift bierze zakres od ostatnio klikniętego. Zaznaczony dzień ma gruby obrys, mocniejsze tło i ptaszek w rogu, więc nie myli się z „dziś” (cienki obrys) ani z zablokowanym (skośne paski na całej komórce). Pod siatką pojawia się pasek „Zaznaczono: 3 dni” z akcjami i „Wyczyść”; Esc czyści zaznaczenie.
+- Prawy przycisk na dniu (albo Shift+F10 / klawisz menu na dniu z fokusem) otwiera menu: „Zablokuj dni (N)”, „Odblokuj dni (N)” (gdy w zaznaczeniu są blokady), „Otwórz terminarz”. Menu staje pod klikniętym dniem i zawsze mieści się na ekranie. Siatka ma obsługę klawiatury: strzałki chodzą po dniach, z Shift zaznaczają zakres, Spacja zaznacza.
+- Telefon i tablet: nad listą dni jest mała siatka miesiąca (numer dnia i kropki wydarzeń). Dotknięcie dnia przewija listę do niego, przytrzymanie zaczyna zaznaczanie, a akcje są w pasku u dołu ekranu.
+- Zapis: jedno żądanie na wszystkie dni, po potwierdzeniu z listą dat; przy dniu, w którym już coś jest (zlecenie, kontakt), potwierdzenie to pokazuje. Po zapisie kokpit wraca w tym samym miesiącu. Błąd zapisu zostaje w oknie potwierdzenia.
+- Blokowanie włącza wtyczka zleceń filtrem `colorify_calendar_block` (adres admin-ajax, akcja, nonce, adres terminarza); bez niego kalendarz działa jak dotąd. Opis żądania i odpowiedzi: nagłówek `includes/colorify-dashboard-planner.php`.
+- Karta zablokowanego dnia pokazuje `info` z podziałem na linie (np. druga linia „Zablokowane przez: …”), a jej drugi przycisk ma całą szerokość.
+- Telefon 320–390 px: kafle skrótów nie wychodzą poza ekran (poniżej 360 px jedna kolumna), długie etykiety liczb łamią się zamiast rozpychać siatkę, przycisk „Widok” stoi w jednym rzędzie z podtytułem, a zakres 7 / 30 / 90 dni pod spodem na całą szerokość; cele dotyku 44 px.
+- Moduł analityki (`includes/colorify-dashboard-insights.php`) w widokach: każdy z widoków Zapytania, Firma, Redakcja, Portfolio i Sprzedaż zaczyna się własnym modułem (`colorify_insights_module()`), a stary pasek ruchu i karty „Popularne podstrony” / „Najczęściej czytane” zastąpił panel ruchu (`colorify_insights_traffic_panel()`). W „Firmie” moduł niesie kondycję, aktualizacje i listę rzeczy do zrobienia, więc dawny pasek liczb i karta „Wymaga uwagi” wypadły. „Kalendarz zleceń” i „Rezerwacje” mają panel ruchu na dole, zwinięty pod nagłówkiem „Ruch na stronie”.
+- „Zapytania” na stronie z wtyczką zleceń: najbliższe zlecenie i liczba nadchodzących liczą się z całego okna kalendarza, nie z najbliższych 180 dni (przy weselach planowanych z rocznym wyprzedzeniem widok mówił „0” i „Brak nadchodzących zleceń”).
+- `colorify-ui.css` i `colorify-modern.css` mają wersję z czasem pliku, jak arkusz planera.
+
+## 2.14.1
+
+Kokpit: zlecenia zwinięte do jednego wiersza, zrozumiały zablokowany dzień, widoczny główny skrót i przełącznik widoku na kokpicie.
+
+- Lista „Najbliższe” (styl „Kalendarz zleceń”): jeden wiersz na zlecenie zamiast osobnego wiersza na każde zadanie pary. Wiersz zlecenia jest mocniejszy od reszty (blok w tonie karty, data na pełnym akcencie, większa nazwa) i pokazuje datę, ile dni zostało, liczbę zadań i najbliższe z nich. Klik albo Enter rozwija zadania zlecenia po kolei, z samym zleceniem na swoim miejscu w czasie; status („Zadatek wpłacony”) stoi raz, w nagłówku rozwinięcia, obok „Otwórz zlecenie”. Wydarzenia bez zlecenia (zablokowany dzień, luźny kontakt) zostają zwykłymi wierszami. Grupowanie idzie po polu `id` wydarzenia; wtyczka, która go nie podaje, dostaje listę jak dotąd.
+- Zablokowany dzień: karta mówi, co to jest („Tego dnia nie przyjmujesz zleceń”), zamiast „Skopiuj informacje” i „Otwórz zlecenie” ma „Otwórz terminarz”, a legenda i listy nazywają go „Dzień zablokowany”. Nowe opcjonalne pola wydarzenia w filtrze `colorify_calendar_events`: `short` (krótka nazwa na chip w siatce miesiąca), `info` (zdanie wyjaśnienia w karcie) i `actions` (własne przyciski karty: odnośnik albo formularz POST z ukrytymi polami i pytaniem przed wysłaniem, tylko na adres panelu tej strony). Najwęższa siatka miesiąca (1024–1099 px) ma węższe marginesy, żeby „Zablokowany” mieścił się bez wielokropka.
+- Pierwszy kafel paska skrótów (np. „Wiadomości” w stylu „Zapytania”) jest wypełniony kolorem akcentu. Wcześniej miał 10% akcentu na bieli, czyli prawie kolor tła strony, i znikał.
+- Przełącznik widoku: przycisk „Widok: …” w prawym górnym rogu kokpitu (na klasycznym kokpicie WordPressa obok tytułu „Kokpit”) z listą widoków i jednym zdaniem, co każdy daje. Klik zmienia widok tylko klikającemu (meta użytkownika, odnośnik z nonce); zaraz po przełączeniu obok przycisku jest cichy odnośnik powrotu do poprzedniego widoku. Widok, którego strona nie obsłuży (Sprzedaż bez WooCommerce, Kalendarz i Rezerwacje bez wtyczki zleceń), jest widoczny, wyszarzony, z wyjaśnieniem.
+- Ustawienia, Colorify, „Styl kokpitu”: karty zamiast zakładek (nazwa, co daje, „Zobaczysz: …”, plakietki „Domyślny” i „Niedostępny tutaj”); klik karty ustawia styl domyślny strony, czyli ten dla kont bez własnego wyboru.
+- Arkusz i skrypt planera mają wersję z czasem pliku, jak panel Treści strony.
+
 ## 2.14.0
 
 Edytor treści: przełączniki tylko dla właściciela Colorify i klik w podglądzie prowadzi prosto do pola.
