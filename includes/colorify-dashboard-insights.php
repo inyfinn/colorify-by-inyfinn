@@ -44,6 +44,41 @@ function colorify_insights_range(): array {
 	return colorify_analytics_range( $args );
 }
 
+/**
+ * Zakres dla bloków, które liczy dopiero nowy licznik (źródła, urządzenia, godziny, wejścia, 404).
+ * Gdy wybrany zakres kończy się, zanim nowy licznik ruszył, bierzemy dane od jego startu do dziś (do teraz), a podpis to mówi po ludzku.
+ *
+ * @return array{from:string,to:string,note:string,today:bool}
+ */
+function colorify_insights_dim_range( array $r ): array {
+	$cov   = function_exists( 'colorify_analytics_coverage' ) ? colorify_analytics_coverage() : array();
+	$since = (string) ( $cov['dims_since'] ?? '' );
+	$today = wp_date( 'Y-m-d' );
+	$out   = array( 'from' => $r['from'], 'to' => $r['to'], 'note' => '', 'today' => false, 'since' => $since );
+	if ( '' === $since ) {
+		return $out;
+	}
+	if ( $since > $r['to'] ) {
+		if ( $since <= $today ) {
+			$out['from']  = $since;
+			$out['to']    = $today;
+			$out['today'] = true;
+			/* translators: %s: data, np. 13 listopada */
+			$out['note']  = sprintf( __( 'Dziś do teraz. Liczymy od %s.', 'colorify-by-inyfinn' ), colorify_insights_date( $since, 'j F' ) );
+		}
+	} elseif ( $since > $r['from'] ) {
+		$out['from'] = $since;
+		/* translators: %s: data, np. 13 listopada */
+		$out['note'] = sprintf( __( 'Liczymy od %s, wcześniej tego nie mierzyliśmy.', 'colorify-by-inyfinn' ), colorify_insights_date( $since, 'j F' ) );
+	}
+	return $out;
+}
+
+/** Krótka uwaga przy małej próbie (poniżej progu) zamiast procentów-wniosków. */
+function colorify_insights_low_note( array $d ): string {
+	return ! empty( $d['low_sample'] ) ? __( 'Mała próba: za mało wejść na wnioski, traktuj to orientacyjnie.', 'colorify-by-inyfinn' ) : '';
+}
+
 /** Adres bieżącego ekranu bez parametrów panelu, z dołożonymi $set (null = usuń). */
 function colorify_insights_here( array $set = array() ): string {
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : admin_url( 'index.php' );
@@ -306,13 +341,14 @@ function colorify_insights_traffic_panel(): string {
 	$o .= colorify_insights_pages_card( $pg, $r );
 
 	/* źródła + urządzenia */
-	$src = colorify_analytics_sources( $r['from'], $r['to'] );
-	$dev = colorify_analytics_devices( $r['from'], $r['to'] );
-	$o  .= '<div class="cfi-grid2">' . colorify_insights_sources_card( $src ) . colorify_insights_devices_card( $dev ) . '</div>';
+	$dr  = colorify_insights_dim_range( $r );
+	$src = colorify_analytics_sources( $dr['from'], $dr['to'] );
+	$dev = colorify_analytics_devices( $dr['from'], $dr['to'] );
+	$o  .= '<div class="cfi-grid2">' . colorify_insights_sources_card( $src, $dr['note'] ) . colorify_insights_devices_card( $dev, $dr['note'] ) . '</div>';
 
 	/* godziny + 404 */
-	$o .= colorify_insights_hours_card( colorify_analytics_hours_grid( $r['from'], $r['to'] ) );
-	$o .= colorify_insights_404_card( colorify_analytics_errors404( $r['from'], $r['to'], 20 ), $r );
+	$o .= colorify_insights_hours_card( colorify_analytics_hours_grid( $dr['from'], $dr['to'] ), $dr['note'] );
+	$o .= colorify_insights_404_card( colorify_analytics_errors404( $dr['from'], $dr['to'], 20 ), $r, $dr['note'] );
 	$o .= colorify_insights_quality_card( colorify_analytics_coverage(), $t );
 	return '<div class="cfi cfi-traffic">' . $o . '</div>';
 }
@@ -328,10 +364,15 @@ function colorify_insights_pages_card( array $pg, array $r ): string {
 	}
 	$allowed = ! empty( $pg['compare_allowed'] );
 	// Wejścia z zewnątrz są mierzone dopiero od dims_since: przed tą datą "—" z dymkiem, nie zero.
-	$cov      = function_exists( 'colorify_analytics_coverage' ) ? colorify_analytics_coverage() : array();
-	$dims     = (string) ( $cov['dims_since'] ?? '' );
-	$dims_ok  = '' !== $dims && $dims <= (string) $r['to'];
-	$dims_txt = '' !== $dims ? colorify_insights_since_text( $dims ) : colorify_insights_since_text( null );
+	$dr       = colorify_insights_dim_range( $r );
+	$dims_ok  = '' !== $dr['since'] && $dr['since'] <= $dr['to'];
+	$dims_txt = '' !== $dr['since'] ? colorify_insights_since_text( $dr['since'] ) : colorify_insights_since_text( null );
+	$ent      = array(); // klucz strony => wejścia z zewnątrz w zakresie nowego licznika (także samo dziś).
+	if ( $dims_ok && function_exists( 'colorify_analytics_entry_pages' ) ) {
+		foreach ( (array) ( colorify_analytics_entry_pages( $dr['from'], $dr['to'], 500 )['rows'] ?? array() ) as $er ) {
+			$ent[ (string) $er['key'] ] = (int) $er['entries'];
+		}
+	}
 	$b       = '<div class="cfi-tools"><label class="cfi-search"><span class="screen-reader-text">' . esc_html__( 'Szukaj strony', 'colorify-by-inyfinn' ) . '</span><input type="search" placeholder="' . esc_attr__( 'Szukaj strony lub adresu', 'colorify-by-inyfinn' ) . '" data-cfi-search></label><span class="cfi-count" data-cfi-count aria-live="polite"></span></div>'
 		. '<div class="cfi-scroll"><table class="cfi-table cfi-sortable" data-cfi-table><thead><tr>'
 		. '<th><button type="button" data-sort="t">' . esc_html__( 'Strona', 'colorify-by-inyfinn' ) . '</button></th>'
@@ -347,11 +388,11 @@ function colorify_insights_pages_card( array $pg, array $r ): string {
 		$stt  = ctype_digit( (string) $x['key'] ) ? (string) get_post_status( (int) $x['key'] ) : '';
 		$stl  = array( 'draft' => __( 'szkic', 'colorify-by-inyfinn' ), 'private' => __( 'prywatna', 'colorify-by-inyfinn' ), 'pending' => __( 'oczekuje', 'colorify-by-inyfinn' ), 'future' => __( 'zaplanowana', 'colorify-by-inyfinn' ), 'trash' => __( 'w koszu', 'colorify-by-inyfinn' ) )[ $stt ] ?? '';
 		$chg  = $allowed && null !== $x['change'] ? (float) $x['change'] : null;
-		$b   .= '<tr data-t="' . esc_attr( mb_strtolower( $x['title'] . ' ' . $path ) ) . '" data-n="' . (int) $x['views'] . '" data-p="' . (float) $x['share'] . '" data-e="' . (int) $x['entries'] . '" data-c="' . ( null === $chg ? -999999 : $chg ) . '">'
+		$b   .= '<tr data-t="' . esc_attr( mb_strtolower( $x['title'] . ' ' . $path ) ) . '" data-n="' . (int) $x['views'] . '" data-p="' . (float) $x['share'] . '" data-e="' . (int) ( $ent[ (string) $x['key'] ] ?? 0 ) . '" data-c="' . ( null === $chg ? -999999 : $chg ) . '">'
 			. '<td><a class="cfi-pg" href="' . esc_url( colorify_insights_detail_url( array( 'strona' => (string) $x['key'] ), $r ) ) . '"><span class="cfi-pg__t">' . esc_html( $x['title'] ) . '</span><span class="cfi-pg__u">' . esc_html( '' !== $path ? $path : (string) $x['key'] ) . ( '' !== $stl ? ' · ' . $stl : '' ) . '</span></a></td>'
 			. '<td class="is-num"><span class="cfi-meter"><span class="cfi-meter__bar" style="width:' . round( $x['views'] / $max * 100, 1 ) . '%"></span><span class="cfi-meter__v">' . esc_html( colorify_insights_n( $x['views'] ) ) . '</span></span></td>'
 			. '<td class="is-num cfi-hide-s">' . esc_html( colorify_insights_n( $x['share'] * 100, 1 ) ) . '%</td>'
-			. '<td class="is-num cfi-hide-s">' . ( $dims_ok ? esc_html( colorify_insights_n( $x['entries'] ) ) : '<span class="cfi-muted" title="' . esc_attr( $dims_txt ) . '">—</span>' ) . '</td>'
+			. '<td class="is-num cfi-hide-s">' . ( $dims_ok ? '<span' . ( '' !== $dr['note'] ? ' title="' . esc_attr( $dr['note'] ) . '"' : '' ) . '>' . esc_html( colorify_insights_n( $ent[ (string) $x['key'] ] ?? 0 ) ) . '</span>' : '<span class="cfi-muted" title="' . esc_attr( $dims_txt ) . '">—</span>' ) . '</td>'
 			. '<td class="is-num">' . ( null === $chg ? '<span class="cfi-muted">—</span>' : colorify_insights_delta( (float) $x['views'], (float) $x['prev_views'], true ) ) . '</td></tr>';
 	}
 	$b .= '</tbody></table></div>';
@@ -365,19 +406,19 @@ function colorify_insights_pages_card( array $pg, array $r ): string {
 }
 
 /** Poziome słupki z etykietą po lewej i liczbą po prawej. */
-function colorify_insights_hbars( array $rows ): string {
+function colorify_insights_hbars( array $rows, bool $pct = true ): string {
 	$max = 1;
 	foreach ( $rows as $x ) {
 		$max = max( $max, (int) $x[1] );
 	}
 	$h = '<ul class="cfi-hbars">';
 	foreach ( $rows as $x ) {
-		$h .= '<li><span class="cfi-hbars__l">' . esc_html( $x[0] ) . '</span><span class="cfi-hbars__track"><span style="width:' . round( $x[1] / $max * 100, 1 ) . '%"></span></span><span class="cfi-hbars__v">' . esc_html( colorify_insights_n( $x[1] ) ) . ' <small>' . esc_html( colorify_insights_n( $x[2] * 100, 0 ) ) . '%</small></span></li>';
+		$h .= '<li><span class="cfi-hbars__l">' . esc_html( $x[0] ) . '</span><span class="cfi-hbars__track"><span style="width:' . round( $x[1] / $max * 100, 1 ) . '%"></span></span><span class="cfi-hbars__v">' . esc_html( colorify_insights_n( $x[1] ) ) . ' ' . ( $pct ? '<small>' . esc_html( colorify_insights_n( $x[2] * 100, 0 ) ) . '%</small>' : '' ) . '</span></li>';
 	}
 	return $h . '</ul>';
 }
 
-function colorify_insights_sources_card( array $s ): string {
+function colorify_insights_sources_card( array $s, string $note = '' ): string {
 	if ( ! empty( $s['partial'] ) && ! (int) ( $s['external_views'] ?? 0 ) && ! array_sum( array_column( (array) $s['classes'], 'views' ) ) ) {
 		return colorify_insights_card( __( 'Skąd przychodzą', 'colorify-by-inyfinn' ), colorify_insights_state( colorify_insights_since_text( $s['measured_from'] ?? null ), __( 'Źródła jeszcze się zbierają', 'colorify-by-inyfinn' ) ) );
 	}
@@ -385,7 +426,8 @@ function colorify_insights_sources_card( array $s ): string {
 	foreach ( (array) $s['classes'] as $c ) {
 		$rows[] = array( $c['label'], $c['views'], $c['share'] );
 	}
-	$b = colorify_insights_hbars( $rows );
+	$low = colorify_insights_low_note( $s );
+	$b   = colorify_insights_hbars( $rows, '' === $low );
 	if ( ! empty( $s['domains'] ) ) {
 		$b .= '<h4 class="cfi-h4">' . esc_html__( 'Najczęstsze strony odsyłające', 'colorify-by-inyfinn' ) . '</h4><ul class="cfi-list">';
 		foreach ( array_slice( $s['domains'], 0, 6 ) as $d ) {
@@ -393,13 +435,14 @@ function colorify_insights_sources_card( array $s ): string {
 		}
 		$b .= '</ul>';
 	}
-	if ( ! empty( $s['partial'] ) ) {
-		$b .= '<p class="cfi-foot">' . esc_html( colorify_insights_since_text( $s['measured_from'] ?? null ) ) . '</p>';
+	$foot = trim( $note . ' ' . $low );
+	if ( '' === $foot && ! empty( $s['partial'] ) ) {
+		$foot = colorify_insights_since_text( $s['measured_from'] ?? null );
 	}
-	return colorify_insights_card( __( 'Skąd przychodzą', 'colorify-by-inyfinn' ), $b );
+	return colorify_insights_card( __( 'Skąd przychodzą', 'colorify-by-inyfinn' ), $b . ( '' !== $foot ? '<p class="cfi-foot">' . esc_html( $foot ) . '</p>' : '' ) );
 }
 
-function colorify_insights_devices_card( array $d ): string {
+function colorify_insights_devices_card( array $d, string $note = '' ): string {
 	if ( empty( $d['views'] ) ) {
 		return colorify_insights_card( __( 'Urządzenia', 'colorify-by-inyfinn' ), colorify_insights_state( colorify_insights_since_text( $d['measured_from'] ?? null ), __( 'Urządzenia jeszcze się zbierają', 'colorify-by-inyfinn' ) ) );
 	}
@@ -407,10 +450,15 @@ function colorify_insights_devices_card( array $d ): string {
 	foreach ( (array) $d['devices'] as $x ) {
 		$rows[] = array( $x['label'], $x['views'], $x['share'] );
 	}
-	return colorify_insights_card( __( 'Urządzenia', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) . ( ! empty( $d['partial'] ) ? '<p class="cfi-foot">' . esc_html( colorify_insights_since_text( $d['measured_from'] ?? null ) ) . '</p>' : '' ) );
+	$low  = colorify_insights_low_note( $d );
+	$foot = trim( $note . ' ' . $low );
+	if ( '' === $foot && ! empty( $d['partial'] ) ) {
+		$foot = colorify_insights_since_text( $d['measured_from'] ?? null );
+	}
+	return colorify_insights_card( __( 'Urządzenia', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows, '' === $low ) . ( '' !== $foot ? '<p class="cfi-foot">' . esc_html( $foot ) . '</p>' : '' ) );
 }
 
-function colorify_insights_hours_card( array $g ): string {
+function colorify_insights_hours_card( array $g, string $note = '' ): string {
 	if ( empty( $g['total'] ) ) {
 		return colorify_insights_card( __( 'Kiedy ludzie wchodzą', 'colorify-by-inyfinn' ), colorify_insights_state( colorify_insights_since_text( $g['measured_from'] ?? null ), __( 'Godziny jeszcze się zbierają', 'colorify-by-inyfinn' ) ) );
 	}
@@ -427,7 +475,7 @@ function colorify_insights_hours_card( array $g ): string {
 		}
 		$h .= '</div>';
 	}
-	$h .= '</div><p class="cfi-foot">' . esc_html( sprintf( /* translators: %s: strefa */ __( 'Im ciemniej, tym więcej wejść. Czas: %s.', 'colorify-by-inyfinn' ), (string) ( $g['timezone'] ?? '' ) ) ) . '</p>';
+	$h .= '</div><p class="cfi-foot">' . esc_html( trim( __( 'Im ciemniej, tym więcej wejść.', 'colorify-by-inyfinn' ) . ' ' . $note . ' ' . colorify_insights_low_note( $g ) ) ) . '</p>';
 	return colorify_insights_card( __( 'Kiedy ludzie wchodzą', 'colorify-by-inyfinn' ), $h );
 }
 
@@ -450,7 +498,7 @@ function colorify_insights_404_fix( string $path ): array {
 	return $best && $bp >= 55 ? array( 'title' => get_the_title( $best ), 'url' => get_permalink( $best ), 'score' => (int) $bp ) : array();
 }
 
-function colorify_insights_404_card( array $e, array $r ): string {
+function colorify_insights_404_card( array $e, array $r, string $note = '' ): string {
 	if ( empty( $e['rows'] ) ) {
 		return colorify_insights_card( __( 'Strony, których nie ma (404)', 'colorify-by-inyfinn' ), colorify_insights_state( ! empty( $e['partial'] ) ? colorify_insights_since_text( $e['measured_from'] ?? null ) : __( 'W tym okresie nikt nie trafił w nieistniejący adres.', 'colorify-by-inyfinn' ), ! empty( $e['partial'] ) ? __( 'Błędy jeszcze się zbierają', 'colorify-by-inyfinn' ) : __( 'Brak błędów 404', 'colorify-by-inyfinn' ) ) );
 	}
@@ -463,7 +511,7 @@ function colorify_insights_404_card( array $e, array $r ): string {
 			. ( $fix ? '<span class="cfi-fix">' . esc_html__( 'Prawdopodobnie chodziło o', 'colorify-by-inyfinn' ) . ' <a href="' . esc_url( $fix['url'] ) . '" target="_blank" rel="noopener">' . esc_html( $fix['title'] ) . '</a></span>' . ( colorify_insights_is_owner() ? '<button type="button" class="cfi-btn cfi-btn--s" data-cfi-copy="' . esc_attr( $line ) . '">' . esc_html__( 'Kopiuj przekierowanie 301', 'colorify-by-inyfinn' ) . '</button>' : '' ) : '<span class="cfi-muted">' . esc_html__( 'Brak podobnej strony. Utwórz ją albo zostaw.', 'colorify-by-inyfinn' ) . '</span>' )
 			. '</td></tr>';
 	}
-	return colorify_insights_card( sprintf( /* translators: %s: liczba */ __( 'Strony, których nie ma (404): %s wejść', 'colorify-by-inyfinn' ), colorify_insights_n( $e['hits'] ?? 0 ) ), $b . '</tbody></table></div><p class="cfi-foot">' . esc_html__( 'Adresy, w które ktoś trafił, a strony tam nie ma. Wpisy z prób włamań i skanerów pomijamy.', 'colorify-by-inyfinn' ) . '</p>', '', '', 'cfi-404' );
+	return colorify_insights_card( sprintf( /* translators: %s: liczba */ __( 'Strony, których nie ma (404): %s wejść', 'colorify-by-inyfinn' ), colorify_insights_n( $e['hits'] ?? 0 ) ), $b . '</tbody></table></div><p class="cfi-foot">' . esc_html( trim( __( 'Adresy, w które ktoś trafił, a strony tam nie ma. Wpisy z prób włamań i skanerów pomijamy.', 'colorify-by-inyfinn' ) . ' ' . $note ) ) . '</p>', '', '', 'cfi-404' );
 }
 
 function colorify_insights_quality_card( array $c, array $t ): string {
@@ -515,9 +563,16 @@ function colorify_insights_page_detail( string $key ): string {
 	}
 	$r   = colorify_insights_range();
 	$rep = colorify_analytics_page_report( $key, $r['from'], $r['to'] );
-	$cov_s      = function_exists( 'colorify_analytics_coverage' ) ? colorify_analytics_coverage() : array();
-	$dims_s      = (string) ( $cov_s['dims_since'] ?? '' );
-	$entries_ok  = '' !== $dims_s && $dims_s <= (string) $r['to'];
+	$dr          = colorify_insights_dim_range( $r );
+	$dims_s      = $dr['since'];
+	$entries_ok  = '' !== $dims_s && $dims_s <= $dr['to'];
+	if ( $entries_ok && function_exists( 'colorify_analytics_entry_pages' ) ) {
+		foreach ( (array) ( colorify_analytics_entry_pages( $dr['from'], $dr['to'], 500 )['rows'] ?? array() ) as $er ) {
+			if ( (string) $er['key'] === $key ) {
+				$rep['entries'] = (int) $er['entries'];
+			}
+		}
+	}
 	$pg  = $rep['page'];
 	$act = '';
 	if ( ! empty( $pg['edit_url'] ) ) {
@@ -531,7 +586,7 @@ function colorify_insights_page_detail( string $key ): string {
 	$out .= colorify_insights_range_bar( $r );
 	$out .= '<section class="cfi-card cfi-strip cfi-strip--3">'
 		. colorify_insights_stat( __( 'Odsłony', 'colorify-by-inyfinn' ), esc_html( colorify_insights_n( $rep['views'] ) ), colorify_insights_delta( $rep['views'], $rep['prev_views'], ! empty( $rep['compare_allowed'] ), (string) $rep['compare_reason'] ) )
-		. colorify_insights_stat( __( 'Wejścia z zewnątrz', 'colorify-by-inyfinn' ), $entries_ok ? esc_html( colorify_insights_n( $rep['entries'] ) ) : '—', '', $entries_ok ? __( 'Ktoś zaczął od tej strony', 'colorify-by-inyfinn' ) : colorify_insights_since_text( $dims_s ?: null ) )
+		. colorify_insights_stat( __( 'Wejścia z zewnątrz', 'colorify-by-inyfinn' ), $entries_ok ? esc_html( colorify_insights_n( $rep['entries'] ) ) : '—', '', $entries_ok ? ( '' !== $dr['note'] ? $dr['note'] : __( 'Ktoś zaczął od tej strony', 'colorify-by-inyfinn' ) ) : colorify_insights_since_text( $dims_s ?: null ) )
 		. colorify_insights_stat( __( 'Udział w ruchu', 'colorify-by-inyfinn' ), null === $rep['share_of_site'] ? '—' : esc_html( colorify_insights_n( $rep['share_of_site'] * 100, 1 ) ) . '%' ) . '</section>';
 	$pts  = array();
 	foreach ( (array) $rep['series'] as $p ) {
@@ -539,7 +594,7 @@ function colorify_insights_page_detail( string $key ): string {
 		$pts[] = array( 'date' => $p['date'], 'value' => null === $v ? null : (float) $v, 'label' => colorify_insights_date( (string) $p['date'], 'D j F' ) . ': ' . ( null === $v ? __( 'brak zapisu', 'colorify-by-inyfinn' ) : colorify_insights_n( $v ) . ' ' . __( 'odsłon', 'colorify-by-inyfinn' ) ) );
 	}
 	$out .= colorify_insights_card( __( 'Odsłony tej strony w czasie', 'colorify-by-inyfinn' ), colorify_insights_bars( $pts, 'views', (array) ( $rep['annotations'] ?? array() ), $pg['title'] ) . colorify_insights_points_table( $pts, __( 'Odsłony', 'colorify-by-inyfinn' ) ) );
-	$out .= '<div class="cfi-grid2">' . colorify_insights_sources_card( (array) $rep['sources'] ) . colorify_insights_devices_card( (array) $rep['devices'] ) . '</div>';
+	$out .= '<div class="cfi-grid2">' . colorify_insights_sources_card( colorify_analytics_sources( $dr['from'], $dr['to'], $key ), $dr['note'] ) . colorify_insights_devices_card( colorify_analytics_devices( $dr['from'], $dr['to'], $key ), $dr['note'] ) . '</div>';
 	return '<div class="cfi cfi-detail">' . $out . '</div>';
 }
 
@@ -723,7 +778,7 @@ function colorify_insights_mod_leads(): string {
 		$side .= colorify_insights_card( __( 'Od zapytania do zlecenia', 'colorify-by-inyfinn' ), colorify_insights_hbars( $rows ) );
 	}
 	if ( colorify_insights_available() ) {
-		$side .= colorify_insights_sources_card( colorify_analytics_sources( $r['from'], $r['to'] ) );
+		$side .= colorify_insights_sources_card( colorify_analytics_sources( colorify_insights_dim_range( $r )['from'], colorify_insights_dim_range( $r )['to'] ), colorify_insights_dim_range( $r )['note'] );
 	}
 	return $out . ( '' !== $side ? '<div class="cfi-grid2">' . $side . '</div>' : '' );
 }
