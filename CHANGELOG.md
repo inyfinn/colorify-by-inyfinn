@@ -1,5 +1,15 @@
 # Historia zmian
 
+## 2.15.4
+
+Moduł „Cena i decyzje” czytelnie.
+
+- Na górze jedno zdanie „co z tego wynika” (progi 30/100, nigdy „ceny są za wysokie”) i cztery liczby: wyceny, odpowiedzi o budżecie, zgłoszenia, rezygnacje.
+- Karty parami (2 kolumny od 1000 px, 1 na telefonie) z przełącznikiem Wykres/Tabela: odpowiedzi o budżecie według pakietu (słupki składane), według pakietu, ceny i odległości, termin w wycenie, od zgłoszenia do umowy, rezygnacje z powodami („para napisała” / „przypuszczenie”).
+- Bez danych karta „Co tu zobaczysz” z przykładowym wykresem; na kokpicie przycisk „Zobacz szczegóły” (podstrona z zakresem dat i wersjami cennika).
+- Liczby po polsku („1 200 zł”), twarde spacje w zdaniach, tryb ciemny, szerokie tabele na telefonie przewijane w ramce z gasnącą krawędzią.
+- Naprawiony brak odstępów: moduł jest teraz wstawiany w opakowaniu panelu.
+
 ## 2.15.3
 
 Moduł „Cena i decyzje” w kokpicie: czy ceny odstraszają.
