@@ -1048,7 +1048,7 @@ trait Colorify_Dashboard_Planner {
 		$out  .= '<div class="cfd-row cfd-row--even">'
 			. self::plan_upcoming( __( 'Kolejne zlecenia', 'colorify-by-inyfinn' ), array_slice( $ahead, 0, 6 ), self::plan_has_provider() ? __( 'Nic nie jest zaplanowane.', 'colorify-by-inyfinn' ) : '' )
 			. '</div>';
-		$out .= function_exists( 'colorify_insights_mod_pricing' ) ? (string) colorify_insights_mod_pricing() : '';
+		$out .= self::insights_module( 'pricing' );
 		return $out . self::insights_fold() . self::plan_boot( $today->format( 'Y-m' ) );
 	}
 

@@ -178,11 +178,98 @@ body.colorify-dark .cfi .cfi-grid{stroke-opacity:.14}
 	.cfi-row__main a{display:inline-flex;align-items:center;min-height:44px}
 	.cfi-fix a{display:inline-flex;align-items:center;min-height:44px}
 }
-/* Cena i decyzje */
-.cfi-verdict{margin:0;padding:14px 20px;border-radius:var(--rc);background:color-mix(in srgb,var(--a) 12%,var(--s));font-size:15px;font-weight:600;line-height:1.45}
-.cfi-verdict--soft{font-weight:500;background:var(--soft)}
-.cfi-grid2--wide{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
-.cfi-foot--out{margin:-8px 4px 0}
-.cfi-strip--2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.cfi-row .cfi-pill{font-variant-numeric:tabular-nums}
-@media (max-width:600px){.cfi-table--n{min-width:440px}.cfi-table--n td:first-child,.cfi-table--n th:first-child{min-width:120px;overflow-wrap:normal}.cfi-scroll{-webkit-overflow-scrolling:touch}}
+/* Cena i decyzje: odstępy jak w panelu ruchu (20 px), najwyżej dwie karty w rzędzie, wykresy z samego HTML i CSS.
+ * Kolory odpowiedzi o budżecie (mieści się, trochę przekracza, zdecydowanie przekracza) sprawdzone walidatorem palet:
+ * sąsiednie segmenty odróżnialne także przy zaburzeniach widzenia barw, kontrast do karty co najmniej 3:1, liczba w segmencie
+ * co najmniej 4,5:1. Szary to klasa neutralna ("jeszcze nie mamy budżetu"). Etapy (wyceny, zgłoszenia, umowa) to jeden
+ * odcień akcentu w trzech stopniach jasności. Tryb ciemny: własne wartości; silnik trybu ciemnego dostaje je gotowe
+ * (zmienne --darkreader-*), inaczej przeliczyłby je po swojemu. */
+.cfi{--bud1:#1c825a;--bud2:#bd8a24;--bud3:#ad4a2c;--bud4:#928d88;--bud1-on:#fff;--bud2-on:#1e1e1e;--bud3-on:#fff;--bud4-on:#1e1e1e;--ord1:color-mix(in srgb,var(--a) 45%,var(--s));--ord2:color-mix(in srgb,var(--a) 70%,var(--s));--ord3:var(--a);--ord1-on:var(--t);--ord3-on:var(--on);--pill:var(--s)}
+body.colorify-dark .cfi{--bud1:#2f9f86;--bud2:#bb8b28;--bud3:#c2452b;--bud4:#8f8a84;--bud1-on:#14110f;--bud2-on:#14110f;--bud3-on:#fff;--bud4-on:#14110f;--ord1-on:#eee6e2;--ord3-on:#14110f;--darkreader-bg--bud1:#2f9f86!important;--darkreader-bg--bud2:#bb8b28!important;--darkreader-bg--bud3:#c2452b!important;--darkreader-bg--bud4:#8f8a84!important;--darkreader-text--bud1-on:#14110f!important;--darkreader-text--bud2-on:#14110f!important;--darkreader-text--bud3-on:#fff!important;--darkreader-text--bud4-on:#14110f!important;--darkreader-bg--ord1:color-mix(in srgb,var(--colorify-ui-accent) 45%,var(--colorify-ui-surface))!important;--darkreader-bg--ord2:color-mix(in srgb,var(--colorify-ui-accent) 70%,var(--colorify-ui-surface))!important;--darkreader-bg--ord3:var(--colorify-ui-accent)!important;--darkreader-text--ord1-on:#eee6e2!important;--darkreader-text--ord3-on:#14110f!important;--darkreader-bg--soft:color-mix(in srgb,currentColor 9%,transparent)!important;--darkreader-bg--pill:color-mix(in srgb,currentColor 22%,transparent)!important;--darkreader-border--line:color-mix(in srgb,currentColor 14%,transparent)!important;--darkreader-border--field:color-mix(in srgb,currentColor 36%,transparent)!important}
+/* Silnik trybu ciemnego liczył tło z --soft i ramki z --line / --field od ciemnego koloru, więc tory słupków, puste stany,
+ * przyciski "ghost" i obrysy pól znikały na ciemnej karcie. Wartości wyżej biorą kolor tekstu elementu (currentColor). */
+.cfi-mod--pricing{container:cfimod/inline-size;max-width:none}
+.cfi-verdict{margin:0;max-width:76ch;font-size:18px;line-height:1.45;font-weight:600;text-wrap:pretty}
+.cfi-verdict small{display:block;margin-top:4px;font-size:14px;font-weight:400;color:var(--m)}
+.cfi-g2{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@container cfimod (min-width:1000px){.cfi-g2{grid-template-columns:repeat(2,minmax(0,1fr))}.cfi-g2>:last-child:nth-child(odd){grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:84px;align-items:start}.cfi-g2>:last-child:nth-child(odd)>.cfi-card__bar{grid-column:1/-1}.cfi-g2>:last-child:nth-child(odd)>.cfi-foot{margin-top:0;font-size:13px}}
+.cfi-lead{margin:0 0 14px;font-size:14px;line-height:1.5;color:var(--m)}
+.cfi-lead b{margin-right:4px;font-size:20px;font-weight:700;color:var(--t);font-variant-numeric:tabular-nums}
+.cfi-dual .cfi-foot,.cfi-budget .cfi-foot{max-width:84ch}
+.cfi-budget .cfi-p{margin-bottom:0}
+.cfi-mod--pricing .cfi-card__bar{min-height:40px}
+/* Nagłówki w kokpicie i na podstronie: arkusze panelu (widżety kokpitu, .wrap) nadpisywały rozmiary z góry tego pliku,
+ * przez co tytuł panelu (17 px) był mniejszy od zdania pod nim, a tytuły kart wyglądały jak zwykły tekst (14 px / 400). */
+#colorify_dashboard .cfi .cfi-h2,.wrap .cfi .cfi-h2{margin:0;padding:0;font-size:22px;line-height:1.25;font-weight:700}
+#colorify_dashboard .cfi .cfi-card__title,.wrap .cfi .cfi-card__title{margin:0;padding:0;font-size:16px;line-height:1.3;font-weight:600}
+/* przełącznik Wykres / Tabela: neutralny, kolor zostaje dla danych */
+.cfi-seg button{display:inline-flex;align-items:center;min-height:32px;margin:0;padding:0 12px;border:0;border-radius:min(9px,var(--rc));background:transparent;color:var(--m);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.cfi-seg button:hover{color:var(--t)}
+.cfi-seg button[aria-pressed="true"]{background:var(--pill);color:var(--t);box-shadow:0 1px 2px rgba(16,24,40,.14)}
+body.colorify-dark .cfi-seg button[aria-pressed="true"]{box-shadow:none}
+.cfi-pane[hidden]{display:none}
+.cfi .cfi-vt{width:auto;flex:none}
+/* legenda i próbki */
+.cfi-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 14px;padding:0;list-style:none;font-size:13px;line-height:1.4;color:var(--m)}
+.cfi-legend li{display:inline-flex;align-items:center;gap:7px;margin:0}
+.cfi-legend b{color:var(--t);font-weight:600;font-variant-numeric:tabular-nums}
+.cfi-sw{display:inline-block;flex:none;width:12px;height:12px;border-radius:3px}
+.cfi-sw.is-miesci,.cfi-stk__s.is-miesci{background:var(--bud1);color:var(--bud1-on)}
+.cfi-sw.is-troche,.cfi-stk__s.is-troche{background:var(--bud2);color:var(--bud2-on)}
+.cfi-sw.is-zdecydowanie,.cfi-stk__s.is-zdecydowanie{background:var(--bud3);color:var(--bud3-on)}
+.cfi-sw.is-brak_budzetu,.cfi-stk__s.is-brak_budzetu{background:var(--bud4);color:var(--bud4-on)}
+.cfi-sw.is-quotes,.cfi-grp__b.is-quotes{background:var(--ord1)}
+.cfi-sw.is-sent,.cfi-grp__b.is-sent{background:var(--ord2)}
+.cfi-sw.is-booked,.cfi-grp__b.is-booked{background:var(--ord3)}
+.cfi-sw.is-stated,.cfi-stk__s.is-stated{background:var(--ord3);color:var(--ord3-on)}
+.cfi-sw.is-guess,.cfi-stk__s.is-guess{background:var(--ord1);color:var(--ord1-on)}
+/* słupki skumulowane: wspólna oś liczb, 2 px przerwy między segmentami, liczba w segmencie tylko gdy się mieści */
+.cfi-stk,.cfi-grp{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.cfi-stk{gap:10px}
+.cfi-stk__row{display:grid;grid-template-columns:minmax(110px,200px) minmax(0,1fr) minmax(7ch,auto);align-items:center;gap:4px 14px;margin:0;font-size:14px}
+.cfi-stk__row.is-cap{margin-bottom:-6px;font-size:12px;color:var(--m)}
+.cfi-stk__l{min-width:0;line-height:1.3;overflow-wrap:anywhere}
+.cfi-stk__l small{display:block;margin-top:2px;font-size:12px;color:var(--m)}
+.cfi-stk__track{display:block;min-width:0}
+.cfi-stk__bar{display:flex;gap:2px;height:22px;min-width:6px}
+.cfi-stk__s{container:cfiseg/inline-size;display:flex;flex:1 1 0;align-items:center;justify-content:center;min-width:5px;overflow:hidden;font-size:12px;line-height:1;font-variant-numeric:tabular-nums}
+.cfi-stk__s:last-child{border-radius:0 4px 4px 0}
+.cfi-stk__s b{font-weight:600}
+@container cfiseg (max-width:19px){.cfi-stk__s b{display:none}}
+.cfi-stk__v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cfi-stk__v b{font-weight:700}
+.cfi-stk__v small{font-size:12px;color:var(--m)}
+/* słupki zgrupowane: po jednym cienkim słupku na serię, liczba za słupkiem */
+.cfi-grp{gap:12px}
+.cfi-grp__row{display:grid;grid-template-columns:minmax(110px,200px) minmax(0,1fr);align-items:center;gap:4px 14px;margin:0;font-size:14px}
+.cfi-grp__bars{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cfi-grp__line{display:flex;align-items:center;gap:8px;min-height:12px}
+.cfi-grp__b{flex:none;width:calc((100% - 5ch)*var(--w,0));height:10px;border-radius:0 4px 4px 0}
+.cfi-grp__n{font-size:12px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+/* zapowiedź wykresu, dopóki nie ma odpowiedzi: szkic oznaczony jako przykład */
+.cfi-preview{position:relative;margin:6px 0 16px;padding:20px 20px 16px;border:1px dashed var(--field);border-radius:var(--rc)}
+.cfi-preview__tag{position:absolute;top:-11px;left:14px;padding:1px 10px;border:1px solid var(--field);border-radius:var(--rp);background:var(--s);font-size:12px;font-weight:600;line-height:1.5;color:var(--m)}
+.cfi-preview .cfi-legend{margin-bottom:12px}
+.cfi-preview .cfi-stk{gap:8px}
+.cfi-preview .cfi-stk__bar{height:14px;opacity:.6}
+.cfi-preview .cfi-stk__row{grid-template-columns:minmax(70px,110px) minmax(0,1fr) 0;color:var(--m)}
+/* podpowiedź przy segmencie i słupku */
+.cfi-tt{position:fixed;z-index:100050;max-width:300px;padding:6px 10px;border-radius:8px;background:#1d2327;color:#fff;font-size:12px;font-weight:600;line-height:1.4;pointer-events:none}
+.cfi-tt[hidden]{display:none}
+.cfi-table td:first-child{min-width:9ch}
+.cfi-mod--pricing .cfi-table thead th{white-space:normal;vertical-align:bottom;line-height:1.3}
+.cfi-mod--pricing .cfi-table th,.cfi-mod--pricing .cfi-table td{overflow-wrap:normal}
+.cfi-mod--pricing .cfi-table th:first-child{width:38%}
+.cfi-mod--pricing .cfi-table .cfi-sub2{margin-top:1px;white-space:nowrap}
+/* tabela szersza niż karta: prawa krawędź gaśnie, dopóki jest co przewijać (klasę stawia colorify-insights.js) */
+.cfi-scroll.is-more{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
+@media (max-width:600px){
+	.cfi-verdict{font-size:16px}
+	.cfi-stk__row{grid-template-columns:minmax(0,1fr) auto}
+	.cfi-stk__row .cfi-stk__track{grid-row:2;grid-column:1/-1}
+	.cfi-stk__row.is-cap{display:flex;justify-content:flex-end}
+	.cfi-grp__row{grid-template-columns:minmax(0,1fr)}
+	.cfi-preview{padding:18px 14px 14px}
+}
+@media (pointer:coarse),(max-width:600px){.cfi .cfi-seg button{min-height:44px;padding:0 16px}}
+@media (prefers-reduced-motion:no-preference){.cfi-seg button{transition:background-color .12s ease,color .12s ease}}
