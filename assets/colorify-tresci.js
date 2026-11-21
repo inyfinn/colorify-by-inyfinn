@@ -472,7 +472,8 @@
 			if (a && !/^#/.test(a.getAttribute('href') || '#')) { e.preventDefault(); }
 		}, true);
 		d.addEventListener('submit', function (e) { e.preventDefault(); }, true);
-		if (ostatniStan) { setTimeout(function () { stanPokaz(ostatniStan[0], ostatniStan[1], true); }, 60); } // stan (np. wycena) przeżywa przeładowanie podglądu
+		if (przewinSekcja) { var ps = przewinSekcja; przewinSekcja = null; sekcjaPrzewin(ps); } // „Pusty formularz”: po przeładowaniu do sekcji, nie na górę strony
+		else if (ostatniStan) { setTimeout(function () { stanPokaz(ostatniStan[0], ostatniStan[1], true); }, 60); } // stan (np. wycena) przeżywa przeładowanie podglądu
 		else if (ostatnieFokus) { podswietl(ostatnieFokus, true); }
 	});
 
@@ -612,18 +613,29 @@
 		list.forEach(function (x) { x.classList.add('cft-hl'); });
 		ramkaPrzewin(cel, 'center', cicho);
 	}
-	var pokazanyEl = null, ostatniStan = null;
+	var pokazanyEl = null, ostatniStan = null, przewinSekcja = null;
+	function stanyPrzyciski(n) {
+		[].forEach.call(form.querySelectorAll('[data-cft-stan]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-cft-stan') === n && n !== 'start' ? 'true' : 'false'); });
+	}
+	/** Przewija ramkę do sekcji (kotwica z rejestru); drugi raz po 800 ms, bo zdjęcia i czcionki przesuwają jeszcze układ. */
+	function sekcjaPrzewin(sid) {
+		var d = doc(), sec = CFG.sekcje[sid] || {}, c = d && sec.kotwica ? d.querySelector(sec.kotwica) : null;
+		if (!c) { return; }
+		ramkaPrzewin(c, 'start', true);
+		setTimeout(function () { if (c.isConnected) { ramkaPrzewin(c, 'start', true); } }, 800);
+	}
 	/** Przycisk „Pokaż w podglądzie” w karcie: stan sekcji w ramce ('start' = przeładuj podgląd do stanu początkowego). */
 	function stanPokaz(n, sid, cicho) {
 		var sec = CFG.sekcje[sid] || {};
-		[].forEach.call(form.querySelectorAll('[data-cft-stan]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-cft-stan') === n && n !== 'start' ? 'true' : 'false'); });
+		stanyPrzyciski(n);
 		if (!widoczny()) { podgladOtworz(true); }
-		if (sec.strona && sec.strona !== 'oba' && sec.strona !== strona) { ostatniStan = n === 'start' ? null : [n, sid]; ustawStrone(sec.strona); return; }
-		if (n === 'start') { ostatniStan = null; zaladuj(); return; }
-		ostatniStan = [n, sid];
+		ostatniStan = n === 'start' ? null : [n, sid];
+		przewinSekcja = n === 'start' ? sid : null;
+		if (sec.strona && sec.strona !== 'oba' && sec.strona !== strona) { ustawStrone(sec.strona); return; } // stan albo przewinięcie po wczytaniu (load)
+		if (n === 'start') { zaladuj(); return; }
 		if (ladowanie) { return; } // po wczytaniu ramki stan nałoży się sam (load)
 		var el = ramkaZdarzenie('cft:stan', { stan: n, el: null });
-		if (el && el.nodeType === 1) { setTimeout(function () { ramkaPrzewin(el, 'start', cicho); }, 650); }
+		if (el && el.nodeType === 1) { setTimeout(function () { ramkaPrzewin(el, 'start', cicho); }, 650); } else { sekcjaPrzewin(sid); } // strona bez tego stanu: sama sekcja
 	}
 	form.addEventListener('click', function (e) {
 		var b = e.target.closest('[data-cft-stan]');
@@ -654,6 +666,7 @@
 		if (!el) { return; }
 		var key = el.getAttribute('data-key');
 		ostatnieFokus = key;
+		if (ostatniStan || przewinSekcja) { ostatniStan = null; przewinSekcja = null; stanyPrzyciski(''); } // pole w panelu = nowszy wybór niż przycisk stanu (po przeładowaniu podgląd idzie do pola)
 		if (!widoczny()) { return; }
 		var st = stronaPola(key);
 		if (st !== 'oba' && st !== strona) { ustawStrone(st); return; }

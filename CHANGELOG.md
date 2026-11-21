@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.15.6
+
+Edytor treści: podgląd przewija do właściwego miejsca.
+
+- „Pokaż w podglądzie → Pusty formularz” po przeładowaniu przewija do sekcji (było: góra strony); stan, którego strona nie obsługuje, przewija do sekcji.
+- Klik w pole w panelu jest ważniejszy niż ostatni przycisk stanu (po przełączeniu podstrony podgląd idzie do pola, nie do starego stanu).
+
 ## 2.15.5
 
 Edytor treści: edytowalne wszystko w formularzu i wycenie. Kokpit: prawdziwe dane, blokady IP, odświeżanie bez przeładowania.
