@@ -100,6 +100,12 @@ $ok( array( '#sek' => array( 'b' => array( 'pt' => 'lg' ) ), 'pole_a' => array( 
 $fa = array( 'z_pol' => array( 'stare1' => 'a' ), 'warianty' => array( 'a' => array( 'A', 'ka' ), 'b' => array( 'B', 'kb' ) ) );
 $bl = colorify_tresci_akapity_z( array( '_' => '1', 'stare1' => array( 'w' => 'b' ), 'p-abc123' => array( 'w' => 'a', 't' => 'Tekst <script>x</script><em>k</em>' ), 'p-pusty1' => array( 't' => '' ), 'zle' => array( 't' => 'x' ) ), $fa );
 $ok( 2 === count( $bl ) && array( 'id' => 'stare1', 'w' => 'b' ) === $bl[0] && 'p-abc123' === $bl[1]['id'] && false === strpos( $bl[1]['t'], '<script' ) && false !== strpos( $bl[1]['t'], '<em>k</em>' ), 'akapity: stare pole jako odwołanie, nowy z tekstem po kses, puste i obce id wypadają' );
+// 2.15.5: pole 'elementy' (kolejność, szerokość, ukrycie) i ukrycie elementu tokenem 'ukr' (tylko na swoim ekranie).
+$fe = array( 'elementy' => array( 'a' => array( 'label' => 'A', 'szer' => true, 'stala' => true ), 'b' => array( 'label' => 'B' ), 'c' => array( 'label' => 'C', 'szer' => true ) ), 'szerokosci' => array( 'cala' => 'Cała', 'pol' => 'Pół' ) );
+$el = colorify_tresci_elementy_z( array( '_' => '1', 'c' => array( 'w' => 'pol', 'h' => '1' ), 'x' => array(), 'b' => array( 'w' => 'cala' ), 'a' => array( 'h' => '1', 'w' => 'zle' ) ), $fe );
+$ok( array( array( 'id' => 'c', 'w' => 'pol', 'h' => 1 ), array( 'id' => 'b' ), array( 'id' => 'a' ) ) === $el, 'elementy: kolejność formularza, nieznane id wypada, szerokość tylko gdy dozwolona, stałego nie da się ukryć' );
+$ok( array( array( 'id' => 'b' ), array( 'id' => 'a' ), array( 'id' => 'c' ) ) === colorify_tresci_elementy_z( '[{"id":"b"}]', array( 'elementy' => array( 'a' => array(), 'b' => array(), 'c' => array() ) ) ), 'elementy: JSON, brakujące dopisane w kolejności definicji' );
+$ok( 'none' === colorify_tresci_styl_css( 'ukr', 'ukryj' ) && false !== strpos( colorify_tresci_css_regul(), '@media (min-width:768px){[style*="--cft-ukr:"]{display:none!important}}' ), 'ukr: token i reguła tylko od 768 px' );
 if ( isset( colorify_tresci_uklad_def()['home']['hero'] ) ) { // motyw z rejestrem układu (np. elarisse)
 	$dom = colorify_tresci_uklad_norm( 'home', array(), array() )['o'];
 	$n   = colorify_tresci_uklad_norm( 'home', array( 'o' => array( 'faq', 'nieznana', 'hero', 'faq' ), 'h' => array( 'hero', 'faq' ) ), array() );

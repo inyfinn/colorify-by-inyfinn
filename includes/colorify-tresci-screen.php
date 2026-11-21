@@ -387,6 +387,13 @@ function cft_pole( $key, $f, $stored, $o = array() ) {
 		echo '</div>';
 		return;
 	}
+	if ( 'elementy' === $type ) {
+		echo '<span class="cft-etykieta" id="' . esc_attr( $id ) . '-l">' . esc_html( $f['label'] ) . '</span>';
+		cft_podpowiedz( $f['hint'] );
+		cft_elementy( $key, $f, $name, colorify_tresci_elementy_z( $val, $f ) );
+		echo '</div>';
+		return;
+	}
 	if ( 'select' === $type || 'bool' === $type ) {
 		if ( 'bool' === $type ) {
 			echo '<label class="cft-check"><input type="hidden" name="' . esc_attr( $name ) . '" value="0"><input type="checkbox" name="' . esc_attr( $name ) . '" value="1" data-struktura' . checked( ! empty( $val ), true, false ) . '> ' . esc_html( $f['label'] ) . '</label>';
@@ -538,6 +545,46 @@ function cft_akapit( $name, $key, $b, $f, $stored ) {
 	echo '</li>';
 }
 
+/**
+ * Edytor pola 'elementy': wiersze w kolejności strony, strzałki, szerokość (gdy element ją ma) i oko (ukryj / pokaż).
+ * Nazwy cft[<pole>][<id>][w|h]; kolejność wierszy w formularzu = kolejność na stronie. Zmiana przeładowuje podgląd.
+ */
+function cft_elementy( $key, $f, $name, $lista ) {
+	$def  = (array) ( $f['elementy'] ?? array() );
+	$szer = (array) ( $f['szerokosci'] ?? array() );
+	echo '<input type="hidden" name="' . esc_attr( $name . '[_]' ) . '" value="1">';
+	echo '<ol class="cft-elementy" data-elementy="' . esc_attr( $key ) . '" aria-labelledby="cft-' . esc_attr( $key ) . '-l">';
+	foreach ( $lista as $e ) {
+		$id    = (string) $e['id'];
+		$d     = (array) $def[ $id ];
+		$n     = $name . '[' . $id . ']';
+		$label = (string) ( $d['label'] ?? $id );
+		$ukr   = ! empty( $e['h'] );
+		echo '<li class="cft-element' . ( $ukr ? ' is-ukryty' : '' ) . '" data-element="' . esc_attr( $id ) . '">';
+		echo '<span class="cft-element__n">' . esc_html( $label ) . '<span class="cft-element__znak">Ukryte na stronie</span></span>';
+		echo '<span class="cft-element__akcje">';
+		if ( ! empty( $d['szer'] ) && $szer ) {
+			echo '<label class="cft-element__w"><span class="screen-reader-text">' . esc_html( 'Szerokość: ' . $label ) . '</span><select name="' . esc_attr( $n . '[w]' ) . '" data-struktura>';
+			echo '<option value="">' . esc_html( 'Szerokość jak w projekcie' ) . '</option>';
+			foreach ( $szer as $t => $l ) {
+				echo '<option value="' . esc_attr( $t ) . '"' . selected( (string) ( $e['w'] ?? '' ), (string) $t, false ) . '>' . esc_html( $l ) . '</option>';
+			}
+			echo '</select></label>';
+		}
+		echo '<input type="hidden" name="' . esc_attr( $n . '[h]' ) . '" value="' . ( $ukr ? '1' : '' ) . '" data-element-h>';
+		if ( ! empty( $d['stala'] ) ) {
+			$why = (string) ( $d['dlaczego'] ?? 'Ten element jest potrzebny, żeby sekcja działała, więc nie da się go ukryć.' );
+			echo '<span class="cft-ikona cft-ikona--blok" tabindex="0" role="img" aria-label="' . esc_attr( $why ) . '" data-tip="' . esc_attr( $why ) . '">' . cft_ik( 'klodka' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		} else {
+			echo '<button type="button" class="cft-ikona" data-element-ukryj aria-pressed="' . ( $ukr ? 'true' : 'false' ) . '" aria-label="' . esc_attr( ( $ukr ? 'Pokaż na stronie: ' : 'Ukryj na stronie: ' ) . $label ) . '" data-tip="' . esc_attr( $ukr ? 'Pokaż na stronie (teraz ukryte)' : 'Ukryj na stronie (tekst zostaje w panelu)' ) . '">' . cft_ik( $ukr ? 'oko_nie' : 'oko' ) . '</button>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
+		echo '<button type="button" class="cft-ikona" data-element-ruch="-1" aria-label="' . esc_attr( 'Przesuń wyżej: ' . $label ) . '" data-tip="Wyżej (wcześniej na stronie)">' . cft_ik( 'gora' ) . '</button>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '<button type="button" class="cft-ikona" data-element-ruch="1" aria-label="' . esc_attr( 'Przesuń niżej: ' . $label ) . '" data-tip="Niżej (dalej na stronie)">' . cft_ik( 'dol' ) . '</button>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '</span></li>';
+	}
+	echo '</ol>';
+}
+
 /** Definicja pola nowej sekcji w kształcie pola schematu. */
 function cft_pole_sekcji( $d ) {
 	return array( 'type' => $d[0], 'label' => $d[1], 'default' => $d[2], 'hint' => '' ) + (array) ( $d[3] ?? array() );
@@ -609,14 +656,14 @@ function cft_ikona( $ikona ) {
 
 /** Group of a field inside a card: teksty | media | przyciski | lista. */
 function cft_grupa( $key, $f ) {
+	if ( ! empty( $f['grupa'] ) ) {
+		return (string) $f['grupa']; // wymuszona grupa (także własna grupa sekcji z 'grupy') wygrywa z typem pola
+	}
 	if ( 'media' === $f['type'] ) {
 		return 'media';
 	}
-	if ( colorify_tresci_jest_lista( $f['type'] ) ) {
+	if ( colorify_tresci_jest_lista( $f['type'] ) || 'elementy' === $f['type'] ) {
 		return 'lista';
-	}
-	if ( ! empty( $f['grupa'] ) ) {
-		return (string) $f['grupa'];
 	}
 	return preg_match( '/' . colorify_tresci_rejestr()['przyciski_regex'] . '/', $key ) ? 'przyciski' : 'teksty';
 }
@@ -737,7 +784,16 @@ function cft_karta( $sid, $sec, $stored, $grupy ) {
 			<?php if ( ! empty( $sec['link'] ) ) : ?>
 				<a class="cft-skok" href="<?php echo esc_url( admin_url( $sec['link'][1] ) ); ?>"><?php echo esc_html( $sec['link'][0] ); ?> <span aria-hidden="true">→</span></a>
 			<?php endif; ?>
+			<?php if ( ! empty( $sec['stany'] ) ) : // 2.15.5: stany sekcji, które widać dopiero po interakcji (np. wycena, ekran po wysłaniu) ?>
+				<div class="cft-stany" role="group" aria-label="Pokaż w podglądzie">
+					<span class="cft-stany__t">Pokaż w podglądzie:</span>
+					<?php foreach ( (array) $sec['stany'] as $st_id => $st_l ) : ?>
+						<button type="button" class="cft-btn cft-btn--obrys cft-btn--maly" data-cft-stan="<?php echo esc_attr( $st_id ); ?>" data-cft-sekcja-stanu="<?php echo esc_attr( $sid ); ?>" aria-pressed="false"><?php echo esc_html( $st_l ); ?></button>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 			<?php
+			$grupy = $grupy + (array) ( $sec['grupy'] ?? array() ); // własne grupy sekcji: zwijane, pod grupami standardowymi
 			$wg = array();
 			foreach ( $sec['fields'] as $key => $f ) {
 				$f = $pola[ $key ] ?? $f;
@@ -754,6 +810,18 @@ function cft_karta( $sid, $sec, $stored, $grupy ) {
 				if ( empty( $wg[ $gid ] ) ) {
 					continue;
 				}
+				if ( isset( $sec['grupy'][ $gid ] ) ) :
+					$ile_p = count( $wg[ $gid ] );
+					?>
+					<details class="cft-grupa cft-grupa--zw" data-grupa="<?php echo esc_attr( $gid ); ?>">
+						<summary class="cft-grupa__s"><span class="cft-grupa__t"><?php echo esc_html( $gt ); ?></span><span class="cft-grupa__ile"><?php echo (int) $ile_p; ?> <?php echo 1 === $ile_p ? 'pole' : ( $ile_p % 10 >= 2 && $ile_p % 10 <= 4 && ( $ile_p % 100 < 10 || $ile_p % 100 >= 20 ) ? 'pola' : 'pól' ); ?></span></summary>
+						<div class="cft-grupa__tresc">
+							<?php foreach ( $wg[ $gid ] as $key => $f ) { cft_pole( $key, $f, $stored ); } ?>
+						</div>
+					</details>
+					<?php
+					continue;
+				endif;
 				?>
 				<div class="cft-grupa cft-grupa--<?php echo esc_attr( $gid ); ?>">
 					<?php if ( $ile > 1 && '' !== $gt ) : ?><h3 class="cft-grupa__t"><?php echo esc_html( $gt ); ?></h3><?php endif; ?>

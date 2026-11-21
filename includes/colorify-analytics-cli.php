@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI: wp colorify-analytics status | migrate | purge [--dry-run] | beacon <auto|on|off>
+ * WP-CLI: wp colorify-analytics status | migrate | purge [--dry-run] | beacon <auto|on|off> | exclude <list|add|remove|set> [adresy]
  *
  * @package ColorifyByInyfinn
  */
@@ -85,6 +85,33 @@ class Colorify_Analytics_CLI {
 		foreach ( $r['rows'] as $t => $n ) {
 			WP_CLI::line( sprintf( '  %-18s %d', $t, $n ) );
 		}
+	}
+
+	/**
+	 * Adresy IP, z których odwiedzin nie liczymy (komputer właściciela, biuro). Lista jest pusta, dopóki jej nie ustawisz.
+	 * Działa od chwili zapisu; wcześniejszych odsłon nie da się rozpoznać (adresu ani skrótu z poprzednich dni nie zapisujemy).
+	 *
+	 * <akcja>
+	 * : list (pokaż), add (dodaj), remove (usuń), set (zastąp całą listę).
+	 *
+	 * [<adres>...]
+	 * : Adresy IPv4/IPv6 albo zakresy CIDR (np. 203.0.113.0/24).
+	 */
+	public function exclude( $args ) {
+		$act  = (string) array_shift( $args );
+		$have = Colorify_Analytics::excluded_ips();
+		if ( ! in_array( $act, array( 'list', 'add', 'remove', 'set' ), true ) ) {
+			WP_CLI::error( 'Akcja: list | add <adres>... | remove <adres>... | set <adres>...' );
+		}
+		if ( 'list' !== $act ) {
+			$new = Colorify_Analytics_Rules::ip_list( $args );
+			if ( count( $new ) !== count( array_unique( $args ) ) ) {
+				WP_CLI::error( 'Nie wszystko jest poprawnym adresem IP (albo zakresem CIDR).' );
+			}
+			$have = 'set' === $act ? $new : ( 'add' === $act ? array_merge( $have, $new ) : array_diff( $have, $new ) );
+			$have = Colorify_Analytics::save_excluded_ips( $have );
+		}
+		WP_CLI::line( $have ? 'Wykluczone adresy: ' . implode( ', ', $have ) : 'Lista wykluczonych adresów jest pusta.' );
 	}
 
 	/**

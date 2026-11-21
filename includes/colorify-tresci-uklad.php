@@ -31,6 +31,7 @@ function colorify_tresci_styl_wlasciwosci() {
 		'c'  => array( 'Kolor', 'color', 1 ),
 		'ta' => array( 'Wyrównanie', 'text-align', 1 ),
 		'mb' => array( 'Odstęp pod spodem', 'margin-bottom', 1 ),
+		'ukr' => array( 'Widoczność', 'display', 1 ), // 2.15.5: ukrycie elementu na tym ekranie (komputer = od 768 px, telefon = do 767 px)
 		'lh' => array( 'Interlinia', 'line-height', 2 ),
 		'ls' => array( 'Odstęp liter', 'letter-spacing', 2 ),
 		'mt' => array( 'Odstęp nad', 'margin-top', 2 ),
@@ -90,6 +91,9 @@ function colorify_tresci_tokeny() {
 			'justify' => array( 'Do obu krawędzi', 'justify' ),
 		),
 		'mb' => $odstep,
+		'ukr' => array(
+			'ukryj' => array( 'Ukryj na tym ekranie', 'none' ),
+		),
 		'mt' => $odstep,
 		'ls' => array(
 			'ciasno'  => array( 'Ciaśniej', '-0.02em' ),
@@ -588,11 +592,12 @@ function colorify_tresci_css_regul() {
 	$p['mi'] = array( '', 'margin-inline', 0 );
 	$base   = '';
 	$mob    = '';
+	unset( $p['ukr'] ); // ukrycie działa tylko na swoim ekranie (bez dziedziczenia komputer -> telefon), reguły niżej
 	foreach ( $p as $k => $d ) {
 		$base .= '[style*="--cft-' . $k . ':"]{' . $d[1] . ':var(--cft-' . $k . ')!important}';
 		$mob  .= '[style*="--cft-' . $k . '-m:"]{' . $d[1] . ':var(--cft-' . $k . '-m)!important}';
 	}
-	return $base . '@media (max-width:767px){' . $mob . '}';
+	return $base . '@media (max-width:767px){' . $mob . '[style*="--cft-ukr-m:"]{display:none!important}}@media (min-width:768px){[style*="--cft-ukr:"]{display:none!important}}';
 }
 
 /** Arkusz nowych sekcji: odstęp zawsze, reszta tylko gdy motyw nie podał własnych klas. */

@@ -298,13 +298,75 @@ PRIMARY KEY  (day,h)
 	}
 
 	/** Czy to żądanie w ogóle dotyczy analityki (strona publiczna, gość, nie podgląd, nie kanał, nie REST). */
-	private static function in_scope(): bool {
+	private static function in_scope( bool $with_ip = true ): bool {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- sam odczyt obecności parametru.
 		return ! ( is_user_logged_in() || is_admin() || wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
 			|| is_feed() || is_robots() || is_trackback() || is_embed() || is_preview() || is_customize_preview()
 			|| ( function_exists( 'is_favicon' ) && is_favicon() ) || '' !== (string) get_query_var( 'sitemap' )
-			|| isset( $_GET['ej_podglad'] ) || isset( $_GET['colorify_tresci_podglad'] ) || isset( $_GET['preview'] ) );
+			|| isset( $_GET['ej_podglad'] ) || isset( $_GET['colorify_tresci_podglad'] ) || isset( $_GET['preview'] ) || ( $with_ip && self::ip_excluded() ) );
 		// phpcs:enable
+	}
+
+	/* ===================== Wykluczone adresy IP ===================== */
+
+	/**
+	 * Adresy, z których odwiedzin nie liczymy (komputer właściciela, biuro): opcja colorify_an_exclude_ips, tekst albo tablica,
+	 * pojedyncze adresy i zakresy CIDR. Domyślnie pusta. Adres nigdy nie trafia do tabel analityki; wykluczenie działa od chwili
+	 * zapisu listy (wcześniejszych odsłon nie da się rozpoznać, bo adresu ani skrótu z poprzednich dni nie przechowujemy).
+	 *
+	 * @return string[]
+	 */
+	public static function excluded_ips(): array {
+		return Colorify_Analytics_Rules::ip_list( get_option( self::opt( 'exclude_ips' ), '' ) );
+	}
+
+	/** Adres klienta. Za proxy/CDN poprawny adres podaje filtr colorify_analytics_client_ip. */
+	public static function client_ip(): string {
+		return (string) apply_filters( 'colorify_analytics_client_ip', self::server( 'REMOTE_ADDR', 64 ) );
+	}
+
+	/** Czy to żądanie pochodzi z wykluczonego adresu. Za proxy/CDN adres klienta podaje filtr colorify_analytics_client_ip. */
+	public static function ip_excluded( string $ip = '' ): bool {
+		$list = self::excluded_ips();
+		if ( ! $list ) {
+			return false;
+		}
+		$ip = '' !== $ip ? $ip : self::client_ip();
+		return Colorify_Analytics_Rules::ip_in_list( $ip, $list );
+	}
+
+	/**
+	 * Zapis listy wykluczonych adresów (poprawne IPv4, IPv6 i CIDR; reszta odpada). Kopia trafia też do odbiornika dziennika
+	 * odsłon (działa bez WordPressa), jeśli ten tryb jest włączony. Zwraca zapisaną listę.
+	 *
+	 * @param string|array<int,string> $raw
+	 * @return string[]
+	 */
+	public static function save_excluded_ips( $raw ): array {
+		$list = Colorify_Analytics_Rules::ip_list( $raw );
+		update_option( self::opt( 'exclude_ips' ), implode( "\n", $list ), true );
+		self::sync_excluded_file();
+		return $list;
+	}
+
+	/** uploads/colorify-log/excl.php dla odbiornika dziennika (tylko gdy katalog dziennika istnieje, czyli tryb dziennika był włączany). */
+	public static function sync_excluded_file(): void {
+		if ( 'colorify' !== self::$ns ) {
+			return;
+		}
+		$dir = self::log_dir();
+		if ( ! is_dir( $dir ) ) {
+			return;
+		}
+		$list = self::excluded_ips();
+		$file = $dir . '/excl.php';
+		if ( ! $list ) {
+			if ( is_file( $file ) ) {
+				wp_delete_file( $file );
+			}
+			return;
+		}
+		file_put_contents( $file, "<?php return " . var_export( $list, true ) . ";\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 	}
 
 	private static function server( string $k, int $max = 1000 ): string {
@@ -313,7 +375,7 @@ PRIMARY KEY  (day,h)
 
 	/** template_redirect 99: po przekierowaniach kanonicznych, więc liczy adres, który naprawdę się wyświetlił. */
 	public static function collect(): void {
-		if ( '' !== self::server( 'HTTP_X_COLORIFY_PROBE' ) || ! self::in_scope() ) {
+		if ( '' !== self::server( 'HTTP_X_COLORIFY_PROBE' ) || ! self::in_scope( false ) ) {
 			return;
 		}
 		$req  = array(
@@ -322,7 +384,8 @@ PRIMARY KEY  (day,h)
 			'accept'      => self::server( 'HTTP_ACCEPT', 300 ),
 			'sec_purpose' => self::server( 'HTTP_SEC_PURPOSE', 100 ),
 			'purpose'     => self::server( 'HTTP_PURPOSE', 50 ) . ' ' . self::server( 'HTTP_X_PURPOSE', 50 ) . ' ' . self::server( 'HTTP_X_MOZ', 50 ),
-			'ip'          => self::server( 'REMOTE_ADDR', 64 ),
+			'ip'          => self::client_ip(),
+			'excluded'    => self::ip_excluded(),
 			'referer'     => self::server( 'HTTP_REFERER', 1000 ),
 			'uri'         => self::server( 'REQUEST_URI', 2000 ),
 			'page'        => self::page_key(),
@@ -377,12 +440,19 @@ PRIMARY KEY  (day,h)
 			'time'        => time(),
 			'host'        => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
 			'test'        => false,
+			'excluded'    => false,
 		);
 		if ( 'GET' !== $r['method'] && 'HEAD' !== $r['method'] ) {
 			return 'skip';
 		}
 		$day  = wp_date( 'Y-m-d', $r['time'] );
 		$kind = $r['test'] ? 'human' : self::classify( $r );
+		if ( ! $r['test'] ) {
+			Colorify_Analytics_IP::log( $r, $kind ); // zapis adresów (jeśli włączony) widzi też boty i adresy wykluczone ze statystyk
+		}
+		if ( $r['excluded'] ) {
+			return 'excluded';
+		}
 		if ( 'bot' === $kind || 'speculative' === $kind ) {
 			self::bump( self::METHOD, $day, 'bot' === $kind ? 'bots' : 'spec' );
 			return $kind;
@@ -622,6 +692,7 @@ PRIMARY KEY  (day,h)
 		self::forget( $today );
 		self::aggregate_log();
 		self::purge( false, 10 );
+		Colorify_Analytics_IP::purge( 10 );
 		if ( $reg['daily'] !== $today ) {
 			if ( empty( $reg['legacy_final'] ) ) {
 				self::migrate_legacy();
@@ -772,6 +843,7 @@ PRIMARY KEY  (day,h)
 				file_put_contents( $dir . '/' . $f, $body ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 			}
 		}
+		self::sync_excluded_file();
 	}
 
 	/** Strona wysyła sygnał tylko w trybie dziennika (wykryty cache albo właściciel wymusił), poza tym skrypt się nie ładuje. */
@@ -895,7 +967,7 @@ PRIMARY KEY  (day,h)
 	/** Tabele, opcje analityki, cache zapytań, zadanie cron i pliki dziennika. Dane innych modułów Colorify zostają. */
 	public static function uninstall(): void {
 		global $wpdb;
-		foreach ( self::TABLES as $t ) {
+		foreach ( array_merge( self::TABLES, array( 'ip' ) ) as $t ) { // 'ip' = tabela adresów (colorify-analytics-ip.php), istnieje tylko po włączeniu zapisu
 			$wpdb->query( 'DROP TABLE IF EXISTS ' . self::t( $t ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( self::opt( '' ) ) . '%', $wpdb->esc_like( '_transient_' . self::$ns . '_anq_' ) . '%', $wpdb->esc_like( '_transient_timeout_' . self::$ns . '_anq_' ) . '%' ) );
@@ -942,6 +1014,11 @@ function colorify_analytics_privacy_policy(): void {
 	}
 }
 
+/** Dla innych wtyczek (np. licznika wycen): czy bieżące żądanie pochodzi z adresu, którego odwiedzin nie liczymy. */
+function colorify_analytics_ip_excluded(): bool {
+	return Colorify_Analytics::ip_excluded();
+}
+
 add_action( 'init', array( 'Colorify_Analytics', 'maybe_install' ), 5 );
 add_action( 'template_redirect', array( 'Colorify_Analytics', 'flag_404' ), 0 );
 add_action( 'template_redirect', array( 'Colorify_Analytics', 'collect' ), 99 );
@@ -950,6 +1027,7 @@ add_action( 'colorify_an_cron', array( 'Colorify_Analytics', 'cron' ) );
 add_action( 'admin_init', 'colorify_analytics_privacy_policy' );
 
 require_once __DIR__ . '/colorify-analytics-query.php';
+require_once __DIR__ . '/colorify-analytics-ip.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/colorify-analytics-cli.php';

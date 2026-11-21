@@ -21,6 +21,14 @@ header( 'X-Robots-Tag: noindex, nofollow' );
 		return;
 	}
 	require_once __DIR__ . '/colorify-analytics-rules.php';
+	// Wykluczone adresy IP (kopia listy z ustawień, zapisuje ją WordPress): ich sygnałów nie zapisujemy w ogóle.
+	if ( is_file( $dir . '/excl.php' ) ) {
+		$excl = include $dir . '/excl.php'; // phpcs:ignore PEAR.Files.IncludingFile
+		if ( is_array( $excl ) && Colorify_Analytics_Rules::ip_in_list( (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ), $excl ) ) { // phpcs:ignore WordPress.Security
+			http_response_code( 204 );
+			return;
+		}
+	}
 
 	// phpcs:disable WordPress.Security -- poza WordPressem; każde pole niżej ma własną listę dozwolonych znaków.
 	$get    = static function ( string $k, int $max ): string {

@@ -395,6 +395,138 @@ try {
 	cft( isset( $c['method'], $c['data_since'], $c['bots']['ready'], $c['prefetch']['counted'], $c['engagement']['label'] ) && '2026-06-01' === $c['data_since'] && $c['low_sample'], 'coverage: metoda, dane od, boty, prefetch, mała próba', array( $c['method'], $c['data_since'], $c['state'] ) );
 	cft( false !== strpos( Colorify_Analytics::methods_meta()['php1']['about'], "w\u{00A0}" ) || false !== strpos( Colorify_Analytics::methods_meta()['php1']['about'], "z\u{00A0}" ), 'opis metody z twardymi spacjami' );
 	cft( false !== strpos( Colorify_Analytics::methods_meta()['php1']['about'], 'anulowane kliknięcie' ), 'opis metody: zdanie o prefetchu' );
+
+	/* ---------- wykluczone adresy IP (adresy z dokumentacji: 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24) ---------- */
+	$ips = $R::ip_list( "203.0.113.7, 198.51.100.0/24;2001:db8::/32\n999.1.1.1 abc 10.0.0.0/40 203.0.113.7 ::1" );
+	cft( array( '203.0.113.7', '198.51.100.0/24', '2001:db8::/32', '::1' ) === $ips, 'lista wykluczonych IP: poprawne adresy i zakresy, śmieci i duplikaty odpadają', $ips );
+	$lst = array( '203.0.113.7', '198.51.100.0/24', '2001:db8::/32', '192.0.2.0/23' );
+	cft( $R::ip_in_list( '203.0.113.7', $lst ) && ! $R::ip_in_list( '203.0.113.8', $lst ), 'IP: pojedynczy adres wyklucza tylko siebie' );
+	cft( $R::ip_in_list( '198.51.100.250', $lst ) && ! $R::ip_in_list( '198.51.101.1', $lst ), 'IP: zakres /24' );
+	cft( $R::ip_in_list( '192.0.3.9', $lst ) && ! $R::ip_in_list( '192.0.4.1', $lst ), 'IP: zakres /23 przez granicę bajtu' );
+	cft( $R::ip_in_list( '2001:db8:ffff::1', $lst ) && ! $R::ip_in_list( '2001:db9::1', $lst ), 'IP: zakres IPv6' );
+	cft( $R::ip_in_list( '::ffff:203.0.113.7', $lst ) && ! $R::ip_in_list( '', $lst ) && ! $R::ip_in_list( 'nie-adres', $lst ), 'IP: IPv4 zapisany jako IPv6 to ten sam adres, puste i błędne nie pasują' );
+	$scope  = new ReflectionMethod( $A, 'in_scope' );
+	$scope->setAccessible( true );
+	$old_ip = $_SERVER['REMOTE_ADDR'] ?? null;
+	cft( ! $A::ip_excluded( '203.0.113.7' ) && true === $scope->invoke( null ), 'wykluczenie IP: domyślnie lista pusta, nikogo nie wyklucza' );
+	update_option( $A::opt( 'exclude_ips' ), "203.0.113.7\n198.51.100.0/24" );
+	$_SERVER['REMOTE_ADDR'] = '198.51.100.77';
+	$in_list                = $A::ip_excluded() && false === $scope->invoke( null );
+	$_SERVER['REMOTE_ADDR'] = '203.0.113.99';
+	$off_list               = ! $A::ip_excluded() && true === $scope->invoke( null );
+	cft( $in_list, 'wykluczone IP: żądanie z adresu z listy (zakres) jest poza zakresem liczenia' );
+	cft( $off_list, 'wykluczone IP: inny adres liczy się normalnie' );
+	$saved_ips = $A::save_excluded_ips( '203.0.113.99 nonsense' );
+	cft( array( '203.0.113.99' ) === $saved_ips && array( '203.0.113.99' ) === $A::excluded_ips() && $A::ip_excluded(), 'zapis listy IP: tylko poprawne adresy, działa od razu' );
+	delete_option( $A::opt( 'exclude_ips' ) );
+	if ( null === $old_ip ) {
+		unset( $_SERVER['REMOTE_ADDR'] );
+	} else {
+		$_SERVER['REMOTE_ADDR'] = $old_ip;
+	}
+	cft( ! $A::ip_excluded( '203.0.113.99' ), 'lista IP po usunięciu opcji znów pusta' );
+
+	/* ---------- suma stron = odsłony; dziś bez pamięci podręcznej ---------- */
+	$dtT = Colorify_Analytics::t( 'daily_totals' );
+	$dtP = Colorify_Analytics::t( 'daily_pages' );
+	$wpdb->query( "INSERT INTO {$dtT} (day,method,views,state) VALUES ('2026-07-20','php1',10,'ok')" );
+	$wpdb->query( "INSERT INTO {$dtP} (day,method,page,views) VALUES ('2026-07-20','php1','4',7)" );
+	$pp  = colorify_analytics_pages( '2026-07-20', '2026-07-20' );
+	$byk = array_column( $pp['rows'], 'views', 'key' );
+	cft( 7 === ( $byk['4'] ?? null ) && 3 === ( $byk['*'] ?? null ) && 10 === $pp['sum_views'] && 10 === colorify_analytics_totals( '2026-07-20', '2026-07-20' )['views'], 'pages: odsłony bez zapisanej strony idą do „Inne adresy”, suma stron = odsłony z kafla', $pp['rows'] );
+	cft( 'Inne adresy' === colorify_analytics_page_info( '*' )['title'], 'pages: nazwa pozycji „Inne adresy”' );
+	$wpdb->query( "DELETE FROM {$dtT} WHERE day = '2026-07-20'" );
+	$wpdb->query( "DELETE FROM {$dtP} WHERE day = '2026-07-20'" );
+	$d0 = colorify_analytics_today();
+	Colorify_Analytics::record( array( 'time' => time(), 'ip' => '203.0.113.50' ) + $req );
+	Colorify_Analytics::record( array( 'time' => time(), 'ip' => '203.0.113.51' ) + $req );
+	$d1 = colorify_analytics_today();
+	cft( $d1['measured'] && (int) $d1['views'] === (int) $d0['views'] + 2 && (int) $d1['visitors'] === (int) $d0['visitors'] + 2 && wp_date( 'Y-m-d' ) === $d1['day'], 'today: dzisiejsze odsłony i szacunek od razu, bez pamięci podręcznej', array( $d0, $d1 ) );
+
+	/* ---------- adresy IP odwiedzających i blokady (adresy TEST-NET z dokumentacji) ---------- */
+	$IP = 'Colorify_Analytics_IP';
+	cft( false === $IP::enabled() && 90 === $IP::days(), 'adresy IP: domyślnie wyłączone, retencja 90 dni' );
+	$IP::configure( true, 90 );
+	cft( 7 === count( $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->prefix . 'colorifytest_' ) . '%' ) ) ) && $IP::enabled(), 'adresy IP: włączenie tworzy tabelę (7 tabel testowych)' );
+	$t5  = $at( '2026-07-05 10:00' );
+	$ipH = '198.51.100.20';
+	Colorify_Analytics::record( array( 'ip' => $ipH, 'time' => $t5, 'uri' => '/o-mnie/?x=1' ) + $req );
+	Colorify_Analytics::record( array( 'ip' => $ipH, 'time' => $t5 + 5, 'uri' => '/kontakt/' ) + $req );
+	$row = $IP::rows( 10 )[0] ?? array();
+	cft( $ipH === ( $row['ip'] ?? '' ) && 2 === $row['hits'] && 2 === $row['views'] && 0 === $row['bot_hits'] && '/kontakt/' === $row['page'] && $t5 === $row['first_seen'] && $t5 + 5 === $row['last_seen'] && ! $row['bot'] && ! $row['suspicious'], 'adresy IP: wejścia, pierwsze i ostatnie, ostatnia strona, brak znaczników', $row );
+	Colorify_Analytics::record( array( 'ip' => '198.51.100.21', 'ua' => 'Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)', 'time' => $t5, 'uri' => '/' ) + $req );
+	$bot = array_values( array_filter( $IP::rows( 10 ), static fn( $x ) => '198.51.100.21' === $x['ip'] ) )[0] ?? array();
+	cft( 1 === $bot['bot_hits'] && 0 === $bot['views'] && true === $bot['bot'], 'adresy IP: robot rozpoznany po przeglądarce i oznaczony jako bot', $bot );
+	for ( $i = 0; $i < 3; $i++ ) {
+		Colorify_Analytics::record( array( 'ip' => '198.51.100.22', 'time' => $t5 + $i, 'is_404' => true, 'uri' => '/wp-login.php.bak' ) + $req );
+	}
+	$sc = array_values( array_filter( $IP::rows( 10 ), static fn( $x ) => '198.51.100.22' === $x['ip'] ) )[0] ?? array();
+	cft( 3 === $sc['scans'] && true === $sc['suspicious'], 'adresy IP: 3 próby nieistniejących adresów (skaner) = podejrzany', $sc );
+	for ( $i = 0; $i < 31; $i++ ) {
+		$IP::touch( '198.51.100.23', array( 'hits' => 1, 'views' => 1 ), '/', 'x', $t5 + ( $i % 20 ) );
+	}
+	$fast = array_values( array_filter( $IP::rows( 10 ), static fn( $x ) => '198.51.100.23' === $x['ip'] ) )[0] ?? array();
+	cft( $fast['max_rate'] >= 30 && $fast['suspicious'], 'adresy IP: ponad 30 wejść na minutę = podejrzany', $fast );
+	$IP::touch( '198.51.100.24', array( 'hits' => 1, 'views' => 1 ), '/', 'x', $t5 );
+	$IP::touch( '198.51.100.24', array( 'hits' => 1, 'views' => 1 ), '/', 'x', $t5 + 120 );
+	$slow = array_values( array_filter( $IP::rows( 20 ), static fn( $x ) => '198.51.100.24' === $x['ip'] ) )[0] ?? array();
+	cft( 1 === $slow['max_rate'] && ! $slow['suspicious'], 'adresy IP: okno 60 s liczy tempo, dwa wejścia w odstępie 2 minut to nie szybkość', $slow );
+	$IP::touch( '2001:db8::5', array( 'hits' => 1, 'views' => 1 ), '/', 'x', $t5 );
+	$v6 = array_values( array_filter( $IP::rows( 30 ), static fn( $x ) => '2001:db8::5' === $x['ip'] ) );
+	cft( 1 === count( $v6 ), 'adresy IP: IPv6 zapisany i odczytany w tej samej postaci' );
+	$_SERVER['REMOTE_ADDR'] = '198.51.100.30';
+	do_action( 'colorify_analytics_form_submit', 'zgloszenie' );
+	do_action( 'colorify_analytics_form_submit', 'wycena' );
+	$fm = array_values( array_filter( $IP::rows( 40 ), static fn( $x ) => '198.51.100.30' === $x['ip'] ) )[0] ?? array();
+	cft( 1 === $fm['forms'] && 1 === $fm['quotes'] && 0 === $fm['hits'], 'adresy IP: hook colorify_analytics_form_submit liczy formularze i wyceny osobno', $fm );
+	for ( $i = 0; $i < 5; $i++ ) {
+		do_action( 'colorify_analytics_form_submit', 'zgloszenie' );
+	}
+	$fm = array_values( array_filter( $IP::rows( 40 ), static fn( $x ) => '198.51.100.30' === $x['ip'] ) )[0] ?? array();
+	cft( $fm['suspicious'], 'adresy IP: 5 i więcej wysłanych formularzy = podejrzany', $fm );
+	unset( $_SERVER['REMOTE_ADDR'] );
+
+	// Wykluczony adres: widoczny w zapisie adresów, nieobecny w statystykach ruchu.
+	$vt = static fn() => (int) $wpdb->get_var( 'SELECT COALESCE(SUM(views),0) FROM ' . Colorify_Analytics::t( 'daily_totals' ) . " WHERE day = '2026-07-05'" );
+	$v0 = $vt();
+	$ex = Colorify_Analytics::record( array( 'ip' => '198.51.100.31', 'excluded' => true, 'time' => $t5, 'uri' => '/' ) + $req );
+	$in = array_values( array_filter( $IP::rows( 40 ), static fn( $x ) => '198.51.100.31' === $x['ip'] ) );
+	cft( 'excluded' === $ex && $vt() === $v0 && 1 === count( $in ), 'wykluczony adres: jest na liście adresów, nie ma go w statystykach ruchu', array( $ex, $v0, $vt() ) );
+	$cn = $IP::counts();
+	cft( $cn['total'] >= 8 && $cn['bots'] >= 1 && $cn['suspicious'] >= 3, 'adresy IP: liczby w podsumowaniu (adresy, boty, podejrzane)', $cn );
+
+	// Retencja: stare adresy znikają, świeże zostają.
+	$IP::touch( '198.51.100.40', array( 'hits' => 1, 'views' => 1 ), '/', 'x', $at( '2026-01-01 10:00' ) );
+	$gone = $IP::purge( 10, $at( '2026-07-06 00:00' ) );
+	$left = array_column( $IP::rows( 100 ), 'ip' );
+	cft( 1 === $gone && ! in_array( '198.51.100.40', $left, true ) && in_array( $ipH, $left, true ), 'adresy IP: retencja usuwa tylko wiersze starsze niż okres (90 dni)', array( $gone, $left ) );
+	update_option( Colorify_Analytics::opt( 'ip_days' ), 5000 );
+	$d_hi = $IP::days();
+	update_option( Colorify_Analytics::opt( 'ip_days' ), 0 );
+	$d_lo = $IP::days();
+	update_option( Colorify_Analytics::opt( 'ip_days' ), 90 );
+	cft( 365 === $d_hi && 1 === $d_lo, 'adresy IP: retencja ograniczona do 1-365 dni' );
+	cft( true === $IP::forget( $ipH ) && false === $IP::forget( $ipH ), 'adresy IP: usunięcie jednego adresu z zapisu' );
+
+	// Blokady.
+	cft( array() === $IP::blocklist(), 'blokady: lista domyślnie pusta' );
+	cft( array( true, 'ok' ) === $IP::block( '203.0.113.7', 'spam w formularzu', 'tester', '192.0.2.10' ) && array( false, 'dup' ) === $IP::block( '203.0.113.7' ), 'blokady: dodanie adresu, duplikat odrzucony' );
+	cft( array( true, 'ok' ) === $IP::block( '198.51.100.0/24', 'skaner', 'tester', '192.0.2.10' ), 'blokady: zakres CIDR' );
+	$b = $IP::blocklist();
+	cft( 'tester' === $b[0]['by'] && 'spam w formularzu' === $b[0]['reason'] && $b[0]['ts'] > 1000000000, 'blokady: powód, autor i data zapisane', $b );
+	cft( null !== $IP::blocked( '198.51.100.77' ) && null !== $IP::blocked( '203.0.113.7' ) && null === $IP::blocked( '203.0.113.8' ) && null === $IP::blocked( '198.51.101.1' ), 'blokady: pasuje adres i zakres, inne nie' );
+	cft( array( false, 'self' ) === $IP::block( '192.0.2.0/24', '', '', '192.0.2.10' ) && array( false, 'self' ) === $IP::block( '192.0.2.10', '', '', '192.0.2.10' ), 'blokady: nie da się zablokować własnego adresu ani zakresu, który go obejmuje' );
+	cft( array( false, 'server' ) === $IP::block( '127.0.0.1' ) && array( false, 'server' ) === $IP::block( '127.0.0.0/16' ), 'blokady: nie da się zablokować pętli zwrotnej' );
+	cft( array( false, 'wide' ) === $IP::block( '10.0.0.0/8' ) && array( false, 'wide' ) === $IP::block( '2001::/16' ) && array( false, 'ip' ) === $IP::block( 'nie-adres' ) && array( false, 'ip' ) === $IP::block( '203.0.113.0/99' ), 'blokady: zakres za szeroki i błędny adres odrzucone' );
+	cft( array( true, 'ok' ) === $IP::block( '::ffff:203.0.113.99', 'mapowany', 't', '' ) && null !== $IP::blocked( '203.0.113.99' ), 'blokady: IPv4 zapisany jako IPv6 to ten sam adres' );
+	cft( true === $IP::unblock( '203.0.113.7' ) && false === $IP::unblock( '203.0.113.7' ) && null === $IP::blocked( '203.0.113.7' ), 'blokady: odblokowanie, ponowne nie znajduje wpisu' );
+	$IP::unblock( '198.51.100.0/24' );
+	$IP::unblock( '203.0.113.99' );
+	cft( array() === $IP::blocklist(), 'blokady: lista po odblokowaniu pusta' );
+	$IP::configure( false );
+	$wpdb->query( 'DELETE FROM ' . $IP::t() );
+	Colorify_Analytics::record( array( 'ip' => '198.51.100.50', 'time' => $t5, 'uri' => '/' ) + $req );
+	cft( array() === $IP::rows( 10 ), 'adresy IP: po wyłączeniu nic nowego się nie zapisuje' );
 } catch ( Throwable $e ) {
 	cft( false, 'wyjątek: ' . $e->getMessage() . ' @' . basename( $e->getFile() ) . ':' . $e->getLine() );
 } finally {

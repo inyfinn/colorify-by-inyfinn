@@ -382,6 +382,37 @@
 		[].forEach.call(wrap.querySelectorAll('[data-kafel-img="' + key + '"]'), function (el) { el.hidden = !url; if (url) { el.src = url; } });
 	}
 
+	/* ----- pole „elementy” (2.15.5): kolejność, szerokość i ukrycie elementów sekcji; zmiana przeładowuje podgląd ----- */
+	function elementyStan(ol) {
+		[].forEach.call(ol.querySelectorAll('.cft-element'), function (li, i, all) {
+			li.querySelector('[data-element-ruch="-1"]').disabled = i === 0;
+			li.querySelector('[data-element-ruch="1"]').disabled = i === all.length - 1;
+		});
+	}
+	[].forEach.call(form.querySelectorAll('.cft-elementy'), elementyStan);
+	form.addEventListener('click', function (e) {
+		var b = e.target.closest('[data-element-ruch], [data-element-ukryj]');
+		if (!b) { return; }
+		var li = b.closest('.cft-element'), nazwa = li.querySelector('.cft-element__n').firstChild.textContent;
+		if (b.hasAttribute('data-element-ukryj')) {
+			var h = li.querySelector('[data-element-h]'), ukr = h.value !== '1';
+			h.value = ukr ? '1' : '';
+			li.classList.toggle('is-ukryty', ukr);
+			b.setAttribute('aria-pressed', ukr ? 'true' : 'false');
+			b.setAttribute('aria-label', (ukr ? 'Pokaż na stronie: ' : 'Ukryj na stronie: ') + nazwa);
+			b.setAttribute('data-tip', ukr ? 'Pokaż na stronie (teraz ukryte)' : 'Ukryj na stronie (tekst zostaje w panelu)');
+			b.innerHTML = ik(ukr ? 'oko_nie' : 'oko');
+		} else {
+			var kier = +b.getAttribute('data-element-ruch'), sas = kier < 0 ? li.previousElementSibling : li.nextElementSibling;
+			if (!sas) { return; }
+			li.parentNode.insertBefore(li, kier < 0 ? sas : sas.nextElementSibling);
+			elementyStan(li.parentNode);
+			(b.disabled ? li.querySelector('[data-element-ruch="' + (-kier) + '"]') : b).focus();
+		}
+		markDirty();
+		podgladPrzeladuj();
+	});
+
 	/* =====================================================================
 	 * Podgląd na żywo
 	 * ===================================================================== */
@@ -393,7 +424,7 @@
 	var strona = pierwszaStrona, urz = window.matchMedia('(max-width: 1199px)').matches ? 'telefon' : 'komputer', ladowanie = false, przeladujT = null, scrollPo = 0, podgladZaladowany = false;
 	[].forEach.call(aside.querySelectorAll('[data-urz]'), function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-urz') === urz ? 'true' : 'false'); });
 	var STYL = '.cft-hl{outline:2px solid #B8955A!important;outline-offset:6px;box-shadow:0 0 0 6px rgba(255,252,244,.9);transition:outline-color .3s}' +
-		'[data-cft-key]{cursor:pointer}#cookie-notice,.cookie-notice-container,#wpadminbar{display:none!important}html{margin-top:0!important;scroll-behavior:smooth}';
+		'[data-cft-key]{cursor:pointer;pointer-events:auto!important}#cookie-notice,.cookie-notice-container,#wpadminbar{display:none!important}html{margin-top:0!important;scroll-behavior:smooth}';
 
 	function doc() { try { return iframe.contentDocument; } catch (e) { return null; } }
 	function els(key) { var d = doc(); return d ? [].slice.call(d.querySelectorAll('[data-cft-key="' + key + '"]')) : []; }
@@ -435,11 +466,14 @@
 		d.addEventListener('click', function (e) {
 			var t = e.target.closest('[data-cft-key]');
 			var a = e.target.closest('a');
-			if (t) { e.preventDefault(); e.stopPropagation(); otworzPole(t.getAttribute('data-cft-key')); return; }
+			// Pole formularza na stronie (podpowiedź w polu): panel pokazuje jego tekst, ale nie zabiera kursora, żeby dało się dalej pisać w podglądzie.
+			var kontrolka = t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
+			if (t) { if (!kontrolka) { e.preventDefault(); e.stopPropagation(); } otworzPole(t.getAttribute('data-cft-key'), kontrolka); return; }
 			if (a && !/^#/.test(a.getAttribute('href') || '#')) { e.preventDefault(); }
 		}, true);
 		d.addEventListener('submit', function (e) { e.preventDefault(); }, true);
-		if (ostatnieFokus) { podswietl(ostatnieFokus, true); }
+		if (ostatniStan) { setTimeout(function () { stanPokaz(ostatniStan[0], ostatniStan[1], true); }, 60); } // stan (np. wycena) przeżywa przeładowanie podglądu
+		else if (ostatnieFokus) { podswietl(ostatnieFokus, true); }
 	});
 
 	function podgladPrzeladuj(cel) {
@@ -483,7 +517,24 @@
 	document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && wrap.classList.contains('cft--podglad')) { podgladOtworz(false); } });
 
 	/* ----- podmiana w DOM podglądu (bez przeładowania) ----- */
-	function podgladTekst(key, text) { els(key).forEach(function (el) { if (!/^(IMG|VIDEO)$/.test(el.tagName)) { el.textContent = text; } }); }
+	function podgladTekst(key, text) {
+		els(key).forEach(function (el) {
+			if (/^(INPUT|TEXTAREA)$/.test(el.tagName)) { el.placeholder = text; } else if (!/^(IMG|VIDEO)$/.test(el.tagName)) { el.textContent = text; }
+		});
+	}
+	/**
+	 * Zdarzenie w ramce podglądu (2.15.5): cft:pole po każdej zmianie pola (strona składająca teksty skryptem przelicza je od razu),
+	 * cft:pokaz (pola nie widać: strona może pokazać stan, w którym jest widoczne), cft:stan (przycisk „Pokaż w podglądzie”).
+	 * Strona, która obsłużyła cft:pokaz / cft:stan, woła preventDefault() i może wpisać do detail.el element do przewinięcia.
+	 */
+	function ramkaZdarzenie(typ, detail) {
+		try {
+			var w = iframe.contentWindow;
+			if (!w || !w.CustomEvent) { return null; }
+			var ev = new w.CustomEvent(typ, { detail: detail, cancelable: true });
+			return w.dispatchEvent(ev) ? null : (detail.el || true);
+		} catch (e) { return null; }
+	}
 	function podgladHtml(key, html, multi) {
 		els(key).forEach(function (el) {
 			if (/^(IMG|VIDEO)$/.test(el.tagName)) { return; }
@@ -517,9 +568,11 @@
 			var html = zEdytora(el, el.closest('.cft-edytor').getAttribute('data-multi') === '1');
 			podgladHtml(key, html, el.closest('.cft-edytor').getAttribute('data-multi') === '1');
 			kafelTxt(key, el.textContent);
+			ramkaZdarzenie('cft:pole', { key: key, value: html });
 		} else {
 			podgladTekst(key, el.value);
 			kafelTxt(key, el.value);
+			ramkaZdarzenie('cft:pole', { key: key, value: el.value });
 		}
 	});
 
@@ -534,21 +587,48 @@
 			w.scrollTo({ top: Math.max(0, y), behavior: cicho ? 'auto' : 'smooth' });
 		} catch (e) {}
 	}
-	function podswietl(key, cicho) {
+	function widacEl(el) {
+		try { var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && el.ownerDocument.defaultView.getComputedStyle(el).visibility !== 'hidden'; } catch (e) { return false; }
+	}
+	function podswietl(key, cicho, ponownie) {
 		var d = doc();
 		if (!d) { return; }
 		[].forEach.call(d.querySelectorAll('.cft-hl'), function (x) { x.classList.remove('cft-hl'); });
-		var list = els(key);
-		var cel = list[0];
-		if (!cel) {
-			var s = sekcjaPola(key), kot = s && CFG.sekcje[s] ? CFG.sekcje[s].kotwica : '';
-			cel = kot ? d.querySelector(kot) : null;
+		var list = els(key), widac = list.filter(widacEl);
+		if (!ponownie && !widac.length) {
+			// Tekst ukryty w stanie, którego jeszcze nie ma (wycena, ekran po wysłaniu, błąd): strona pokazuje ten stan, potem podświetlamy jeszcze raz.
+			var cel0 = ramkaZdarzenie('cft:pokaz', { key: key, el: null });
+			if (cel0) { pokazanyEl = cel0; setTimeout(function () { podswietl(key, true, true); }, 650); return; } // 650 ms: stan się rozwija (animacja wysokości)
+		}
+		var cel = widac[0] || list[0];
+		if (!cel || (ponownie && !widac.length && pokazanyEl && pokazanyEl.nodeType === 1)) {
+			cel = pokazanyEl && pokazanyEl.nodeType === 1 ? pokazanyEl : null;
+			if (!cel) { var s = sekcjaPola(key), kot = s && CFG.sekcje[s] ? CFG.sekcje[s].kotwica : ''; cel = kot ? d.querySelector(kot) : null; }
+			pokazanyEl = null;
 			if (cel) { ramkaPrzewin(cel, 'start', cicho); }
 			return;
 		}
+		pokazanyEl = null;
 		list.forEach(function (x) { x.classList.add('cft-hl'); });
 		ramkaPrzewin(cel, 'center', cicho);
 	}
+	var pokazanyEl = null, ostatniStan = null;
+	/** Przycisk „Pokaż w podglądzie” w karcie: stan sekcji w ramce ('start' = przeładuj podgląd do stanu początkowego). */
+	function stanPokaz(n, sid, cicho) {
+		var sec = CFG.sekcje[sid] || {};
+		[].forEach.call(form.querySelectorAll('[data-cft-stan]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-cft-stan') === n && n !== 'start' ? 'true' : 'false'); });
+		if (!widoczny()) { podgladOtworz(true); }
+		if (sec.strona && sec.strona !== 'oba' && sec.strona !== strona) { ostatniStan = n === 'start' ? null : [n, sid]; ustawStrone(sec.strona); return; }
+		if (n === 'start') { ostatniStan = null; zaladuj(); return; }
+		ostatniStan = [n, sid];
+		if (ladowanie) { return; } // po wczytaniu ramki stan nałoży się sam (load)
+		var el = ramkaZdarzenie('cft:stan', { stan: n, el: null });
+		if (el && el.nodeType === 1) { setTimeout(function () { ramkaPrzewin(el, 'start', cicho); }, 650); }
+	}
+	form.addEventListener('click', function (e) {
+		var b = e.target.closest('[data-cft-stan]');
+		if (b) { stanPokaz(b.getAttribute('data-cft-stan'), b.getAttribute('data-cft-sekcja-stanu')); }
+	});
 	function podgladSekcja(sid) {
 		var sec = CFG.sekcje[sid];
 		if (!sec || !widoczny() || Date.now() - zPodgladu < 900) { return; } // karta otwarta klikiem w podglądzie: podgląd zostaje przy klikniętym elemencie
@@ -580,7 +660,7 @@
 		clearTimeout(fokusT);
 		fokusT = setTimeout(function () { if (!ladowanie) { podswietl(key); } }, 120);
 	});
-	function otworzPole(key) {
+	function otworzPole(key, bezFokusu) {
 		var q = function (k) { return form.querySelector('.cft-ed[data-key="' + k + '"], input[data-key="' + k + '"], textarea[data-key="' + k + '"], .cft-media[data-key="' + k + '"]') || form.querySelector('[data-key="' + k + '"]'); };
 		var el = q(key) || q(baseKey(key));
 		if (!el) { return; }
@@ -590,13 +670,14 @@
 			[].forEach.call(form.querySelectorAll('details.cft-karta[open]'), function (k) { if (k !== karta) { k.open = false; } }); // akordeon: jedna karta naraz, mniej skoków
 			karta.open = true;
 		}
+		for (var dz = el.closest('details'); dz; dz = dz.parentElement && dz.parentElement.closest('details')) { dz.open = true; } // zwijane grupy w karcie
 		if (window.matchMedia('(max-width: 1199px)').matches) { podgladOtworz(false); }
 		var cel = wierszPola(el);
 		// Po rozwinięciu karty układ się zmienia: liczymy pozycję dopiero po dwóch klatkach, potem jeszcze raz po wygaśnięciu przewijania.
 		requestAnimationFrame(function () { requestAnimationFrame(function () {
 			panelNaSrodek(cel);
 			var f = el.matches('input, textarea, [contenteditable]') ? el : el.querySelector('.cft-kadr__ramka[tabindex], button'); // zdjęcie: punkt kadru albo „Wybierz zdjęcie”
-			if (f) { f.focus({ preventScroll: true }); }
+			if (f && !bezFokusu) { f.focus({ preventScroll: true }); }
 			cel.classList.add('is-wskazane');
 			setTimeout(function () { cel.classList.remove('is-wskazane'); }, 1600);
 			setTimeout(function () { panelNaSrodek(cel, true); }, 650);

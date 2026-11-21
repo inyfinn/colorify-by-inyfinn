@@ -185,6 +185,9 @@ function colorify_tresci_pola() {
 				if ( 'akapity' === $f['type'] ) {
 					$f['default'] = colorify_tresci_akapity_domyslne( $f );
 				}
+				if ( 'elementy' === $f['type'] ) {
+					$f['default'] = colorify_tresci_elementy_z( array(), $f );
+				}
 				$flat[ $k ] = $f;
 				if ( 'media' === $f['type'] && ! empty( $f['kadr'] ) ) {
 					$flat[ $k . '__kadr' ] = array( 'type' => 'kadr', 'label' => $f['label'] . ': kadr', 'default' => colorify_tresci_kadr_domyslny( $f ), 'hint' => '', 'section' => $sid, 'dla' => $k, 'kadr' => $f['kadr'] );
@@ -703,6 +706,14 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 			continue;
 		}
 
+		if ( 'elementy' === $type ) {
+			$rows = colorify_tresci_elementy_z( $in, $f ); // kolejność, szerokość i ukrycie elementów sekcji
+			if ( $rows !== $def ) {
+				$new[ $key ] = $rows;
+			}
+			continue;
+		}
+
 		if ( colorify_tresci_jest_lista( $type ) ) {
 			if ( is_string( $in ) ) {
 				$in = json_decode( $in, true ); // WP-CLI passes JSON
@@ -760,6 +771,57 @@ function colorify_tresci_z_formularza( array $post, array $stored ) {
 		}
 	}
 	return $new;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pole 'elementy' (2.15.5): kolejność, szerokość i ukrycie stałych elementów sekcji (np. pól formularza, kafli).
+ * Definicja: 'elementy' => id => array( 'label', 'szer' => true (wybór szerokości), 'stala' => true (nie da się ukryć) ),
+ * 'szerokosci' => token => etykieta. Dane: lista array( 'id', 'w' => token szerokości, 'h' => 1 ukryty ), tylko znane id,
+ * brakujące dopisane w kolejności definicji. Szablon czyta colorify_tresci_elementy( $klucz ).
+ * ------------------------------------------------------------------------- */
+
+/** Lista elementów z formularza panelu (id => array( w, h ), kolejność formularza), z JSON (WP-CLI) albo z zapisu. */
+function colorify_tresci_elementy_z( $raw, $f ) {
+	$def  = (array) ( $f['elementy'] ?? array() );
+	$szer = (array) ( $f['szerokosci'] ?? array() );
+	$out  = array();
+	foreach ( colorify_tresci_json( $raw ) as $k => $e ) {
+		if ( ! is_array( $e ) ) {
+			continue; // znacznik obecności pola ("_")
+		}
+		$id = (string) ( $e['id'] ?? $k );
+		if ( ! isset( $def[ $id ] ) || isset( $out[ $id ] ) ) {
+			continue;
+		}
+		$r = array( 'id' => $id );
+		$w = isset( $e['w'] ) && is_scalar( $e['w'] ) ? (string) $e['w'] : '';
+		if ( '' !== $w && ! empty( $def[ $id ]['szer'] ) && isset( $szer[ $w ] ) ) {
+			$r['w'] = $w;
+		}
+		if ( ! empty( $e['h'] ) && empty( $def[ $id ]['stala'] ) ) {
+			$r['h'] = 1;
+		}
+		$out[ $id ] = $r;
+	}
+	foreach ( array_keys( $def ) as $id ) {
+		if ( ! isset( $out[ $id ] ) ) {
+			$out[ $id ] = array( 'id' => (string) $id ); // element dopisany w motywie albo pominięty: na koniec, widoczny
+		}
+	}
+	return array_values( $out );
+}
+
+/** Elementy pola w kolejności z panelu: lista array( 'id', 'w' => szerokość albo '', 'h' => ukryty ). */
+function colorify_tresci_elementy( $key ) {
+	$f = colorify_tresci_pola()[ $key ] ?? null;
+	if ( ! $f || 'elementy' !== $f['type'] ) {
+		return array();
+	}
+	$out = array();
+	foreach ( colorify_tresci_elementy_z( colorify_tresc( $key ), $f ) as $e ) {
+		$out[] = $e + array( 'w' => '', 'h' => 0 );
+	}
+	return $out;
 }
 
 /* ---------------------------------------------------------------------------

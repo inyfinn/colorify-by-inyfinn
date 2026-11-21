@@ -6,7 +6,7 @@ body.colorify-dark .cfi{--up:#5fd49a;--down:#ff8a80}
 .cfi a:focus-visible,.cfi button:focus-visible,.cfi input:focus-visible,.cfi summary:focus-visible{outline:2px solid var(--a);outline-offset:2px}
 .cfi-traffic,.cfi-detail{display:flex;flex-direction:column;gap:20px;min-width:0}
 .cfi-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px}
-.cfi-h2{margin:0;font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:var(--t)}
+.cfi-h2{margin:0;font-size:var(--cfi-group-size,29px);line-height:1.2;font-weight:700;letter-spacing:-.01em;color:var(--t)}
 .cfi-sub{margin:4px 0 0;font-size:14px;color:var(--m)}
 .cfi-h4{margin:22px 0 4px;font-size:13px;font-weight:600;color:var(--m)}
 .cfi-card{background:var(--s);border-radius:var(--r);padding:28px 32px;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04));min-width:0}
@@ -200,7 +200,7 @@ body.colorify-dark .cfi{--bud1:#2f9f86;--bud2:#bb8b28;--bud3:#c2452b;--bud4:#8f8
 .cfi-mod--pricing .cfi-card__bar{min-height:40px}
 /* Nagłówki w kokpicie i na podstronie: arkusze panelu (widżety kokpitu, .wrap) nadpisywały rozmiary z góry tego pliku,
  * przez co tytuł panelu (17 px) był mniejszy od zdania pod nim, a tytuły kart wyglądały jak zwykły tekst (14 px / 400). */
-#colorify_dashboard .cfi .cfi-h2,.wrap .cfi .cfi-h2{margin:0;padding:0;font-size:22px;line-height:1.25;font-weight:700}
+#colorify_dashboard .cfi .cfi-h2,.wrap .cfi .cfi-h2{margin:0;padding:0;font-size:var(--cfi-group-size,29px);line-height:1.2;font-weight:700}
 #colorify_dashboard .cfi .cfi-card__title,.wrap .cfi .cfi-card__title{margin:0;padding:0;font-size:16px;line-height:1.3;font-weight:600}
 /* przełącznik Wykres / Tabela: neutralny, kolor zostaje dla danych */
 .cfi-seg button{display:inline-flex;align-items:center;min-height:32px;margin:0;padding:0 12px;border:0;border-radius:min(9px,var(--rc));background:transparent;color:var(--m);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
@@ -273,3 +273,73 @@ body.colorify-dark .cfi-seg button[aria-pressed="true"]{box-shadow:none}
 }
 @media (pointer:coarse),(max-width:600px){.cfi .cfi-seg button{min-height:44px;padding:0 16px}}
 @media (prefers-reduced-motion:no-preference){.cfi-seg button{transition:background-color .12s ease,color .12s ease}}
+/* Wykres: reguła widoku Kalendarz (.cfd .cfb svg, 1em) zwężała wykres do 13 px, więc w kokpicie nie było widać słupków.
+ * Rozmiar wykresu ma pierwszeństwo przed regułami ikon z innych arkuszy. */
+.cfi svg.cfi-chart,.cfd .cfi svg.cfi-chart{display:block;width:100%;height:220px;max-width:none;overflow:visible}
+/* tytuł grupy (Ruch na stronie, Cena i decyzje): o 7 px większy niż dotąd; ten sam token ma przycisk grupy w kokpicie */
+/* dzisiejsze wejścia pod okresem */
+.cfi-today{margin:2px 0 0;font-size:14px;font-weight:600;color:var(--t)}
+/* „Co to znaczy?”: przycisk obok tytułu karty, panel pod paskiem tytułu */
+.cfi .cfi-help-btn{display:inline-flex;align-items:center;gap:6px;min-height:30px;margin:0;padding:0 10px 0 4px;border:0;border-radius:var(--rp);background:transparent;color:var(--m);font:inherit;font-size:13px;font-weight:500;line-height:1;cursor:pointer}
+.cfi .cfi-help-btn:hover,.cfi .cfi-help-btn[aria-expanded="true"]{background:var(--soft);color:var(--t)}
+.cfi-help-btn__q{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;border:1.5px solid currentColor;border-radius:50%;font-size:12px;font-weight:700;line-height:1}
+.cfi .cfi-help{margin:0 0 16px;padding:12px 16px;border-radius:var(--rc);background:color-mix(in srgb,var(--a) 9%,var(--s));color:var(--t);font-size:14px;line-height:1.55;max-width:84ch;text-wrap:pretty}
+.cfi .cfi-help[hidden]{display:none}
+.cfi-card__aside{display:flex;align-items:center;margin-left:auto}
+/* pasek liczb: przycisk w osobnym wierszu pod liczbami, panel pod nim */
+.cfi-strip>.cfi-help-btn{grid-column:1/-1;order:1;justify-self:end;margin:0 20px -6px 0}
+.cfi-strip>.cfi-help{grid-column:1/-1;order:2;margin:10px 28px 0}
+.cfi-card.cfi-hero>.cfi-help-btn{grid-column:1/-1;justify-self:end}
+.cfi-card.cfi-hero>.cfi-help{grid-column:1/-1;margin:0}
+/* odświeżanie jednego widgetu: wysokość trzyma skrypt, tu tylko przygaszenie i wskaźnik */
+.cfi-live,.cfd{position:relative}
+.cfi-live.is-loading>*,.cfd.is-loading>*{opacity:.45;transition:opacity .15s ease;pointer-events:none}
+.cfi-live.is-loading::after,.cfd.is-loading::after{content:"";position:absolute;top:18px;left:50%;width:26px;height:26px;margin-left:-13px;border:3px solid color-mix(in srgb,var(--t) 18%,transparent);border-top-color:var(--a);border-radius:50%;animation:cfi-spin .7s linear infinite}
+@keyframes cfi-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.cfi-live.is-loading::after,.cfd.is-loading::after{animation-duration:2.4s}}
+.cfi-live--mod{display:flex;flex-direction:column;gap:20px;min-width:0}
+/* bez JavaScriptu (WordPress zostawia body.no-js) panel pomocy jest otwarty, a przycisk zbędny */
+body.no-js .cfi-help-btn{display:none}
+/* lista wykluczonych adresów w karcie Jakość danych */
+.cfi-excl{margin-top:18px}
+.cfi-excl .cfi-notice{margin:8px 0}
+.cfi-excl__form{display:flex;flex-direction:column;gap:12px;max-width:520px;margin-top:10px}
+.cfi-excl__l{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--m)}
+.cfi-excl__l textarea{width:100%;min-height:72px;padding:10px 12px;border:1px solid var(--field);border-radius:var(--rc);background:transparent;color:var(--t);font:inherit;font-size:14px}
+.cfi-excl__b{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.cfi-excl__me{font-size:13px}
+@media (max-width:600px){
+	.cfi-help-btn__t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+	.cfi .cfi-help-btn{padding:0;min-width:44px;min-height:44px;justify-content:center}
+	.cfi-strip>.cfi-help-btn{margin:0 8px -10px 0}
+	.cfi-strip>.cfi-help{margin:6px 16px 0}
+}
+/* przycisk pomocy stoi obok tytułu karty, a to, co po prawej (przełączniki, odnośniki), odsuwa się samo */
+.cfi-card__bar{justify-content:flex-start}
+/* Odwiedzający i blokady */
+.cfi-notice--ok{background:color-mix(in srgb,var(--up) 14%,var(--s))}
+.cfi-notice--err{background:color-mix(in srgb,var(--down) 12%,var(--s));color:var(--t)}
+.cfi-ipsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 0}
+.cfi-ipsum .cfi-stat{padding:0 20px}
+.cfi-ip__pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.cfi-ip__pills:empty{display:none}
+.cfi-ipf{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.cfi-ipf .cfi-btn--s{margin-top:0;white-space:nowrap}
+.cfi-iptab td{vertical-align:top}
+.cfi-ipchk{display:flex;align-items:center;gap:10px;font-size:14px;min-height:44px}
+.cfi-ipchk input{width:20px;height:20px;margin:0}
+.cfi-excl__l select,.cfi-blk__add input[type=text]{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--field);border-radius:var(--rc);background:transparent;color:var(--t);font:inherit;font-size:14px}
+@media (max-width:900px){.cfi-ipsum{grid-template-columns:repeat(2,minmax(0,1fr))}.cfi-ipsum .cfi-stat:nth-child(odd){border-left:0}}
+@media (max-width:600px){.cfi-ipf{flex-direction:column;align-items:stretch}.cfi-ipf .cfi-btn--s{min-height:44px}}
+@media (max-width:600px){
+	.cfi-iptab,.cfi-iptab tbody,.cfi-iptab tr,.cfi-iptab td{display:block;width:100%}
+	.cfi-iptab thead{display:none}
+	.cfi-iptab tr{padding:14px 0;border-top:1px solid var(--line)}
+	.cfi-iptab tr:first-child{border-top:0}
+	.cfi-iptab td{padding:3px 0;border:0;text-align:left}
+	.cfi-iptab td.is-num{text-align:left;white-space:normal}
+	.cfi-iptab td[data-l]::before{content:attr(data-l) ": ";color:var(--m);font-size:12px}
+	.cfi-iptab td .cfi-sub2{display:inline;margin-left:8px}
+	.cfi-iptab td:last-child{padding-top:8px}
+}
+@media (max-width:600px){.cfi-iptab td.cfi-hide-s{display:none}}

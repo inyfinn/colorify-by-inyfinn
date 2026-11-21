@@ -237,6 +237,31 @@ WP-CLI `styl`, `uklad`, `sekcja` i `get __style…` odmawiają, a `colorify_tres
 `__style`, `__uklad`, `__sekcje` i listy akapitów (zostają zapisane). Strona dalej pokazuje to, co już zapisano (decyzja:
 wyłączenie przełącznika nie może zmienić wyglądu strony; cofnięcie = włączyć i zresetować albo przywrócić wersję z Historii).
 
+## 8d3. Zwijane grupy, stany podglądu, kolejność elementów, ukrycie (od 2.15.5)
+
+- **Grupy sekcji**: `'grupy' => array( id => 'Tytuł' )` w sekcji + `'grupa' => id` w polu = zwijana grupa w karcie (pod grupami
+  Teksty / Zdjęcia / Przyciski). `'grupa'` wygrywa z typem pola (także listy i media). Klik w podglądzie otwiera kartę i grupę.
+- **Stany podglądu**: `'stany' => array( id => 'Etykieta' )` w sekcji = przyciski „Pokaż w podglądzie” w karcie. `start` przeładowuje
+  podgląd; pozostałe wysyłają do ramki zdarzenie `cft:stan` (`detail.stan`). Strona, która je obsłuży, woła `preventDefault()`
+  i może wpisać `detail.el` (element do przewinięcia). Stan wraca po przeładowaniu podglądu.
+- **Zdarzenia ramki**: `cft:pole` (`detail.key`, `detail.value`) po każdej zmianie pola, żeby teksty składane skryptem strony
+  (np. wycena z kwotami) przeliczały się od razu; `cft:pokaz` (`detail.key`), gdy pola skupionego w panelu nie widać w ramce:
+  strona pokazuje stan, w którym jest widoczne (`preventDefault()` + `detail.el`), panel podświetla je po 650 ms.
+- **Podpowiedź w polu formularza** (placeholder): `data-cft-key` na `<input>`/`<textarea>` = pisanie zmienia `placeholder`, klik
+  w podglądzie otwiera pole w panelu bez zabierania kursora z ramki. Elementy z `data-cft-key` są w podglądzie klikalne także pod
+  `pointer-events: none`.
+- **Pole `elementy`** (kolejność, szerokość, ukrycie stałych elementów sekcji):
+  `colorify_tresci_pole( 'elementy', 'Etykieta', null, 'Podpowiedź', array( 'elementy' => array( id => array( 'label' => …, 'szer' => true, 'stala' => true, 'dlaczego' => 'czemu nie da się ukryć' ) ), 'szerokosci' => array( 'cala' => 'Cała linia', … ) ) )`.
+  Dane: lista `array( 'id', 'w' => token szerokości, 'h' => 1 )`, zapisana tylko gdy różna od domyślnej (kolejność definicji);
+  walidacja `colorify_tresci_elementy_z()` (tylko znane id, brakujące na koniec, `stala` nigdy ukryty, szerokość z listy).
+  Szablon: `colorify_tresci_elementy( $klucz )`. WP-CLI: `set <klucz> '[{"id":"b"},{"id":"a","h":1}]'`. Zmiana przeładowuje podgląd.
+- **Ukrycie elementu w „Wyglądzie”**: właściwość `ukr` (token `ukryj`). Działa tylko na swoim ekranie: Komputer = od 768 px,
+  Telefon = do 767 px (bez dziedziczenia komputer → telefon). Reguła w `<style id="cft-styl">` jak pozostałe.
+
+Przykład użycia: motyw `elarisse` + wtyczka `ej-rezerwacje` (sekcja Kontakt: ~140 tekstów formularza, wyceny, pytania o budżet
+i ekranu po wysłaniu z `includes/teksty.php` wtyczki, filtr `ejr_teksty`; układ pól `ejr_uklad_pol`, wyceny, odpowiedzi, kafli
+„Co nagrywam” i bloków Oferty).
+
 ## 8e. Twarde reguły edytora (dla każdej strony i każdej sesji)
 
 Każdy edytor treści Colorify (ten moduł albo jego następca) MUSI dawać właścicielce strony, bez programisty:

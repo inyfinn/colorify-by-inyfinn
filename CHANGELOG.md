@@ -1,5 +1,22 @@
 # Historia zmian
 
+## 2.15.5
+
+Edytor treści: edytowalne wszystko w formularzu i wycenie. Kokpit: prawdziwe dane, blokady IP, odświeżanie bez przeładowania.
+
+- Edytor treści: zwijane grupy pól w karcie (rejestr `grupy` sekcji, `grupa` pola wygrywa z typem).
+- Edytor treści: „Pokaż w podglądzie” (rejestr `stany` sekcji; zdarzenia ramki `cft:stan`, `cft:pokaz`, `cft:pole`), pole ukryte w stanie strony samo go pokazuje.
+- Edytor treści: nowe pole `elementy` (kolejność, szerokość, ukrycie stałych elementów sekcji; colorify_tresci_elementy()); walidacja w colorify_tresci_z_formularza().
+- Wygląd: „Widoczność: Ukryj na tym ekranie” (token `ukr`, komputer od 768 px, telefon do 767 px).
+- Podgląd: placeholdery formularza edytowalne na żywo, klik w pole formularza nie zabiera kursora, klik otwiera także zwijane grupy.
+- Kokpit, dane: wykres odsłon znów widoczny w widoku Kalendarz; oś z równymi, całkowitymi krokami; dzień z zerem bez słupka; suma „Wszystkie strony” równa odsłonom (reszta w „Inne adresy”); zgłoszenia, zapytania i wyceny liczone do dziś włącznie; linia „Dziś do teraz”.
+- Kokpit: lista wykluczonych adresów IP ze statystyk ruchu (opcja colorify_an_exclude_ips, pole w „Jakość danych”, wp colorify-analytics exclude). Wyceny, zgłoszenia i lejek nie są filtrowane po IP.
+- Kokpit: przyciski „Co to znaczy?” przy kartach, odświeżanie widgetu bez przeładowania strony (zakres, Dni/Tygodnie, 7/30/90 dni) ze stanem w adresie, tytuły grup większe o 7 px i z odstępem 70 px od góry.
+- Analityka: opcjonalny zapis adresów IP odwiedzających (tabela colorify_ip, retencja 90 dni, domyślnie wyłączony; wp colorify-analytics ip on) z oznaczeniem robotów i podejrzanych wejść. Hook colorify_analytics_form_submit liczy formularze, wyceny i opinie na adres.
+- Kokpit: panel „Odwiedzający i blokady” (manage_options): lista adresów, Zablokuj / Odblokuj / Nie licz w statystykach, lista blokad (IP i CIDR, powód, data, autor), ustawienia zapisu i retencji. Zablokowany adres dostaje 403; zalogowany administrator, pętla zwrotna, serwer, wp-cron i WP-CLI są wyłączone z blokady.
+- WP-CLI: wp colorify-analytics ip status|on|off|days|visitors|block|unblock|blocked|forget.
+- Testy: tools/test-analytics.php (118), elementy i token ukrycia w tools/test-tresci.php.
+
 ## 2.15.4
 
 Moduł „Cena i decyzje” czytelnie.

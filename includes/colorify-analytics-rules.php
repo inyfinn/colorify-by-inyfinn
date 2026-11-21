@@ -54,6 +54,76 @@ final class Colorify_Analytics_Rules {
 		return strlen( $ua ) < 30 || ! preg_match( '~^(Mozilla|Opera)/~', $ua ) || (bool) preg_match( self::BOT_RE, $ua );
 	}
 
+	/**
+	 * Lista wykluczonych adresów IP z tekstu (po przecinku, średniku, spacji albo w osobnych liniach) albo tablicy.
+	 * Zostają poprawne adresy IPv4 i IPv6 oraz zakresy CIDR (np. 203.0.113.0/24); reszta odpada po cichu.
+	 *
+	 * @param string|array<int,string> $raw
+	 * @return string[]
+	 */
+	public static function ip_list( $raw ): array {
+		$parts = is_array( $raw ) ? $raw : preg_split( '~[\s,;]+~', (string) $raw, -1, PREG_SPLIT_NO_EMPTY );
+		$out   = array();
+		foreach ( (array) $parts as $p ) {
+			$p    = trim( (string) $p );
+			$net  = $p;
+			$bits = null;
+			if ( false !== strpos( $p, '/' ) ) {
+				list( $net, $b ) = explode( '/', $p, 2 );
+				if ( ! ctype_digit( $b ) ) {
+					continue;
+				}
+				$bits = (int) $b;
+			}
+			$bin = self::ip_bin( $net );
+			if ( '' !== $net && '' !== $bin && ( null === $bits || $bits <= strlen( $bin ) * 8 ) ) {
+				$out[] = $p;
+			}
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	/** Czy adres jest na liście (pojedyncze adresy i zakresy CIDR; IPv4 zapisany jako ::ffff:a.b.c.d to ten sam adres). */
+	public static function ip_in_list( string $ip, array $list ): bool {
+		$bin = self::ip_bin( $ip );
+		if ( '' === $bin ) {
+			return false;
+		}
+		foreach ( $list as $item ) {
+			$parts = explode( '/', (string) $item, 2 );
+			$nb    = self::ip_bin( $parts[0] );
+			if ( '' === $nb || strlen( $nb ) !== strlen( $bin ) ) {
+				continue;
+			}
+			$bits = isset( $parts[1] ) ? (int) $parts[1] : strlen( $nb ) * 8;
+			$full = intdiv( $bits, 8 );
+			$rest = $bits % 8;
+			if ( substr( $bin, 0, $full ) !== substr( $nb, 0, $full ) ) {
+				continue;
+			}
+			if ( $rest && ( ord( $bin[ $full ] ) & ( 0xFF << ( 8 - $rest ) & 0xFF ) ) !== ( ord( $nb[ $full ] ) & ( 0xFF << ( 8 - $rest ) & 0xFF ) ) ) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/** Adres w postaci kanonicznej (IPv4 kropkowo, IPv6 skrócone; ::ffff:a.b.c.d to IPv4) albo '' gdy to nie adres. */
+	public static function ip_norm( string $ip ): string {
+		$b = self::ip_bin( $ip );
+		return '' === $b ? '' : (string) inet_ntop( $b );
+	}
+
+	/** Adres jako bajty (4 dla IPv4, 16 dla IPv6) albo '' gdy to nie adres. */
+	public static function ip_bin( string $ip ): string {
+		$bin = @inet_pton( trim( $ip ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors -- niepoprawny adres to zwykłe false.
+		if ( false === $bin ) {
+			return '';
+		}
+		return 16 === strlen( $bin ) && 0 === strncmp( $bin, str_repeat( "\0", 10 ) . "\xff\xff", 12 ) ? substr( $bin, 12 ) : $bin;
+	}
+
 	/** mobile | tablet | desktop | unknown, z UA w chwili żądania (UA nie jest zapisywany). iPadOS 13+ podaje się jako Mac: desktop. */
 	public static function device( string $ua ): string {
 		if ( preg_match( '~ipad|tablet|kindle|silk/|playbook|sm-t\d~i', $ua ) || preg_match( '~^(?!.*mobi).*android~i', $ua ) ) {

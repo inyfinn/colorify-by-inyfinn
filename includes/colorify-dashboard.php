@@ -68,6 +68,7 @@ final class Colorify_Dashboard {
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'setup' ), PHP_INT_MAX );
 		add_action( 'current_screen', array( __CLASS__, 'quiet_screen' ) );
 		add_action( 'load-index.php', array( __CLASS__, 'switch_view' ) );
+		add_action( 'wp_ajax_colorify_dashboard', array( __CLASS__, 'ajax_view' ) );
 		add_filter( 'removable_query_args', static function ( $args ) { $args[] = 'cfd_done'; return $args; } );
 	}
 
@@ -647,11 +648,35 @@ final class Colorify_Dashboard {
 		if ( $range ) {
 			$out .= '<nav class="cfd-range" aria-label="' . esc_attr__( 'Okres', 'colorify-by-inyfinn' ) . '">';
 			foreach ( array( 7, 30, 90 ) as $d ) {
-				$out .= '<a href="' . esc_url( add_query_arg( 'cfd_days', $d, admin_url( 'index.php' ) ) ) . '"' . ( $d === $days ? ' aria-current="page"' : '' ) . '>' . (int) $d . ' ' . esc_html__( 'dni', 'colorify-by-inyfinn' ) . '</a>';
+				$out .= '<a href="' . esc_url( add_query_arg( 'cfd_days', $d, admin_url( 'index.php' ) ) ) . '"' . ( in_array( self::effective(), array( 'calendar', 'bookings', 'portfolio' ), true ) ? '' : ' data-cfd-nav="d' . (int) $d . '"' ) . ( $d === $days ? ' aria-current="page"' : '' ) . '>' . (int) $d . ' ' . esc_html__( 'dni', 'colorify-by-inyfinn' ) . '</a>';
 			}
 			$out .= '</nav>';
 		}
 		return $out . self::view_back() . self::view_pick() . '</div>';
+	}
+
+	/**
+	 * Odświeżenie widoku po zmianie okresu (7/30/90 dni) bez przeładowania strony: ten sam render() co przy otwarciu kokpitu,
+	 * wywołany na adresie, który przysłała przeglądarka. Bez JavaScriptu działa zwykły link.
+	 */
+	public static function ajax_view(): void {
+		if ( ! check_ajax_referer( 'colorify_dash_ajax', 'nonce', false ) || ! current_user_can( 'read' ) ) {
+			wp_send_json_error( array( 'message' => 'denied' ), 403 );
+		}
+		$ref = isset( $_POST['ref'] ) ? esc_url_raw( wp_unslash( $_POST['ref'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce sprawdzony wyżej.
+		if ( 0 !== strpos( $ref, admin_url( 'index.php' ) ) || 'classic' === self::effective() ) {
+			wp_send_json_error( array( 'message' => 'ref' ), 400 );
+		}
+		$parts = wp_parse_url( $ref );
+		$query = array();
+		wp_parse_str( (string) ( $parts['query'] ?? '' ), $query );
+		$keep = array_fill_keys( array( 'cfd_days', 'cfi_days', 'cfi_od', 'cfi_do', 'cfi_krok' ), true );
+		$_GET = array_filter( array_intersect_key( $query, $keep ), 'is_string' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_SERVER['REQUEST_URI'] = (string) ( $parts['path'] ?? '' ) . ( isset( $parts['query'] ) ? '?' . $parts['query'] : '' );
+		$GLOBALS['colorify_insights_salt'] = substr( md5( (string) microtime( true ) ), 0, 4 );
+		ob_start();
+		self::render();
+		wp_send_json_success( array( 'html' => (string) ob_get_clean() ) );
 	}
 
 	/** Moduł widoku z analityki (pierwszy blok treści widoku); pusty tekst, gdy modułu nie ma. */
@@ -1171,7 +1196,7 @@ body.index-php #wpbody-content .notice,body.index-php #wpbody-content .update-na
 #colorify_dashboard{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important}
 #colorify_dashboard .postbox-header{display:none}
 #colorify_dashboard .inside{margin:0!important;padding:0!important}
-.cfd{--s:var(--colorify-ui-surface,#fff);--t:var(--colorify-ui-text,#1d2327);--m:var(--colorify-ui-text-muted,#646970);--a:var(--colorify-ui-accent,#2271b1);--on:var(--colorify-ui-on-accent,#fff);--line:color-mix(in srgb,var(--t) 8%,transparent);--r:var(--colorify-radius-card,20px);--rc:var(--colorify-radius-control,12px);--rp:var(--colorify-radius-pill,999px);color:var(--t);max-width:1280px;display:flex;flex-direction:column;gap:20px}
+.cfd{--s:var(--colorify-ui-surface,#fff);--t:var(--colorify-ui-text,#1d2327);--m:var(--colorify-ui-text-muted,#646970);--a:var(--colorify-ui-accent,#2271b1);--on:var(--colorify-ui-on-accent,#fff);--line:color-mix(in srgb,var(--t) 8%,transparent);--r:var(--colorify-radius-card,20px);--rc:var(--colorify-radius-control,12px);--rp:var(--colorify-radius-pill,999px);color:var(--t);max-width:1280px;display:flex;flex-direction:column;gap:20px;--cfd-group-gap:70px;--cfd-group-size:23px;--cfi-group-size:29px}
 .cfd a:focus-visible,.cfd button:focus-visible{outline:1px solid var(--a);outline-offset:2px}
 .cfd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .cfd-head__sub{margin:0;color:var(--m);font-size:14px}
@@ -1249,8 +1274,10 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 .cfd-row-link:hover td{background:color-mix(in srgb,var(--a) 6%,transparent)}
 .cfd-row-link td:first-child{border-radius:min(10px,var(--rc)) 0 0 min(10px,var(--rc))}.cfd-row-link td:last-child{border-radius:0 min(10px,var(--rc)) min(10px,var(--rc)) 0}
 .cfd-empty,.cfd-note{color:var(--m);font-size:13px;margin:0}
+/* Grupy kafli (Ruch na stronie, Cena i decyzje): od góry ok. 70 px odstępu od poprzedniego elementu (kolumna ma już 20 px przerwy), tytuł o 7 px większy. */
+.cfd-fold,.cfd:not(.cfi)>.cfi-traffic,.cfd:not(.cfi)>.cfi-mod--pricing{margin-top:calc(var(--cfd-group-gap,70px) - 20px)}
 .cfd-fold{min-width:0}
-.cfd-fold__s{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:0 28px;border-radius:var(--r);background:var(--s);color:var(--t);font-size:16px;font-weight:700;cursor:pointer;list-style:none;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04))}
+.cfd-fold__s{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:0 28px;border-radius:var(--r);background:var(--s);color:var(--t);font-size:var(--cfd-group-size,23px);line-height:1.2;font-weight:700;cursor:pointer;list-style:none;box-shadow:var(--colorify-shadow-card,0 1px 2px rgba(16,24,40,.04))}
 .cfd-fold__s::-webkit-details-marker{display:none}
 .cfd-fold__s svg{width:18px;height:18px;flex:none;color:var(--m);transition:transform .15s ease}
 .cfd-fold[open]>.cfd-fold__s{margin-bottom:20px}
@@ -1261,7 +1288,7 @@ button.cfd-pill{cursor:copy}button.cfd-pill.is-done{background:#e2f4ea;color:#16
 <?php echo self::pick_css(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- stały arkusz. ?>
 @media (prefers-reduced-motion:reduce){.cfd-view__a,.cfd-quick__a,.cfd-vpick__btn svg{transition:none}}
 @media (max-width:1100px){.cfd-row,.cfd-row--b{grid-template-columns:minmax(0,1fr)}.cfd-strip{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}.cfd-stat:nth-child(3){border-left:0}.cfd-promo{order:-1}}
-@media (max-width:600px){.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:repeat(2,minmax(0,1fr))}.cfd-quick__a{min-width:0;padding:8px 14px}.cfd-quick__a span:last-child{min-width:0;overflow-wrap:anywhere}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
+@media (max-width:600px){.cfd{--cfd-group-gap:56px}.cfd-card{padding:24px 20px}.cfd-quick{grid-template-columns:repeat(2,minmax(0,1fr))}.cfd-quick__a{min-width:0;padding:8px 14px}.cfd-quick__a span:last-child{min-width:0;overflow-wrap:anywhere}.cfd-strip{padding:18px 0}.cfd-stat{padding:0 16px}.cfd-stat__value:not(.cfd-stat__value--text){font-size:22px}.cfd-chart__value{font-size:24px}}
 @media (max-width:600px){.cfd-range{order:3;flex:1 1 100%;display:flex}.cfd-range a{flex:1 1 0;justify-content:center;min-height:44px;padding:0 8px}.cfd-link{padding:12px 0;margin:-12px 0}}
 @media (max-width:359px){.cfd-quick{grid-template-columns:minmax(0,1fr)}}
 </style>

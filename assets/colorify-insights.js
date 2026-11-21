@@ -1,8 +1,9 @@
-/* Kokpit: podpowiedź na wykresie, sortowanie i szukanie w tabeli stron, kopiowanie przekierowania, przełącznik Wykres / Tabela. Bez bibliotek. */
+/* Kokpit: podpowiedź na wykresie, sortowanie i szukanie w tabeli stron, kopiowanie przekierowania, przełącznik Wykres / Tabela,
+ * rozwijane wyjaśnienia „Co to znaczy?” i odświeżanie jednego widgetu bez przeładowania strony (zakres dat, Dni/Tygodnie). Bez bibliotek. */
 (function () {
 	'use strict';
-	function tips() {
-		document.querySelectorAll('.cfi-chartwrap').forEach(function (w) {
+	function tips(root) {
+		root.querySelectorAll('.cfi-chartwrap').forEach(function (w) {
 			var tip = w.querySelector('.cfi-tip');
 			if (!tip) { return; }
 			function show(r) {
@@ -16,8 +17,8 @@
 			w.addEventListener('touchstart', function (e) { var t = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY); if (t && t.classList.contains('cfi-hit')) { show(t); } }, { passive: true });
 		});
 	}
-	function tables() {
-		document.querySelectorAll('[data-cfi-table]').forEach(function (tb) {
+	function tables(root) {
+		root.querySelectorAll('[data-cfi-table]').forEach(function (tb) {
 			var body = tb.tBodies[0], rows = Array.prototype.slice.call(body.rows), card = tb.closest('.cfi-card');
 			var q = card.querySelector('[data-cfi-search]'), cnt = card.querySelector('[data-cfi-count]');
 			function count() { var n = rows.filter(function (r) { return !r.hidden; }).length; if (cnt) { cnt.textContent = n === rows.length ? '' : n + ' z ' + rows.length; } }
@@ -80,6 +81,101 @@
 		document.addEventListener('touchstart', function (e) { var el = target(e); clearTimeout(timer); if (el) { show(el); timer = setTimeout(hide, 2500); } else { hide(); } }, { passive: true });
 		window.addEventListener('scroll', hide, { passive: true });
 	}
-	function init() { tips(); tables(); copy(); views(); hints(); }
-	if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+	/* „Co to znaczy?”: przycisk rozwija panel z wyjaśnieniem (aria-expanded). Bez JavaScriptu panel jest od razu widoczny. */
+	function help(root) {
+		root.querySelectorAll('[data-cfi-help]').forEach(function (b) {
+			var p = document.getElementById(b.getAttribute('aria-controls'));
+			if (p) { p.hidden = true; }
+		});
+	}
+	function helpClicks() {
+		document.addEventListener('click', function (e) {
+			var b = e.target.closest ? e.target.closest('[data-cfi-help]') : null;
+			if (!b) { return; }
+			var p = document.getElementById(b.getAttribute('aria-controls')), open = b.getAttribute('aria-expanded') !== 'true';
+			b.setAttribute('aria-expanded', open ? 'true' : 'false');
+			if (p) { p.hidden = !open; }
+		});
+	}
+	/* Odświeżanie jednego widgetu: zmiana zakresu (7/30/90/Rok, daty + Pokaż) i Dni/Tygodnie wymieniają tylko ten widget.
+	 * Adres w pasku dostaje wybór (history.replaceState), więc odświeżenie strony go zachowuje. Gdy cokolwiek zawiedzie,
+	 * przeglądarka idzie zwykłym linkiem (cała strona), czyli tak jak bez JavaScriptu. */
+	function live() {
+		var cfg = window.colorifyInsights;
+		if (!cfg || !window.fetch || !window.URLSearchParams) { return; }
+		var jobs = new WeakMap();
+		function load(box, url, trigger) {
+			var key = trigger && trigger.getAttribute('data-cfi-nav'), prev = jobs.get(box);
+			if (prev) { prev.abort(); }
+			var ctl = window.AbortController ? new AbortController() : null;
+			jobs.set(box, ctl);
+			var h = box.offsetHeight;
+			box.style.minHeight = h + 'px'; /* wysokość zostaje na czas ładowania: układ strony się nie skacze */
+			box.classList.add('is-loading');
+			box.setAttribute('aria-busy', 'true');
+			var body = new URLSearchParams({ action: 'colorify_insights', nonce: cfg.nonce, view: box.getAttribute('data-cfi-view'), ref: url });
+			fetch(cfg.ajax, { method: 'POST', credentials: 'same-origin', body: body, signal: ctl ? ctl.signal : undefined })
+				.then(function (r) { return r.json(); })
+				.then(function (j) {
+					if (!j || !j.success) { throw new Error('bad'); }
+					box.innerHTML = j.data.html;
+					try { history.replaceState(null, '', url); } catch (e) { /* adres bez zmian */ }
+					init(box);
+					var f = key ? box.querySelector('[data-cfi-nav="' + key + '"]') : box.querySelector('[data-cfi-form] button[type=submit]');
+					if (f) { f.focus({ preventScroll: true }); }
+					box.classList.remove('is-loading');
+					box.removeAttribute('aria-busy');
+					box.style.minHeight = '';
+				})
+				.catch(function (err) {
+					if (err && err.name === 'AbortError') { return; }
+					window.location.href = url;
+				});
+		}
+		/* Okres całego widoku kokpitu (7/30/90 dni): wymieniamy cały widok. Widoki z kalendarzem mają własny skrypt i zostają przy zwykłym linku. */
+		function loadView(box, url, a) {
+			var key = a.getAttribute('data-cfd-nav');
+			box.style.minHeight = box.offsetHeight + 'px';
+			box.classList.add('is-loading');
+			box.setAttribute('aria-busy', 'true');
+			var body = new URLSearchParams({ action: 'colorify_dashboard', nonce: cfg.dash, ref: url });
+			fetch(cfg.ajax, { method: 'POST', credentials: 'same-origin', body: body })
+				.then(function (r) { return r.json(); })
+				.then(function (j) {
+					if (!j || !j.success) { throw new Error('bad'); }
+					var t = document.createElement('div');
+					t.innerHTML = j.data.html;
+					var n = t.firstElementChild;
+					if (!n) { throw new Error('empty'); }
+					box.parentNode.replaceChild(n, box);
+					try { history.replaceState(null, '', url); } catch (e) { /* adres bez zmian */ }
+					init(n);
+					var f = n.querySelector('[data-cfd-nav="' + key + '"]');
+					if (f) { f.focus({ preventScroll: true }); }
+				})
+				.catch(function () { window.location.href = url; });
+		}
+		document.addEventListener('click', function (e) {
+			var v = e.target.closest ? e.target.closest('a[data-cfd-nav]') : null;
+			if (v && !e.defaultPrevented && e.button === 0 && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && v.closest('.cfd') && !document.querySelector('.cfb')) {
+				e.preventDefault();
+				loadView(v.closest('.cfd'), v.href, v);
+				return;
+			}
+			var a = e.target.closest ? e.target.closest('a[data-cfi-nav]') : null, box = a && a.closest('.cfi-live');
+			if (!a || !box || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+			e.preventDefault();
+			load(box, a.href, a);
+		});
+		document.addEventListener('submit', function (e) {
+			var f = e.target.closest ? e.target.closest('form[data-cfi-form]') : null, box = f && f.closest('.cfi-live');
+			if (!f || !box) { return; }
+			e.preventDefault();
+			var q = new URLSearchParams(new FormData(f));
+			load(box, window.location.origin + window.location.pathname + '?' + q.toString(), f.querySelector('button[type=submit]'));
+		});
+	}
+	function init(root) { tips(root); tables(root); help(root); }
+	function boot() { init(document); copy(); views(); hints(); helpClicks(); live(); }
+	if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
 })();

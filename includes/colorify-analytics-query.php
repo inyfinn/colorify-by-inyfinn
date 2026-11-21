@@ -73,6 +73,25 @@ function colorify_an_share( int $part, int $all ): float {
 	return $all > 0 ? round( $part / $all, 4 ) : 0.0;
 }
 
+/**
+ * Dziś (dzień niepełny, bez pamięci podręcznej, żeby odwiedziny było widać od razu): odsłony, szacunek odwiedzających i boty.
+ * measured false = dziś nie ma jeszcze wiersza pomiaru (nie zero).
+ */
+function colorify_analytics_today(): array {
+	global $wpdb;
+	$d = wp_date( 'Y-m-d' );
+	$r = $wpdb->get_row( 'SELECT method, views, visitors, bots FROM ' . Colorify_Analytics::t( 'daily_totals' ) . ' WHERE ' . colorify_an_where( $d, $d ) . ' LIMIT 1', ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	$m = Colorify_Analytics::methods_meta();
+	return array(
+		'day'      => $d,
+		'measured' => (bool) $r,
+		'method'   => $r ? (string) $r['method'] : Colorify_Analytics::method_at( $d ),
+		'views'    => $r ? (int) $r['views'] : null,
+		'visitors' => $r && ! empty( $m[ $r['method'] ]['visitors'] ) ? (int) $r['visitors'] : null,
+		'bots'     => $r && 'legacy' !== $r['method'] ? (int) $r['bots'] : null,
+	);
+}
+
 /* ===================== Zakres ===================== */
 
 /**
@@ -310,7 +329,7 @@ function colorify_analytics_page_info( string $key ): array {
 		'front'    => '/' === $key,
 	);
 	if ( Colorify_Analytics::OTHER === $key ) {
-		return array_merge( $out, array( 'title' => __( 'Inne adresy (ponad dzienny limit)', 'colorify-by-inyfinn' ), 'type' => 'other' ) );
+		return array_merge( $out, array( 'title' => __( 'Inne adresy', 'colorify-by-inyfinn' ), 'type' => 'other' ) );
 	}
 	if ( '/?s' === $key ) {
 		return array_merge( $out, array( 'title' => __( 'Wyniki wyszukiwania', 'colorify-by-inyfinn' ), 'url' => home_url( '/?s=' ), 'type' => 'search' ) );
@@ -351,6 +370,19 @@ function colorify_an_page_sums( string $from, string $to, string $only = '' ): a
 					'views'   => (int) $r['v'],
 					'entries' => (int) $r['e'],
 				);
+			}
+			if ( '' === $only ) {
+				// Suma stron ma się równać odsłonom z kafla: stary licznik nie zapisywał stron spoza wpisów i podstron (np. archiwów),
+				// więc reszta idzie do „Inne adresy”, zamiast po cichu znikać z tabeli i z udziałów.
+				$all  = (int) $wpdb->get_var( 'SELECT COALESCE(SUM(views),0) FROM ' . Colorify_Analytics::t( 'daily_totals' ) . ' WHERE ' . colorify_an_where( $from, $to ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$rest = $all - array_sum( array_column( $out, 'views' ) );
+				if ( $rest > 0 ) {
+					$k         = Colorify_Analytics::OTHER;
+					$out[ $k ] = array(
+						'views'   => ( $out[ $k ]['views'] ?? 0 ) + $rest,
+						'entries' => $out[ $k ]['entries'] ?? 0,
+					);
+				}
 			}
 			return $out;
 		}
