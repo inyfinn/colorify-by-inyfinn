@@ -127,6 +127,11 @@ Iframe tej samej domeny (`url` strony + `?colorify_tresci_podglad=1`). W tym try
 `colorify_tresci_tag/_e/_kadr_style/_podglad_attr` dostają `data-cft-key`, a wartości pochodzą z transientu
 `colorify_tresci_podglad_<user>` (formularz wysyłany AJAX-em `colorify_tresci_podglad`), nie z opcji. Panel modyfikuje DOM
 iframe bezpośrednio (pisanie, kadr = od razu; zmiany struktury list i usunięcie zdjęcia = przeładowanie podglądu).
+Od 2.15.8, od 1200 px (kolumny obok siebie), granicę panel / podgląd można przeciągać (`#cft-split`, `role="separator"`):
+mysz, dotyk i pióro (pointer events + `setPointerCapture`; na czas przeciągania iframe ma `pointer-events: none`), strzałki
+±24 px, Home/End = skrajne wartości, dwuklik = dawny podział. Zakres: panel 320 px do 70% szerokości, podgląd min. 360 px.
+Szerokość siedzi w zmiennej CSS `--cft-szer` na `.cft-uklad` i w `localStorage` (`cftSzerPanelu<ID konta>`); bez zapisu zmiennej
+nie ma i działa dawny podział z CSS. Po każdej zmianie skala podglądu jest liczona od nowa (`uklad()`).
 Fokus pola przewija podgląd i podświetla element; kliknięcie w podglądzie otwiera pole. Szerokości: Komputer 1440,
 Duży ekran 1920, Telefon 390 (te same, na których mierzy się proporcje kadrów). Publiczny HTML nie ma tych atrybutów.
 

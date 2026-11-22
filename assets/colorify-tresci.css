@@ -273,16 +273,43 @@
 
 /* dwie kolumny: formularz + lepki podgląd */
 /* Formularz trzyma stałą, czytelną szerokość (520–760 px), podgląd bierze całą resztę aż do 2480 px. */
+/* 2.15.8: trzecia kolumna siatki to granica do przeciągania (.cft-split, szerokość = dawny odstęp). --cft-szer i --cft-pmin (najmniejszy podgląd przy własnym podziale) ustawia JS
+ * (zapamiętana szerokość panelu); bez niego zostaje dawny podział. Poniżej 1200 px granicy nie ma. */
 @media (min-width: 1200px) {
-	.cft-uklad { display: grid; grid-template-columns: minmax(520px, 760px) minmax(380px, 1fr); gap: 20px; align-items: start; }
-	.cft-podglad { position: sticky; top: 46px; display: flex; height: calc(100vh - 62px); }
+	.cft-uklad { --cft-luka: 20px; display: grid; grid-template-columns: var(--cft-szer, minmax(520px, 760px)) var(--cft-luka) minmax(var(--cft-pmin, 380px), 1fr); column-gap: 0; align-items: start; }
+	.cft-uklad > .cft-form { grid-column: 1; grid-row: 1; }
+	.cft-uklad > .cft-podglad { grid-column: 3; grid-row: 1; position: sticky; top: 46px; display: flex; height: calc(100vh - 62px); }
+	.cft .cft-split { grid-column: 2; grid-row: 1; align-self: stretch; position: relative; z-index: 30; display: flex; align-items: flex-start; justify-content: center; cursor: col-resize; touch-action: pan-y; user-select: none; }
 }
 @media (min-width: 1600px) {
-	.cft-uklad { grid-template-columns: 760px minmax(520px, 1fr); gap: 28px; }
+	.cft-uklad { --cft-luka: 28px; grid-template-columns: var(--cft-szer, 760px) var(--cft-luka) minmax(var(--cft-pmin, 520px), 1fr); }
 }
 @media (min-width: 2200px) {
-	.cft-uklad { gap: 36px; }
+	.cft-uklad { --cft-luka: 36px; }
 }
+
+/* granica panel / podgląd: kreska na całą wysokość kolumn + uchwyt, który jedzie z przewijaniem i stoi w połowie okna (jest zawsze widoczny),
+ * strefa chwytu 44 px szerokości (szersza od kreski) */
+.cft-split { display: none; }
+.cft .cft-split:focus-visible { outline: 0 !important; } /* pierścień fokusu rysuje uchwyt, nie cała wysokość (tryb ciemny dokłada własny outline) */
+.cft-split::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 44px; transform: translateX(-50%); }
+.cft-split__linia { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--cft-obrys); border-radius: 2px; transition: background-color 0.15s, width 0.15s, margin-left 0.15s; }
+.cft-split__uchwyt { position: sticky; top: calc(50vh - 22px); margin-top: 24px; flex: none; width: 16px; height: 44px; color: var(--cft-zloto-d); background: linear-gradient(currentColor, currentColor) 5px 50% / 1.5px 18px no-repeat, linear-gradient(currentColor, currentColor) 9.5px 50% / 1.5px 18px no-repeat, var(--cft-krem); border: 1px solid var(--cft-obrys); border-radius: 999px; transition: border-color 0.15s, box-shadow 0.15s; }
+.cft-split:hover .cft-split__linia, .cft-split:focus-visible .cft-split__linia { background: var(--cft-zloto); }
+.cft-split:hover .cft-split__uchwyt, .cft-split:focus-visible .cft-split__uchwyt { border-color: var(--cft-zloto); }
+.cft-split__uchwyt:hover, .cft-split:focus-visible .cft-split__uchwyt { box-shadow: 0 2px 8px rgba(48, 30, 14, 0.2); }
+.cft-split:focus-visible .cft-split__linia, .cft-split.is-drag .cft-split__linia { width: 4px; margin-left: -2px; background: var(--cft-zloto-d); }
+.cft-split:focus-visible .cft-split__uchwyt { box-shadow: 0 0 0 2px var(--cft-krem), 0 0 0 4px var(--cft-zloto-d); border-color: var(--cft-zloto-d); }
+.cft-split.is-drag .cft-split__uchwyt { color: var(--cft-krem); background: linear-gradient(currentColor, currentColor) 5px 50% / 1.5px 18px no-repeat, linear-gradient(currentColor, currentColor) 9.5px 50% / 1.5px 18px no-repeat, var(--cft-zloto-d); border-color: var(--cft-zloto-d); }
+/* dymek nad uchwytem (wygląd jak data-tip w panelu; tekst w data-dymek uchwytu, bo cała granica jest wysoka) */
+.cft-split__uchwyt:hover::after, .cft-split:focus-visible .cft-split__uchwyt::after {
+	content: attr(data-dymek); position: absolute; bottom: calc(100% + 8px); left: 50%; z-index: 40; width: max-content; max-width: 220px; padding: 6px 10px; transform: translateX(-50%);
+	font: 400 12px/1.4 var(--cft-font); letter-spacing: 0; text-align: left; white-space: normal; color: var(--cft-krem); background: var(--cft-braz-d); border-radius: 6px; box-shadow: 0 4px 14px rgba(48, 30, 14, 0.2); pointer-events: none;
+}
+body.cft-split-drag, body.cft-split-drag * { cursor: col-resize !important; user-select: none !important; }
+body.cft-split-drag .cft-podglad__ramka iframe { pointer-events: none; }
+body.cft-split-drag .cft-split__uchwyt::after { display: none !important; }
+@media (hover: none) { .cft-split__uchwyt::after { display: none !important; } } /* na dotyku dymek zasłaniałby palec */
 
 /* poniżej 1200 px: podgląd wysuwany przyciskiem z paska */
 @media (max-width: 1199px) {

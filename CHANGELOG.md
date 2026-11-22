@@ -1,5 +1,11 @@
 # Historia zmian
 
+## 2.15.8
+
+Edytor treści: przeciągana granica między panelem a podglądem.
+
+- Granicę między panelem a podglądem można przeciągać (od 1200 px): mysz, dotyk i pióro, strzałki (co 24 px), Home/End, dwuklik wraca do domyślnego podziału. Szerokość zapamiętywana osobno dla każdego konta, podgląd „Komputer” przeskalowuje się do nowej szerokości.
+
 ## 2.15.7
 
 Edytor treści: pisanie w polach nie gubi kursora.

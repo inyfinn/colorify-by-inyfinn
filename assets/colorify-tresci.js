@@ -442,6 +442,59 @@
 	}
 	if ('ResizeObserver' in window) { new ResizeObserver(uklad).observe(ramkaP); } else { window.addEventListener('resize', uklad); }
 
+	/* ----- granica panel / podgląd do przeciągania (od 2.15.8; tylko od 1200 px, gdzie kolumny stoją obok siebie) -----
+	 * Szerokość panelu w px siedzi w zmiennej --cft-szer na .cft-uklad, zapamiętana w localStorage osobno dla konta.
+	 * Bez zapisu zmiennej nie ma i działa dawny podział z CSS. Zakres: panel 320 px do 70% szerokości (podgląd min. 360 px). */
+	var split = document.getElementById('cft-split'), kolumny = split && split.parentNode;
+	if (split && kolumny) {
+		var KLUCZ = 'cftSzerPanelu' + (CFG.uid || ''), KROK = 24, MIN_P = 320, MIN_POD = 360, szer = null, ciagnie = false, x0 = 0, w0 = 0;
+		var dwie = window.matchMedia('(min-width: 1200px)');
+		try { var zap = parseInt(localStorage.getItem(KLUCZ), 10); if (zap > 0) { szer = zap; } } catch (e) {}
+		var ogr = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+		var zakres = function () { var W = kolumny.clientWidth, g = split.offsetWidth; return [MIN_P, Math.max(MIN_P, Math.floor(Math.min(W * 0.7, W - g - MIN_POD)))]; };
+		var zapisz = function () { try { if (szer === null) { localStorage.removeItem(KLUCZ); } else { localStorage.setItem(KLUCZ, String(szer)); } } catch (e) {} };
+		var splitUstaw = function () {
+			if (!dwie.matches) { return; }
+			var r = zakres();
+			if (szer !== null) { szer = ogr(szer, r[0], r[1]); kolumny.style.setProperty('--cft-szer', szer + 'px'); kolumny.style.setProperty('--cft-pmin', MIN_POD + 'px'); } else { kolumny.style.removeProperty('--cft-szer'); kolumny.style.removeProperty('--cft-pmin'); }
+			var p = Math.round(form.getBoundingClientRect().width), o = Math.round(aside.getBoundingClientRect().width);
+			split.setAttribute('aria-valuemin', r[0]); split.setAttribute('aria-valuemax', r[1]); split.setAttribute('aria-valuenow', ogr(p, r[0], r[1]));
+			split.setAttribute('aria-valuetext', 'Panel ' + p + ' px, podgląd ' + o + ' px');
+			uklad(); // podgląd „Komputer” ma się dalej mieścić: skala od nowa
+		};
+		var splitNa = function (px) { szer = Math.round(px); splitUstaw(); };
+		if ('ResizeObserver' in window) { new ResizeObserver(splitUstaw).observe(kolumny); } else { window.addEventListener('resize', splitUstaw); }
+		if (dwie.addEventListener) { dwie.addEventListener('change', splitUstaw); }
+		splitUstaw();
+
+		split.addEventListener('pointerdown', function (e) {
+			if (e.button > 0 || !dwie.matches) { return; }
+			e.preventDefault();
+			try { split.setPointerCapture(e.pointerId); } catch (x) {}
+			ciagnie = true; x0 = e.clientX; w0 = form.getBoundingClientRect().width;
+			split.classList.add('is-drag'); document.body.classList.add('cft-split-drag'); // iframe nie może zjadać zdarzeń
+			split.focus({ preventScroll: true });
+		});
+		split.addEventListener('pointermove', function (e) { if (ciagnie) { splitNa(w0 + e.clientX - x0); } });
+		var koniec = function () {
+			if (!ciagnie) { return; }
+			ciagnie = false; split.classList.remove('is-drag'); document.body.classList.remove('cft-split-drag');
+			zapisz();
+		};
+		split.addEventListener('pointerup', koniec);
+		split.addEventListener('pointercancel', koniec);
+		split.addEventListener('lostpointercapture', koniec);
+		split.addEventListener('dblclick', function () { szer = null; zapisz(); splitUstaw(); }); // dawny podział
+		split.addEventListener('keydown', function (e) {
+			var r = zakres(), teraz = form.getBoundingClientRect().width, nowa = null;
+			if (e.key === 'ArrowLeft') { nowa = teraz - KROK; } else if (e.key === 'ArrowRight') { nowa = teraz + KROK; } else if (e.key === 'Home') { nowa = r[0]; } else if (e.key === 'End') { nowa = r[1]; }
+			if (nowa === null) { return; }
+			e.preventDefault();
+			splitNa(ogr(nowa, r[0], r[1]));
+			zapisz();
+		});
+	}
+
 	function wyslijStan() {
 		var fd = new FormData(form);
 		fd.set('action', 'colorify_tresci_podglad');
