@@ -529,12 +529,27 @@
 	 * Strona, która obsłużyła cft:pokaz / cft:stan, woła preventDefault() i może wpisać do detail.el element do przewinięcia.
 	 */
 	function ramkaZdarzenie(typ, detail) {
+		// Strona w ramce może przy przeliczaniu wołać focus() (np. ekran po wysłaniu). Fokus w iframe zabiera kursor
+		// z pola w panelu po pierwszej literze, więc po zdarzeniu oddajemy fokus i zaznaczenie temu, kto pisał.
+		var akt = document.activeElement, zazn = null, sel = window.getSelection ? window.getSelection() : null;
+		if (akt && akt !== document.body && akt !== iframe) {
+			if (typeof akt.selectionStart === 'number') { try { zazn = [akt.selectionStart, akt.selectionEnd, akt.selectionDirection]; } catch (e0) {} }
+			else if (sel && sel.rangeCount && akt.contains(sel.getRangeAt(0).startContainer)) { zazn = sel.getRangeAt(0).cloneRange(); }
+		} else { akt = null; }
+		var wynik = null;
 		try {
 			var w = iframe.contentWindow;
-			if (!w || !w.CustomEvent) { return null; }
-			var ev = new w.CustomEvent(typ, { detail: detail, cancelable: true });
-			return w.dispatchEvent(ev) ? null : (detail.el || true);
-		} catch (e) { return null; }
+			if (w && w.CustomEvent) {
+				var ev = new w.CustomEvent(typ, { detail: detail, cancelable: true });
+				wynik = w.dispatchEvent(ev) ? null : (detail.el || true);
+			}
+		} catch (e) { wynik = null; }
+		if (akt && document.activeElement !== akt && akt.isConnected) {
+			akt.focus({ preventScroll: true });
+			if (Array.isArray(zazn)) { try { akt.setSelectionRange(zazn[0], zazn[1], zazn[2]); } catch (e1) {} }
+			else if (zazn && sel) { sel.removeAllRanges(); sel.addRange(zazn); }
+		}
+		return wynik;
 	}
 	function podgladHtml(key, html, multi) {
 		els(key).forEach(function (el) {

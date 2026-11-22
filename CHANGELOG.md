@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.15.7
+
+Edytor treści: pisanie w polach nie gubi kursora.
+
+- Naprawione: po pierwszej literze pole w panelu traciło fokus, gdy strona w podglądzie przeliczała stan (np. „Po wysłaniu”, „Błędy pól”) i ustawiała fokus u siebie. Po każdym zdarzeniu w ramce (`cft:pole`, `cft:stan`, `cft:pokaz`) panel oddaje fokus i zaznaczenie polu, w którym się pisało (dotyczy każdej strony).
+- Sprawdzone w przeglądarce wpisywaniem znak po znaku: pola tekstowe i edytory w stanach Po wysłaniu, Błędy pól, Wycena, Budżet i bez stanu.
+
 ## 2.15.6
 
 Edytor treści: podgląd przewija do właściwego miejsca.
