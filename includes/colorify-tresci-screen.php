@@ -931,7 +931,7 @@ function cft_ekran() {
 		</details>
 
 		<div class="cft-uklad">
-		<div class="cft-split" id="cft-split" role="separator" aria-orientation="vertical" aria-label="Szerokość panelu i podglądu" aria-controls="cft-form cft-podglad" tabindex="0"><span class="cft-split__linia" aria-hidden="true"></span><span class="cft-split__uchwyt" aria-hidden="true" data-dymek="Przeciągnij, żeby zmienić szerokość. Dwuklik przywraca podział."></span></div>
+		<div class="cft-split" id="cft-split" role="separator" aria-orientation="vertical" aria-label="Szerokość panelu i podglądu" aria-controls="cft-form cft-podglad" tabindex="0"><span class="cft-split__linia" aria-hidden="true"></span><span class="cft-split__uchwyt" aria-hidden="true" data-dymek="Przeciągnij, żeby zmienić szerokość. Dwuklik przywraca podział."><i></i><i></i></span></div>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="cft-form" class="cft-form">
 			<input type="hidden" name="action" value="colorify_tresci_zapis">
 			<input type="hidden" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( 'colorify_tresci_zapis' ) ); ?>">

@@ -33,8 +33,8 @@
 
 .cft-h1 { margin: 8px 0 4px; padding: 0; font-family: var(--cft-font-h); font-size: 32px; line-height: 1.15; font-weight: 400; color: var(--cft-braz-d); }
 .cft-h2 { margin: 40px 0 6px; font-family: var(--cft-font-h); font-size: 24px; font-weight: 400; color: var(--cft-braz-d); }
-.cft-h2--strona { margin: 26px 0 2px; font-size: 20px; color: var(--cft-zloto-d); }
-.cft-h2--strona:first-of-type { margin-top: 6px; }
+.cft-h2--strona { margin: 41px 0 2px; font-size: 20px; color: var(--cft-zloto-d); }
+.cft-h2--strona:first-of-type { margin-top: 21px; }
 .cft-lead { max-width: 72ch; margin: 4px 0 14px; font-size: 14.5px; line-height: 1.6; color: var(--cft-cichy); }
 .cft-brak { color: var(--cft-cichy); font-style: italic; }
 
@@ -112,8 +112,8 @@
 .cft-form { min-width: 0; }
 
 /* ---------- karty ---------- */
-.cft-karta { margin: 10px 0; background: var(--cft-krem); border: 1px solid var(--cft-linia-j); border-radius: var(--cft-r-karta); box-shadow: var(--cft-cien); }
-.cft-karta > summary { position: relative; display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 12px 48px 12px 12px; list-style: none; cursor: pointer; border-radius: var(--cft-r-karta); }
+.cft-karta { margin: 18px 0; background: var(--cft-krem); border: 1px solid var(--cft-linia-j); border-radius: var(--cft-r-karta); box-shadow: var(--cft-cien); }
+.cft-karta > summary { position: relative; display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 20px 48px 20px 12px; list-style: none; cursor: pointer; border-radius: var(--cft-r-karta); }
 .cft-karta > summary::-webkit-details-marker { display: none; }
 .cft-karta > summary::after { content: "\f347"; font: 20px/1 dashicons; position: absolute; top: 50%; right: 16px; margin-top: -10px; color: var(--cft-zloto-d); transition: transform 0.15s; }
 .cft-karta[open] > summary::after { transform: rotate(180deg); }
@@ -123,7 +123,7 @@
 .cft-karta__t { font-family: var(--cft-font-h); font-size: 19px; line-height: 1.25; color: var(--cft-braz-d); }
 .cft-karta__g { font-size: 12.5px; line-height: 1.45; color: var(--cft-cichy); }
 .cft-karta__zm { flex: none; padding: 3px 10px; font-size: 11.5px; font-weight: 500; letter-spacing: 0.3px; color: var(--cft-zloto-d); background: rgba(184, 149, 90, 0.14); border-radius: 999px; white-space: nowrap; }
-.cft-karta__tresc { display: flex; flex-direction: column; gap: 22px; padding: 6px 16px 26px; border-top: 1px solid var(--cft-linia-j); }
+.cft-karta__tresc { display: flex; flex-direction: column; gap: 22px; padding: 6px 16px 34px; border-top: 1px solid var(--cft-linia-j); }
 .cft-skok { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-top: 14px; padding: 10px 14px; font-size: 13.5px; text-decoration: none; color: var(--cft-braz-d); background: var(--cft-krem-2); border-radius: var(--cft-r); }
 .cft-skok:hover { background: var(--cft-krem-3); color: var(--cft-braz-d); }
 .cft-grupa { display: flex; flex-direction: column; gap: 18px; }
@@ -262,7 +262,7 @@
 	.cft-lista[data-lista="insta"] .cft-wiersze, .cft-lista[data-lista="menu"] .cft-wiersze, .cft-lista[data-lista="stopka_skroty"] .cft-wiersze { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 	.cft-h1 { font-size: 36px; }
 	.cft-karta > summary { padding-left: 14px; }
-	.cft-karta__tresc { padding: 6px 22px 28px; }
+	.cft-karta__tresc { padding: 6px 22px 36px; }
 	.cft-media { flex-direction: row; align-items: flex-start; gap: 18px; }
 	.cft-media__pod { flex: 0 0 240px; width: 240px; }
 	.cft-media--kadr .cft-kadr { flex: 0 0 320px; }
@@ -294,13 +294,14 @@
 .cft .cft-split:focus-visible { outline: 0 !important; } /* pierścień fokusu rysuje uchwyt, nie cała wysokość (tryb ciemny dokłada własny outline) */
 .cft-split::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 44px; transform: translateX(-50%); }
 .cft-split__linia { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--cft-obrys); border-radius: 2px; transition: background-color 0.15s, width 0.15s, margin-left 0.15s; }
-.cft-split__uchwyt { position: sticky; top: calc(50vh - 22px); margin-top: 24px; flex: none; width: 16px; height: 44px; color: var(--cft-zloto-d); background: linear-gradient(currentColor, currentColor) 5px 50% / 1.5px 18px no-repeat, linear-gradient(currentColor, currentColor) 9.5px 50% / 1.5px 18px no-repeat, var(--cft-krem); border: 1px solid var(--cft-obrys); border-radius: 999px; transition: border-color 0.15s, box-shadow 0.15s; }
+.cft-split__uchwyt { position: sticky; top: calc(50vh - 22px); margin-top: 24px; flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; width: 16px; height: 44px; color: var(--cft-zloto-d); background: var(--cft-krem); border: 1px solid var(--cft-obrys); border-radius: 999px; transition: border-color 0.15s, box-shadow 0.15s; }
+.cft-split__uchwyt > i { flex: none; width: 2px; height: 18px; background: currentColor; border-radius: 1px; } /* dwie kreski jako elementy: środek pary = środek pigułki (14 px wnętrza, 2+4+2 px kresek) */
 .cft-split:hover .cft-split__linia, .cft-split:focus-visible .cft-split__linia { background: var(--cft-zloto); }
 .cft-split:hover .cft-split__uchwyt, .cft-split:focus-visible .cft-split__uchwyt { border-color: var(--cft-zloto); }
 .cft-split__uchwyt:hover, .cft-split:focus-visible .cft-split__uchwyt { box-shadow: 0 2px 8px rgba(48, 30, 14, 0.2); }
 .cft-split:focus-visible .cft-split__linia, .cft-split.is-drag .cft-split__linia { width: 4px; margin-left: -2px; background: var(--cft-zloto-d); }
 .cft-split:focus-visible .cft-split__uchwyt { box-shadow: 0 0 0 2px var(--cft-krem), 0 0 0 4px var(--cft-zloto-d); border-color: var(--cft-zloto-d); }
-.cft-split.is-drag .cft-split__uchwyt { color: var(--cft-krem); background: linear-gradient(currentColor, currentColor) 5px 50% / 1.5px 18px no-repeat, linear-gradient(currentColor, currentColor) 9.5px 50% / 1.5px 18px no-repeat, var(--cft-zloto-d); border-color: var(--cft-zloto-d); }
+.cft-split.is-drag .cft-split__uchwyt { color: var(--cft-krem); background: var(--cft-zloto-d); border-color: var(--cft-zloto-d); }
 /* dymek nad uchwytem (wygląd jak data-tip w panelu; tekst w data-dymek uchwytu, bo cała granica jest wysoka) */
 .cft-split__uchwyt:hover::after, .cft-split:focus-visible .cft-split__uchwyt::after {
 	content: attr(data-dymek); position: absolute; bottom: calc(100% + 8px); left: 50%; z-index: 40; width: max-content; max-width: 220px; padding: 6px 10px; transform: translateX(-50%);
@@ -328,14 +329,14 @@ body.cft-split-drag .cft-split__uchwyt::after { display: none !important; }
 	.cft .cft-pasek__linki a.cft-btn--link { display: none; }
 	.cft-kafel--logo .cft-kafel__dot { display: none; }
 	.cft-stan { order: 3; flex: 1 1 100%; }
-	.cft-karta > summary { gap: 10px; min-height: 72px; padding: 10px 40px 10px 10px; }
+	.cft-karta > summary { gap: 10px; min-height: 72px; padding: 18px 40px 18px 10px; }
 	.cft-karta > summary::after { right: 12px; }
 	.cft-kafel { width: 72px; height: 50px; padding: 4px; }
 	.cft-kafel--hero .cft-kafel__h { font-size: 14px; }
 	.cft-karta__t { font-size: 17px; }
 	.cft-karta__g { display: none; }
 	.cft-karta__zm { position: absolute; right: 40px; top: 8px; font-size: 10.5px; padding: 2px 8px; }
-	.cft-karta__tresc { padding: 6px 12px 22px; }
+	.cft-karta__tresc { padding: 6px 12px 30px; }
 	.cft-media__pod { max-width: none; }
 	.cft-kadr { max-width: none; }
 	.cft-podglad__pasek { gap: 6px 8px; padding: 8px; }

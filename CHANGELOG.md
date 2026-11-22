@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.15.9
+
+Edytor treści: więcej oddechu w panelu.
+
+- Dwie kreski uchwytu granicy panel / podgląd stoją idealnie na środku pigułki.
+- Karty sekcji: odstęp między kartami +8 px, padding góra i dół +8 px. Nagłówki „Strona główna”, „Podstrona „O mnie””, „Na każdej podstronie” mają +15 px odstępu nad sobą.
+
 ## 2.15.8
 
 Edytor treści: przeciągana granica między panelem a podglądem.
