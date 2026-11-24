@@ -3,7 +3,7 @@
  * Plugin Name:       Colorify by INYFINN
  * Plugin URI:        https://github.com/inyfinn/colorify-by-inyfinn
  * Description:       Kolory panelu WordPress (wp-admin) i strony logowania: schematy, własna paleta, dostrojenie, tryb ciemny i jasny. Ustawienia per użytkownik lub globalne.
- * Version:           2.15.9
+ * Version:           2.16.0
  * Author:            INYFINN
  * Author URI:        https://inyfinn.art
  * License:           GPL-2.0-or-later
@@ -46,7 +46,7 @@ define( 'COLORIFY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 /**
  * Jedna wersja wszędzie: nagłówek wtyczki powyżej, ta stała, cache CSS/JS (?ver=), stopka panelu.
  */
-define( 'COLORIFY_PLUGIN_VERSION', '2.15.9' );
+define( 'COLORIFY_PLUGIN_VERSION', '2.16.0' );
 
 /**
  * Repozytorium GitHub z wydaniami (owner/repo). Można nadpisać w wp-config.php.
@@ -180,6 +180,7 @@ require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-tiles.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-list-tiles.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-tresci.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-maile.php';
+require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-produkt.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/class-colorify-settings-screen.php';
 require_once COLORIFY_PLUGIN_DIR . 'includes/colorify-login.php';
 

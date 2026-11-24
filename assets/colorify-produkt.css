@@ -1,0 +1,68 @@
+/* Colorify, moduł Edytor produktu (wp-admin): dodatki do colorify-tresci.css. Te same tokeny (.cft), klasy i zasady:
+ * cele dotykowe >= 44 px, fokus złotym obrysem, kontrast tekstu co najmniej 4.5:1. */
+
+.cpe a:focus-visible, .cpe summary:focus-visible, .cpe .cft-check input:focus-visible { outline: 2px solid var(--cft-zloto); outline-offset: 2px; box-shadow: none; }
+
+.cpe-wroc { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 13.5px; text-decoration: none; }
+.cpe-wroc:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* uwaga (szkic, ktoś inny edytuje) i podpis zasięgu tekstu wspólnego: brąz #5e3a00 na #fbeccf, 8.6:1 */
+.cpe-uwaga, .cpe-zasieg, .cpe-limit { color: #5e3a00; background: #fbeccf; border-radius: var(--cft-r); }
+.cpe-uwaga { max-width: 760px; margin: 12px 0; padding: 12px 16px; font-size: 14px; line-height: 1.5; }
+.cpe-zasieg { margin: 0; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; }
+.cpe-limit { margin: 0; padding: 8px 12px; font-size: 13px; line-height: 1.45; border-radius: 0; }
+.cpe-limit[hidden] { display: none; }
+.cpe-info { max-width: 68ch; margin: 14px 0 0; font-size: 14.5px; line-height: 1.6; }
+
+/* tekst wspólny: osobny zapis */
+.cpe-wspolne__akcje { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.cpe-wspolne__stan { font-size: 13px; line-height: 1.45; color: var(--cft-cichy); }
+.cpe-wspolne__stan.is-brudny { font-weight: 500; color: var(--cft-zloto-d); }
+.cpe-wspolne__stan.is-ok { font-weight: 500; color: var(--cft-ok-fg); }
+.cpe-wspolne__stan.is-blad { font-weight: 500; color: var(--cft-blad); }
+.cpe-wspolne .cft-in:disabled { color: var(--cft-cichy); background: var(--cft-krem-2); }
+
+/* ceny */
+.cpe-kwota { position: relative; max-width: 240px; }
+.cpe-kwota .cft-in { padding-right: 46px; font-variant-numeric: tabular-nums; }
+.cpe-kwota__w { position: absolute; top: 50%; right: 14px; transform: translateY(-50%); font-size: 15px; color: var(--cft-cichy); pointer-events: none; }
+
+/* kategorie i tagi */
+.cpe-termy { min-width: 0; margin: 0; padding: 0; border: 0; }
+.cpe-termy legend { padding: 0; margin: 0 0 6px; }
+.cpe-termy__lista { display: grid; grid-template-columns: 1fr; gap: 0 16px; max-height: 318px; overflow: auto; padding: 4px 14px; background: #fff; border: 1px solid var(--cft-obrys); border-radius: var(--cft-r); }
+.cpe-term { padding-left: calc(var(--cpe-g, 0) * 24px); line-height: 1.35; }
+
+/* dodatkowe zdjęcia */
+.cpe-galeria { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.cpe-galeria__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.cpe-galeria__lista:empty { display: none; }
+.cpe-galeria__el { margin: 0; overflow: hidden; background: var(--cft-krem-2); border-radius: var(--cft-r); }
+.cpe-galeria__el img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.cpe-galeria__akcje { display: flex; justify-content: space-between; }
+.cpe .cft-ikona:disabled { opacity: 0.35; cursor: default; }
+.cpe .cft-ikona:disabled:hover { background: transparent; }
+
+/* edytor WP w karcie */
+.cpe-wp .wp-editor-container { border-color: var(--cft-obrys); }
+.cpe-wp textarea.wp-editor-area { font-size: 14px; line-height: 1.55; }
+.cpe .cft-tb button { min-width: 44px; height: 44px; }
+
+/* pasek podglądu */
+.cpe .cft-podglad__pasek .cft-btn--maly { min-height: 44px; }
+.cpe-odswiez .cft-ik { width: 16px; height: 16px; }
+
+/* reszta ustawień produktu, pod kartami */
+.cpe-gdzie { margin: 34px 0 8px; }
+
+/* wybór produktu */
+.cpe-szukaj { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; max-width: 760px; margin: 0 0 20px; }
+.cpe-szukaj .cft-in { flex: 1 1 240px; width: auto; }
+.cpe-produkty__i { overflow: hidden; }
+.cpe-produkty__i img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cpe-strony { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 18px 0 40px; font-size: 13.5px; color: var(--cft-cichy); }
+
+@media (min-width: 600px) {
+	.cpe-grupa--ceny { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 18px 20px; }
+	.cpe-termy:not(.cpe-termy--drzewo) .cpe-termy__lista { grid-template-columns: 1fr 1fr; }
+}

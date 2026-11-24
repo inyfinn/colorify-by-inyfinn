@@ -1,5 +1,18 @@
 # Historia zmian
 
+## 2.16.0
+
+Nowy moduł „Edytor produktu z podglądem” (WooCommerce). Domyślnie wyłączony: Ustawienia, Colorify.
+
+- Produkty, „Edytor z podglądem”: każdy tekst i element strony produktu jako karta w kolejności strony (nazwa, zdjęcie główne, dodatkowe zdjęcia, cena, tekst pod ceną, kategorie i tagi, opis, opinie), po prawej prawdziwa strona produktu z niezapisanymi zmianami. Wygląd i zachowanie jak w Edytorze treści (ten sam arkusz i skrypt): karty, przeciągana granica, Komputer / Duży ekran / Telefon, klik w podglądzie otwiera kartę.
+- Zapis do tych samych pól co zwykły ekran produktu (WC_Product), tylko zmienione pola; edytor WP, w którym nikt nie pisał, nie przepisuje treści. Bramka wersji i blokada wpisu: zapis na starej wersji jest zatrzymany, a zwykły ekran produktu ostrzega, gdy produkt zmienił się w edytorze z podglądem.
+- Podgląd: `?colorify_produkt_podglad=<id>` dla osoby, która może edytować produkt; formularz leży w transiencie, strona czyta go przez filtry WooCommerce i WordPressa. Odświeżenie po 2,5 s przerwy w pisaniu i przyciskiem; po odpowiedzi 429 serwera zostaje tylko przycisk.
+- Karty strony (meta produktu, teksty wspólne z opcji strony z podpisem zasięgu i osobnym zapisem z potwierdzeniem): filtr `colorify_produkt_rejestr`, opis w `docs/edytor-produktu.md`.
+- Włączony moduł dodaje produktom rewizje WordPressa (historia nazwy, opisu i tekstu pod ceną).
+- Wejścia: akcja w wierszu listy produktów, przycisk na zwykłym ekranie produktu, pasek admina na stronie produktu.
+- Edytor treści: skrypt przyjmuje parametry ekranu (`CFT.akcjaPodglad`, `akcjaWersja`, `zwloka`, `kluczKart`, `bezAuto`), atrybuty `data-cft-bez-podmiany` i `data-cft-osobno` oraz zdarzenia `cft:odswiez` i `cft:limit`; bez nich działa jak dotąd.
+- Test: `tools/test-produkt.php` (na kopii produktu, którą sam tworzy i przenosi do kosza).
+
 ## 2.15.9
 
 Edytor treści: więcej oddechu w panelu.

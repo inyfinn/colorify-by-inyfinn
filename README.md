@@ -79,6 +79,14 @@ z chipami zmiennych, wersje do losowania, podgląd na żywo, test na własny adr
 wersji; dane zostają w opcjach wtyczki. Domyślnie wyłączony: Ustawienia, Colorify, "Kreator e-maili". Opis dla
 wtyczki: `docs/kreator-maili.md`.
 
+### Moduł "Edytor produktu z podglądem" (2.16.0)
+
+Ekran **Produkty, Edytor z podglądem** dla sklepów WooCommerce: każdy tekst i element strony produktu jako karta
+(nazwa, zdjęcia, cena, tekst pod ceną, kategorie i tagi, opis, opinie), obok prawdziwa strona produktu z niezapisanymi
+zmianami. Zapis trafia do tych samych pól co zwykły ekran produktu, bez własnej kopii treści. Wtyczka strony dokłada
+swoje karty (meta produktu, teksty wspólne z opcji) filtrem `colorify_produkt_rejestr`. Domyślnie wyłączony:
+Ustawienia, Colorify, "Edytor produktu z podglądem". Opis dla wtyczki strony: `docs/edytor-produktu.md`.
+
 ### Moduł "Edytor treści" (2.11.0)
 
 Panel **Treści strony** dla motywów, które rejestrują schemat treści filtrem `colorify_tresci_rejestr`: teksty, zdjęcia
@@ -94,6 +102,7 @@ edytor akapitów bez surowego HTML, historia 10 wersji, bramka "nie nadpisuj, cz
 | `colorify_contrast_guard` | `true` | `false` wyłącza strażnika kontrastu w trybie ciemnym. |
 | `colorify_dark_engine_screens` | pusta lista | Identyfikatory ekranów (np. `post`), na których silnik trybu ciemnego się nie włącza: ekran zostaje jasny i czytelny, reszta panelu jest ciemna. Wyjście awaryjne, gdy ciemny tryb zwalnia ciężki ekran. |
 | `colorify_maile_rejestr` | pusta tablica | Wtyczka rejestruje szablony maili modułu "Kreator e-maili" (opcja, pola, wersje, zmienne, dane, renderer). `docs/kreator-maili.md`. |
+| `colorify_produkt_rejestr` | pusta tablica | Wtyczka strony rejestruje karty modułu "Edytor produktu z podglądem" (meta produktu, teksty wspólne z opcji, selektory elementów strony). Argumenty: rejestr, ID produktu. `docs/edytor-produktu.md`. |
 | `colorify_tresci_rejestr` | pusta tablica | Motyw rejestruje schemat modułu "Edytor treści" (opcja, sekcje i pola, listy, strony do podglądu, `plik_url`). `docs/edytor-tresci.md`. |
 | `colorify_calendar_events` | pusta lista | Wydarzenia dla kokpitu "Kalendarz zleceń" i "Rezerwacje". Argumenty: `$events`, `$from` (Y-m-d), `$to` (Y-m-d). Element: `date` (Y-m-d), `title`, `url`, `type` (`wesele`, `kontakt`, `oddanie`, `przygotowanie`, `blokada` albo własny), `status` (np. `nowe`, `wstepnie`, `umowa`, `zadatek`, `zrealizowane`), `amount` (liczba lub null), `meta`. Opcjonalnie, dla pełnej karty szczegółów: `id` (zlecenia; łączy przypomnienia ze zleceniem), `phone`, `email`, `route_url`, `status_label`, `reminder_done`, `details` (lista `[ 'label' => ..., 'value' => ... ]`: Miejsce, Sala, Dojazd, Pakiet, Kwota...; każda wartość da się skopiować jednym kliknięciem). Status do zmiany z karty (2.10.2): `status_options` (lista `[ wartość, etykieta ]`) i `status_action` (`[ 'action' => 'moja_akcja', 'nonce' => wp_create_nonce( ... ) ]`); wybór wysyła POST `action`, `nonce`, `id`, `status` do admin-ajax.php i czeka na `wp_send_json_success()`. Akcja sama sprawdza nonce i uprawnienia. |
 | `colorify_dashboard_kpis` | pusta lista | Liczby dla kokpitu "Kalendarz zleceń" i "Rezerwacje": lista elementów `label`, `value`, `hint`, `url`. |

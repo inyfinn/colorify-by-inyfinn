@@ -1,7 +1,8 @@
 # Colorify by Inyfinn: zasady dla każdej sesji (ludzie i agenci AI)
 
 Wtyczka WordPressa: wygląd panelu (schematy kolorów, tryb ciemny, kokpit), moduły „Edytor treści” (panel Treści strony),
-„Kreator e-maili”. Dokumentacja modułów: `docs/edytor-tresci.md`, `docs/kreator-maili.md`, tokeny: `docs/TOKENS.md`.
+„Kreator e-maili”, „Edytor produktu z podglądem” (WooCommerce). Dokumentacja modułów: `docs/edytor-tresci.md`,
+`docs/kreator-maili.md`, `docs/edytor-produktu.md`, tokeny: `docs/TOKENS.md`.
 
 ## Edytor treści: twarde reguły (decyzja usera 11.11.2026)
 

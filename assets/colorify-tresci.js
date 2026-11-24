@@ -16,8 +16,10 @@
 		dirty = true;
 		if (stan) { stan.textContent = 'Masz niezapisane zmiany'; stan.classList.add('is-dirty'); }
 	}
-	form.addEventListener('input', markDirty);
-	form.addEventListener('change', markDirty);
+	// [data-cft-osobno]: blok z własnym zapisem (teksty wspólne w Edytorze produktu) nie oznacza głównego formularza jako zmienionego.
+	function brudzi(e) { if (!(e.target.closest && e.target.closest('[data-cft-osobno]'))) { markDirty(); } }
+	form.addEventListener('input', brudzi);
+	form.addEventListener('change', brudzi);
 	window.addEventListener('beforeunload', function (e) {
 		if (dirty) { e.preventDefault(); e.returnValue = ''; }
 	});
@@ -31,7 +33,7 @@
 	/* =====================================================================
 	 * Karty: pamiętaj otwarte, otwieraj z #hash, przewijaj podgląd do sekcji
 	 * ===================================================================== */
-	var KEY = 'cftOtwarte';
+	var KEY = CFG.kluczKart || 'cftOtwarte'; // drugi ekran na tym skrypcie (Edytor produktu) pamięta swoje karty osobno
 	var karty = [].slice.call(form.querySelectorAll('details.cft-karta'));
 	try {
 		var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -495,11 +497,14 @@
 		});
 	}
 
+	// Parametry ekranu (CFT): akcjaPodglad, akcjaWersja, zwloka (ms do przeładowania ramki po zmianie), bezAuto (tylko ręczne odświeżanie).
+	// Serwer odpowiedział 429 (za dużo żądań): koniec samoczynnych przeładowań, ekran dostaje zdarzenie cft:limit.
+	function limit() { if (!CFG.bezAuto) { CFG.bezAuto = true; wrap.dispatchEvent(new CustomEvent('cft:limit')); } }
 	function wyslijStan() {
 		var fd = new FormData(form);
-		fd.set('action', 'colorify_tresci_podglad');
+		fd.set('action', CFG.akcjaPodglad || 'colorify_tresci_podglad');
 		fd.set('nonce', CFG.nonce);
-		return fetch(CFG.ajax, { method: 'POST', credentials: 'same-origin', body: fd }).then(function (r) { return r.json(); });
+		return fetch(CFG.ajax, { method: 'POST', credentials: 'same-origin', body: fd }).then(function (r) { if (r.status === 429) { limit(); } return r.json(); });
 	}
 	function zaladuj(cel) {
 		ladowanie = true;
@@ -512,6 +517,7 @@
 		var d = doc();
 		ladowanie = false;
 		podgladZaladowany = true;
+		try { var nav = iframe.contentWindow.performance.getEntriesByType('navigation')[0]; if (nav && nav.responseStatus === 429) { limit(); } } catch (e429) {}
 		if (!d || !d.body || d.location.href === 'about:blank') { return; }
 		info.textContent = '';
 		var st = d.createElement('style'); st.textContent = STYL; d.head.appendChild(st);
@@ -532,12 +538,20 @@
 
 	function podgladPrzeladuj(cel) {
 		clearTimeout(przeladujT);
+		if (CFG.bezAuto) { return; }
 		przeladujT = setTimeout(function () {
 			if (!widoczny()) { return; }
 			try { scrollPo = typeof cel === 'string' ? 0 : iframe.contentWindow.scrollY; } catch (e) {}
 			zaladuj(typeof cel === 'string' ? cel : '');
-		}, 700);
+		}, +CFG.zwloka || 700);
 	}
+	// Ręczne odświeżenie z innego skryptu ekranu: wrap.dispatchEvent(new CustomEvent('cft:odswiez')).
+	wrap.addEventListener('cft:odswiez', function () {
+		clearTimeout(przeladujT);
+		if (!widoczny()) { podgladOtworz(true); return; }
+		try { scrollPo = iframe.contentWindow.scrollY; } catch (e) {}
+		zaladuj();
+	});
 	function widoczny() { return wrap.classList.contains('cft--podglad') || window.matchMedia('(min-width: 1200px)').matches; }
 
 	function ustawStrone(s, cel) {
@@ -631,7 +645,7 @@
 	}
 	form.addEventListener('input', function (e) {
 		var el = e.target.closest('[data-key]');
-		if (!el) { return; }
+		if (!el || el.hasAttribute('data-cft-bez-podmiany')) { return; } // pole bez podmiany w locie: podgląd pokaże je po przeładowaniu
 		var key = el.getAttribute('data-key');
 		if (el.classList.contains('cft-ed')) {
 			var html = zEdytora(el, el.closest('.cft-edytor').getAttribute('data-multi') === '1');
@@ -780,7 +794,7 @@
 	var obce = document.getElementById('cft-obce');
 	function sprawdzWersje() {
 		if (!wersjaEl || document.hidden) { return; }
-		fetch(CFG.ajax + '?action=colorify_tresci_wersja', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
+		fetch(CFG.ajax + '?action=' + (CFG.akcjaWersja || 'colorify_tresci_wersja'), { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
 			if (j && j.success && j.data && j.data.w && j.data.w !== wersjaEl.value) { obce.hidden = false; }
 		}).catch(function () {});
 	}
