@@ -21,4 +21,5 @@ w podfolderze, WordPress nie znajdzie nagłówka wtyczki). Tak ma być: plik bie
 - `eta-order-report-form.php`: meta zamówienia `_eta_paper_report_requested` i `_eta_digital_delivery` (zapisuje je
   kod kasy) oraz `ETA_Shipping_Payments::product_is_digital_service()`; bez tej klasy czyta meta `_eta_is_service`.
 
-Kopie są bajt w bajt takie jak na serwerze (md5 wyżej). Nie zawierają adresów e-mail, numerów kont ani kluczy.
+Kopie w repozytorium są bajt w bajt takie jak na serwerze (md5 wyżej). W paczce ZIP z wydania te same pliki mają
+końce linii CRLF, więc ich md5 jest inne; treść jest ta sama. Nie zawierają adresów e-mail, numerów kont ani kluczy.
