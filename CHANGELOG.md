@@ -1,5 +1,12 @@
 # Historia zmian
 
+## 2.15.11
+
+Wzorce WooCommerce: nowsza wersja pudełek tekstów karty produktu. Kod wtyczki bez zmian (poza numerem wersji).
+
+- `site-plugins/eta-wzorce-woocommerce/`: `eta-product-card-texts.php` 1.5.0 z plikami JS i CSS. Zasięg tekstu domyślnego to mała pigułka w tytule pudełka (zamiast dużej ramki na górze), w każdym pudełku przełącznik „Tylko ten produkt / Wszystkie” (domyślnie tylko ten produkt), większe tytuły pudełek.
+- `docs/woocommerce-przepisy.md`, rozdział 2: opis pigułki zasięgu, przełącznika zakresu i tego, co zapisuje każda z opcji.
+
 ## 2.15.10
 
 Dokumentacja i wzorce dla sklepów WooCommerce. Kod wtyczki bez zmian (poza numerem wersji).

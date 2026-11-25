@@ -71,14 +71,45 @@
 	outline-offset: 2px;
 }
 
-/* Zdanie o zasięgu: nagłówek na górze boxa (kolory z natywnego .notice-info). Wyższa specyficzność niż Colorify (#wpbody-content .notice p). */
-body #wpbody-content .postbox .notice.eta-card-scope {
-	margin: 7px 0 12px 3px;
-}
-
-body #wpbody-content .postbox .notice.eta-card-scope p.eta-card-scope__head {
+/* Tytuły naszych trzech boxów: większe (22px), z odsunięciem +7px od góry i +3px od lewej (margines, bo Colorify
+   ustawia padding w różnych miejscach zależnie od stylu) i pigułką zasięgu. Selektory ponad Colorify (#poststuff + id). */
+body #poststuff #eta-card-bullets .postbox-header h2.hndle,
+body #poststuff #eta-card-notice .postbox-header h2.hndle,
+body #poststuff #eta-card-button .postbox-header h2.hndle {
 	font-size: 22px;
 	font-weight: 600;
 	line-height: 1.3;
-	margin: 0.5em 0 12px;
+	margin: 7px 0 0 3px;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	gap: 0;
+}
+
+body #poststuff .postbox h2.hndle .eta-card-pill {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #f0f0f1;
+	border: 1px solid #c3c4c7;
+	color: #3c434a;
+	vertical-align: middle;
+	margin-left: 8px;
+}
+
+/* Przełącznik zakresu zmiany (tylko układ; wygląd z natywnego wp-admin). */
+.eta-card-scope-switch {
+	margin: 0 0 12px;
+	padding: 0;
+	border: 0;
+}
+
+.eta-card-scope-opt {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	margin: 0 20px 0 0;
 }

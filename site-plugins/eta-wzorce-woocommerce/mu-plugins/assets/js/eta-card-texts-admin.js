@@ -95,8 +95,10 @@
 
 			$( '.eta-card-restore' ).on( 'click', function () {
 				var defs = [];
+				// Przy zakresie „wszystkie” przywracamy tekst z kodu, inaczej obecny domyślny (z opcji albo z kodu).
+				var attr = $( 'input[name="eta_card_scope_bullets"]:checked' ).val() === 'all' ? 'data-code-defaults' : 'data-defaults';
 				try {
-					defs = JSON.parse( $list.attr( 'data-defaults' ) || '[]' );
+					defs = JSON.parse( $list.attr( attr ) || '[]' );
 				} catch ( err ) {
 					defs = [];
 				}
@@ -114,9 +116,16 @@
 			refresh();
 		}
 
+		/* ---------- przełącznik zakresu: tekst pomocniczy ---------- */
+		$( '.eta-card-scope-switch input[type="radio"]' ).on( 'change', function () {
+			var $f = $( this ).closest( '.eta-card-scope-switch' );
+			$f.find( '.eta-card-scope-help strong' ).text( $f.find( '.eta-card-scope-help' ).attr( 'data-' + this.value ) );
+		} );
+
 		/* ---------- ramka ---------- */
 		$( '.eta-card-restore-notice' ).on( 'click', function () {
-			var def = $( '.eta-card-notice-wrap' ).attr( 'data-default' ) || '';
+			var all = $( 'input[name="eta_card_scope_notice"]:checked' ).val() === 'all';
+			var def = $( '.eta-card-notice-wrap' ).attr( all ? 'data-code-default' : 'data-default' ) || '';
 			var ed = window.tinymce && window.tinymce.get( 'eta_card_notice_editor' );
 			$( '#eta_card_notice_editor' ).val( def );
 			if ( ed && ! ed.isHidden() ) {

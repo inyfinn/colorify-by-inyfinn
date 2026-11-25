@@ -8,9 +8,9 @@ w podfolderze, WordPress nie znajdzie nagłówka wtyczki). Tak ma być: plik bie
 
 | Plik | Wersja | md5 na serwerze | Co pokazuje |
 |---|---|---|---|
-| `mu-plugins/eta-product-card-texts.php` | 1.3.0 | `2a26cdfe6a4fda67418b0ddc1d3fd04e` | teksty karty produktu: produkt → kategoria (opcja) → kod; pudełka w edycji produktu; na końcu rejestracja kart dla Edytora produktu Colorify |
-| `mu-plugins/assets/js/eta-card-texts-admin.js` | | `95c314ad433fbd91fbf05b3e708ee371` | lista punktów (dodaj, duplikuj, przesuń, usuń, przywróć domyślne), lista napisów przycisku |
-| `mu-plugins/assets/css/eta-card-texts-admin.css` | | `f3685afbc768cf105b5c45da10400d06` | układ pudełek; selektor nagłówka zasięgu mocniejszy niż `.notice p` Colorify |
+| `mu-plugins/eta-product-card-texts.php` | 1.5.0 | `0c6abed3e301207cde2beac72bfcdfba` | teksty karty produktu: produkt → kategoria (opcja) → kod; pudełka w edycji produktu z pigułką zasięgu w tytule i przełącznikiem „tylko ten produkt / wszystkie”; na końcu rejestracja kart dla Edytora produktu Colorify |
+| `mu-plugins/assets/js/eta-card-texts-admin.js` | | `88113ea21c5d20f0536182410f26b553` | lista punktów (dodaj, duplikuj, przesuń, usuń, przywróć domyślne), lista napisów przycisku, zdanie pod przełącznikiem zakresu |
+| `mu-plugins/assets/css/eta-card-texts-admin.css` | | `5f2787dea74d0ad508ffceaa37645a7b` | układ pudełek, większe tytuły pudełek, pigułka zasięgu, przełącznik zakresu |
 | `mu-plugins/eta-order-report-form.php` | 1.0.0 | `cf4b737b3ec62e2cb72178b8fe7d7c41` | „Forma wyników” (papier / PDF) w edycji zamówienia, na liście zamówień, w mailach, na podziękowaniu i w Moje konto: jedna funkcja, pięć miejsc |
 
 ## Czego te pliki potrzebują (na innej stronie nie ma tego)

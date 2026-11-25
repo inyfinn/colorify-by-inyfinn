@@ -49,16 +49,24 @@ meta produktu → opcja strony (`eta_card_globals[wariant]`) → tekst z kodu. P
 - Ramka: `wp_editor` w trybie `teeny` z paskiem tylko pogrubienie, kursywa, odnośnik. Wynik TinyMCE (`<p>`, twarde
   spacje) czyści `clean_notice()` do formatu, który strona wstawia w swój akapit.
 - Napis na przycisku: lista (`selectWoo`) z napisami już używanymi w sklepie + pole „własny napis”.
-- Na górze każdego pudełka zdanie o zasięgu: „Tekst domyślny jest wspólny dla wszystkich usług laboratoryjnych
-  (43 produkty). Wpis tutaj zmienia tylko ten produkt.”
+- Zasięg tekstu domyślnego pokazuje mała pigułka w tytule pudełka („wspólny: 43 usługi laboratoryjne”). Duża kolorowa
+  ramka z tym zdaniem na górze pudełka została odrzucona przez właściciela: zasłaniała pola i wyglądała jak ostrzeżenie.
+- W każdym pudełku przełącznik zakresu zmiany: „Tylko ten produkt” (zaznaczony zawsze na starcie, wybór się nie
+  zapamiętuje) albo „Wszystkie … (N)”. Zdanie pod przełącznikiem mówi wprost, czego dotyczy zmiana. Zapis:
+  „tylko ten” = meta produktu jak wyżej; „wszystkie” = opcja `eta_card_globals[wariant]`, wymaga `manage_woocommerce`
+  (bez uprawnienia pole jest pomijane, a następny ekran mówi, że zmiany wspólnej nie zapisano), kasuje meta tego produktu
+  dla tego pola (produkt idzie za nowym wspólnym), a wartość równa tekstowi z kodu usuwa klucz z opcji.
+  „Przywróć domyślne” przy „wszystkie” wraca do tekstu z kodu.
 - Tytuły pudełek mówią, co widać na stronie („Tekst pod ceną — krótki opis”, „Zdjęcie główne”), nie jak nazywa się
-  pole w WordPressie. Te same nazwy w każdym miejscu, w którym pole się pojawia.
+  pole w WordPressie. Te same nazwy w każdym miejscu, w którym pole się pojawia. Tytuły własnych pudełek są większe
+  (22 px), żeby sprzedawca znalazł je wśród kilkunastu pudełek WooCommerce.
 - Pudełka nie mogą wystartować zwinięte ani wylądować na dole: filtry `postbox_classes_product_<id>`
   i `get_user_option_meta-box-order_product`.
 
 **Pułapki.**
-- Colorify w stylu „modern” ustawia `#wpbody-content .notice p` na 13 px. Własny większy nagłówek w `.notice` potrzebuje
-  mocniejszego selektora, np. `body #wpbody-content .postbox .notice.moja-klasa p.moj-naglowek`.
+- Colorify w stylu „modern” ustawia `#wpbody-content .notice p` na 13 px. Własny większy tekst w `.notice` potrzebuje
+  mocniejszego selektora, np. `body #wpbody-content .postbox .notice.moja-klasa p.moj-naglowek`. Tytuł pudełka powiększaj
+  selektorem z identyfikatorem pudełka: `body #poststuff #moje-pudelko .postbox-header h2.hndle`.
 - Mu-pluginy ładują się alfabetycznie. Klasę z późniejszego pliku sprawdzaj w hooku (`init`), nie przy ładowaniu.
 - Podmiana renderera: `remove_action` z tym samym priorytetem na `init` po zarejestrowaniu oryginału, własny renderer
   woła oryginał, gdy nie ma wpisu. Wygląd zostaje identyczny, bo klasy CSS pochodzą z oryginału.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ETA Product Card Texts
  * Description: Edytowalne teksty z karty produktu pod ceną: punkty, ramka usługi laboratoryjnej, napis na przycisku. Kolejność: meta produktu -> opcja eta_card_globals[wariant] -> tekst z kodu ETA_Shop_Template. Podpisuje też boxy ekranu edycji produktu.
- * Version: 1.3.0
+ * Version: 1.5.0
  *
  * Meta produktu: _eta_card_bullets, _eta_card_bullets_hide, _eta_card_notice, _eta_card_notice_hide, _eta_card_button.
  * Opcja eta_card_globals: [ 'lab-service'|'lab-prep'|'cosmetics' => [ 'bullets' => string[], 'notice_html' => string, 'button_text' => string ] ].
@@ -27,12 +27,13 @@ final class ETA_Product_Card_Texts {
 		add_action( 'init', [ __CLASS__, 'swap_renderers' ], 20 );
 
 		if ( is_admin() ) {
-			add_action( 'add_meta_boxes', [ __CLASS__, 'add_boxes' ], 5 );
+			add_action( 'add_meta_boxes', [ __CLASS__, 'add_boxes' ], 5, 2 );
 			add_action( 'add_meta_boxes', [ __CLASS__, 'relabel_boxes' ], 99 );
 			add_action( 'edit_form_after_title', [ __CLASS__, 'description_hint' ] );
 			add_filter( 'get_user_option_meta-box-order_product', [ __CLASS__, 'order_first' ] );
 			add_action( 'woocommerce_process_product_meta', [ __CLASS__, 'save' ] );
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue' ], 20 );
+			add_action( 'admin_notices', [ __CLASS__, 'denied_notice' ] );
 			foreach ( [ 'eta-card-bullets', 'eta-card-notice', 'eta-card-button' ] as $box ) {
 				add_filter( 'postbox_classes_product_' . $box, [ __CLASS__, 'never_closed' ] );
 			}
@@ -382,13 +383,16 @@ final class ETA_Product_Card_Texts {
 
 	/* ---------- admin ---------- */
 
-	public static function add_boxes() : void {
-		if ( ! class_exists( 'ETA_Shop_Template' ) ) {
+	public static function add_boxes( $post_type = '', $post = null ) : void {
+		if ( 'product' !== $post_type || ! class_exists( 'ETA_Shop_Template' ) ) {
 			return;
 		}
-		add_meta_box( 'eta-card-bullets', 'Punkty pod tekstem', [ __CLASS__, 'box_bullets' ], 'product', 'normal', 'high' );
-		add_meta_box( 'eta-card-notice', 'Ramka informacyjna', [ __CLASS__, 'box_notice' ], 'product', 'normal', 'high' );
-		add_meta_box( 'eta-card-button', 'Napis na przycisku', [ __CLASS__, 'box_button' ], 'product', 'normal', 'high' );
+		$id = $post instanceof WP_Post ? (int) $post->ID : (int) get_the_ID();
+		$d  = $id ? self::defaults( $id ) : [ 'variant' => '', 'notice_applies' => false ];
+		$vs = (string) $d['variant'];
+		add_meta_box( 'eta-card-bullets', 'Punkty pod tekstem' . self::pill( $vs ), [ __CLASS__, 'box_bullets' ], 'product', 'normal', 'high' );
+		add_meta_box( 'eta-card-notice', 'Ramka informacyjna' . ( $d['notice_applies'] ? self::pill( 'lab-service' ) : '' ), [ __CLASS__, 'box_notice' ], 'product', 'normal', 'high' );
+		add_meta_box( 'eta-card-button', 'Napis na przycisku' . self::pill( $vs ), [ __CLASS__, 'box_button' ], 'product', 'normal', 'high' );
 	}
 
 	/** Zapisana kolejność boxów (user meta) wrzuca nieznane boxy na koniec; stawiamy swoje trzy pierwsze (zaraz pod opisem). */
@@ -484,14 +488,26 @@ final class ETA_Product_Card_Texts {
 		return (string) ob_get_clean();
 	}
 
-	/** Dopełniacz nazwy zasięgu (zdanie „wspólny dla …”). */
-	private static function scope_gen( string $variant ) : string {
+	/** Formy rzeczownika zasięgu: 1 / 2-4 / 5+ (pigułka w tytule boxa). */
+	private static function scope_noun( string $variant, int $n ) : string {
 		$map = [
-			'lab-service' => 'wszystkich usług laboratoryjnych',
-			'lab-prep'    => 'wszystkich wzorców, buforów i preparatów',
-			'cosmetics'   => 'wszystkich kosmetyków',
+			'lab-service' => [ 'usługa laboratoryjna', 'usługi laboratoryjne', 'usług laboratoryjnych' ],
+			'lab-prep'    => [ 'wzorzec, bufor lub preparat', 'wzorce, bufory i preparaty', 'wzorców, buforów i preparatów' ],
+			'cosmetics'   => [ 'kosmetyk', 'kosmetyki', 'kosmetyków' ],
 		];
-		return $map[ $variant ] ?? 'wszystkich produktów tej kategorii';
+		$f = $map[ $variant ] ?? [ 'produkt', 'produkty', 'produktów' ];
+		$j = $n % 10;
+		$h = $n % 100;
+		return 1 === $n ? $f[0] : ( $j >= 2 && $j <= 4 && ( $h < 12 || $h > 14 ) ? $f[1] : $f[2] );
+	}
+
+	/** Pigułka zasięgu dopisywana do tytułu boxa ('' gdy produkt nie ma wspólnej grupy). */
+	private static function pill( string $variant ) : string {
+		if ( '' === $variant ) {
+			return '';
+		}
+		$n = self::scope_count( $variant );
+		return ' <span class="eta-card-pill">wspólny: ' . esc_html( $n . ' ' . self::scope_noun( $variant, $n ) ) . '</span>';
 	}
 
 	private static function produkt_pl( int $n ) : string {
@@ -500,17 +516,65 @@ final class ETA_Product_Card_Texts {
 		return $n . ' ' . ( 1 === $n ? 'produkt' : ( $j >= 2 && $j <= 4 && ( $s < 12 || $s > 14 ) ? 'produkty' : 'produktów' ) );
 	}
 
-	/** Nagłówkowe zdanie o zasięgu na samej górze boxa (natywna ramka WP notice-info). */
-	private static function scope_notice( array $d ) : void {
-		$head = '' !== $d['variant']
-			? sprintf( 'Tekst domyślny jest wspólny dla %s (%s).', self::scope_gen( $d['variant'] ), self::produkt_pl( (int) $d['scope_count'] ) )
-			: 'Tekst domyślny jest wspólny dla wszystkich produktów tej kategorii.';
+	private static function scope_all_label( string $variant ) : string {
+		$map = [
+			'lab-service' => 'Wszystkie usługi laboratoryjne',
+			'lab-prep'    => 'Wszystkie wzorce, bufory i preparaty',
+			'cosmetics'   => 'Wszystkie kosmetyki',
+		];
+		return $map[ $variant ] ?? 'Wszystkie produkty tej kategorii';
+	}
+
+	/** Przełącznik zakresu zmiany nad polami boxa: tylko ten produkt (domyślnie) albo wszystkie z wariantu. */
+	private static function scope_switch( string $field, string $variant ) : void {
+		if ( '' === $variant ) {
+			return;
+		}
+		$n    = self::scope_count( $variant );
+		$name = 'eta_card_scope_' . $field;
+		$all  = sprintf( 'Zmiana zapisze się jako tekst domyślny dla %d %s. Produkty z własnym tekstem go zachowają.', $n, 1 === $n ? 'produktu' : 'produktów' );
 		?>
-		<div class="notice notice-info inline eta-card-scope">
-			<p class="eta-card-scope__head"><?php echo esc_html( $head ); ?></p>
-			<p>Wpis tutaj zmienia tylko ten produkt.</p>
-		</div>
+		<fieldset class="eta-card-scope-switch" role="radiogroup" aria-label="Zakres zmiany">
+			<label class="eta-card-scope-opt"><input type="radio" name="<?php echo esc_attr( $name ); ?>" value="own" checked> Tylko ten produkt</label>
+			<label class="eta-card-scope-opt"><input type="radio" name="<?php echo esc_attr( $name ); ?>" value="all"> <?php echo esc_html( self::scope_all_label( $variant ) . ' (' . $n . ')' ); ?></label>
+			<p class="description eta-card-scope-help" data-own="Zmiana dotyczy tylko tego produktu." data-all="<?php echo esc_attr( $all ); ?>"><strong>Zmiana dotyczy tylko tego produktu.</strong></p>
+		</fieldset>
 		<?php
+	}
+
+	/** Czy zapis „wszystkie” został wybrany dla pola (radio inne niż 'all' = tylko ten produkt). */
+	private static function scope_is_all( string $field ) : bool {
+		return isset( $_POST[ 'eta_card_scope_' . $field ] ) && 'all' === sanitize_text_field( wp_unslash( $_POST[ 'eta_card_scope_' . $field ] ) ); // phpcs:ignore WordPress.Security.NonceVerification -- nonce w save().
+	}
+
+	/** Zapis do opcji eta_card_globals[wariant][klucz]; pusta wartość usuwa klucz (powrót do tekstu z kodu). */
+	private static function save_global( string $variant, string $key, $value ) : void {
+		$raw = get_option( 'eta_card_globals' );
+		$raw = is_array( $raw ) ? $raw : [];
+		if ( ! isset( $raw[ $variant ] ) || ! is_array( $raw[ $variant ] ) ) {
+			$raw[ $variant ] = [];
+		}
+		if ( '' === $value || [] === $value ) {
+			unset( $raw[ $variant ][ $key ] );
+		} else {
+			$raw[ $variant ][ $key ] = $value;
+		}
+		if ( ! $raw[ $variant ] ) {
+			unset( $raw[ $variant ] );
+		}
+		if ( $raw ) {
+			update_option( 'eta_card_globals', $raw );
+		} else {
+			delete_option( 'eta_card_globals' );
+		}
+	}
+
+	public static function denied_notice() : void {
+		$k = 'eta_card_denied_' . get_current_user_id();
+		if ( get_transient( $k ) ) {
+			delete_transient( $k );
+			echo '<div class="notice notice-warning is-dismissible"><p>Nie zapisano zmiany wspólnej dla wielu produktów: brak uprawnienia do zarządzania sklepem. Pozostałe zmiany tego produktu zapisano.</p></div>';
+		}
 	}
 
 	/** Boxy ETA nigdy nie startują zwinięte (user mógł je kiedyś zwinąć; zapisany stan ignorujemy). */
@@ -533,9 +597,9 @@ final class ETA_Product_Card_Texts {
 		wp_nonce_field( self::NONCE, self::NONCE . '_nonce' );
 		?>
 		<input type="hidden" name="eta_card_has_bullets" value="1">
-		<?php self::scope_notice( $d ); ?>
+		<?php self::scope_switch( 'bullets', (string) $d['variant'] ); ?>
 		<p class="description">Tekst pod ceną zmieniasz w polu „Tekst pod ceną — krótki opis” niżej. Tu zmieniasz punkty pod nim (jeden punkt na wiersz).</p>
-		<ul id="eta-card-bullets-list" class="eta-card-list" data-defaults="<?php echo esc_attr( wp_json_encode( array_values( $d['bullets'] ) ) ); ?>">
+		<ul id="eta-card-bullets-list" class="eta-card-list" data-defaults="<?php echo esc_attr( wp_json_encode( array_values( $d['bullets'] ) ) ); ?>" data-code-defaults="<?php echo esc_attr( wp_json_encode( array_values( $d['code_bullets'] ) ) ); ?>">
 			<?php
 			foreach ( $rows as $r ) {
 				echo self::row_html( (string) $r ); // phpcs:ignore WordPress.Security.EscapeOutput -- row_html escapes.
@@ -560,12 +624,12 @@ final class ETA_Product_Card_Texts {
 		$hide = 'yes' === get_post_meta( $id, '_eta_card_notice_hide', true );
 		?>
 		<input type="hidden" name="eta_card_has_notice" value="1">
-		<?php self::scope_notice( $d ); ?>
+		<?php self::scope_switch( 'notice', $d['notice_applies'] ? 'lab-service' : '' ); ?>
 		<p class="description">Ramka pod punktami, np. „To usługa laboratoryjna, nie produkt fizyczny…”.</p>
 		<?php if ( '' === (string) $d['notice_html'] ) : ?>
 			<p class="description">Dla tego produktu domyślnie nie ma ramki (puste pole = brak ramki).</p>
 		<?php endif; ?>
-		<div class="eta-card-notice-wrap" data-default="<?php echo esc_attr( (string) $d['notice_html'] ); ?>">
+		<div class="eta-card-notice-wrap" data-default="<?php echo esc_attr( (string) $d['notice_html'] ); ?>" data-code-default="<?php echo esc_attr( (string) $d['code_notice_html'] ); ?>">
 			<?php
 			wp_editor(
 				$txt,
@@ -628,7 +692,7 @@ final class ETA_Product_Card_Texts {
 		$sel = '' !== $cur ? $cur : '__default__';
 		?>
 		<input type="hidden" name="eta_card_has_button" value="1">
-		<?php self::scope_notice( $d ); ?>
+		<?php self::scope_switch( 'button', (string) $d['variant'] ); ?>
 		<p class="description">Napis na przycisku zamawiania pod ramką.</p>
 		<p><label for="eta_card_button_sel" class="screen-reader-text">Napis na przycisku</label>
 		<select id="eta_card_button_sel" name="eta_card_button_sel" class="eta-card-select" style="width:100%">
@@ -690,18 +754,39 @@ final class ETA_Product_Card_Texts {
 		if ( ! class_exists( 'ETA_Shop_Template' ) ) {
 			return;
 		}
-		$d = self::defaults( $post_id );
+		$d      = self::defaults( $post_id );
+		$denied = false;
+		// Zapis „wszystkie” (do opcji) wymaga zarządzania sklepem; bez tego pole jest pomijane, a user dostaje powiadomienie.
+		$can_all = current_user_can( 'manage_woocommerce' );
 
 		if ( isset( $_POST['eta_card_has_bullets'] ) ) {
 			$list = self::posted_bullets();
-			// Lista równa domyślnej (albo pusta) = brak własnego wpisu, produkt dalej idzie za domyślnymi.
-			self::put( $post_id, '_eta_card_bullets', ( $list === array_values( $d['bullets'] ) ) ? '' : implode( "\n", $list ) );
+			if ( self::scope_is_all( 'bullets' ) && '' !== $d['variant'] ) {
+				if ( $can_all ) {
+					self::save_global( $d['variant'], 'bullets', ( $list === array_values( $d['code_bullets'] ) ) ? [] : $list );
+					self::put( $post_id, '_eta_card_bullets', '' ); // produkt idzie za nowym wspólnym tekstem
+				} else {
+					$denied = true;
+				}
+			} else {
+				// Lista równa domyślnej (albo pusta) = brak własnego wpisu, produkt dalej idzie za domyślnymi.
+				self::put( $post_id, '_eta_card_bullets', ( $list === array_values( $d['bullets'] ) ) ? '' : implode( "\n", $list ) );
+			}
 			self::put( $post_id, '_eta_card_bullets_hide', isset( $_POST['eta_card_bullets_hide'] ) ? 'yes' : '' );
 		}
 
 		if ( isset( $_POST['eta_card_has_notice'] ) ) {
 			$n = isset( $_POST['eta_card_notice'] ) ? self::clean_notice( wp_unslash( $_POST['eta_card_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- clean_notice() robi wp_kses.
-			self::put( $post_id, '_eta_card_notice', ( self::norm_html( $n ) === self::norm_html( (string) $d['notice_html'] ) ) ? '' : $n );
+			if ( self::scope_is_all( 'notice' ) && $d['notice_applies'] ) {
+				if ( $can_all ) {
+					self::save_global( 'lab-service', 'notice_html', ( self::norm_html( $n ) === self::norm_html( (string) $d['code_notice_html'] ) ) ? '' : $n );
+					self::put( $post_id, '_eta_card_notice', '' );
+				} else {
+					$denied = true;
+				}
+			} else {
+				self::put( $post_id, '_eta_card_notice', ( self::norm_html( $n ) === self::norm_html( (string) $d['notice_html'] ) ) ? '' : $n );
+			}
 			self::put( $post_id, '_eta_card_notice_hide', isset( $_POST['eta_card_notice_hide'] ) ? 'yes' : '' );
 		}
 
@@ -709,7 +794,20 @@ final class ETA_Product_Card_Texts {
 			$sel = isset( $_POST['eta_card_button_sel'] ) ? sanitize_text_field( wp_unslash( $_POST['eta_card_button_sel'] ) ) : '';
 			$cus = isset( $_POST['eta_card_button_custom'] ) ? sanitize_text_field( wp_unslash( $_POST['eta_card_button_custom'] ) ) : '';
 			$val = '' !== $cus ? $cus : ( '__default__' === $sel ? '' : $sel );
-			self::put( $post_id, '_eta_card_button', ( $val === (string) $d['button_text'] ) ? '' : $val );
+			if ( self::scope_is_all( 'button' ) && '' !== $d['variant'] ) {
+				if ( $can_all ) {
+					self::save_global( $d['variant'], 'button_text', ( $val === (string) $d['code_button_text'] ) ? '' : $val );
+					self::put( $post_id, '_eta_card_button', '' );
+				} else {
+					$denied = true;
+				}
+			} else {
+				self::put( $post_id, '_eta_card_button', ( $val === (string) $d['button_text'] ) ? '' : $val );
+			}
+		}
+
+		if ( $denied ) {
+			set_transient( 'eta_card_denied_' . get_current_user_id(), 1, 120 );
 		}
 	}
 }
