@@ -116,6 +116,7 @@ add_action(
 				'akcjaPodglad' => 'colorify_produkt_podglad',
 				'akcjaWersja'  => 'colorify_produkt_wersja&id=' . $id,
 				'zwloka'       => 2500, // hosting liczy żądania: podgląd odświeża się po 2,5 s przerwy w pisaniu
+				'stop429'      => true, // po odpowiedzi 429 zostaje tylko przycisk „Odśwież podgląd”
 				'kluczKart'    => 'cpeOtwarte',
 			)
 		);

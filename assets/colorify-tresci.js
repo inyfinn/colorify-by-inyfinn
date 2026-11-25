@@ -497,9 +497,10 @@
 		});
 	}
 
-	// Parametry ekranu (CFT): akcjaPodglad, akcjaWersja, zwloka (ms do przeładowania ramki po zmianie), bezAuto (tylko ręczne odświeżanie).
-	// Serwer odpowiedział 429 (za dużo żądań): koniec samoczynnych przeładowań, ekran dostaje zdarzenie cft:limit.
-	function limit() { if (!CFG.bezAuto) { CFG.bezAuto = true; wrap.dispatchEvent(new CustomEvent('cft:limit')); } }
+	// Parametry ekranu (CFT): akcjaPodglad, akcjaWersja, zwloka (ms do przeładowania ramki po zmianie), bezAuto (tylko ręczne odświeżanie),
+	// stop429 (ekran ma przycisk ręcznego odświeżania: po odpowiedzi 429 serwera koniec samoczynnych przeładowań i zdarzenie cft:limit).
+	// Bez stop429 (Edytor treści) odpowiedź 429 niczego nie wyłącza: ten ekran nie ma jak odświeżyć podglądu ręcznie.
+	function limit() { if (CFG.stop429 && !CFG.bezAuto) { CFG.bezAuto = true; wrap.dispatchEvent(new CustomEvent('cft:limit')); } }
 	function wyslijStan() {
 		var fd = new FormData(form);
 		fd.set('action', CFG.akcjaPodglad || 'colorify_tresci_podglad');
