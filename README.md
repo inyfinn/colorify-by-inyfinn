@@ -168,3 +168,5 @@ Czego nie robić przy wydaniach:
 ## Wtyczki stron klientów
 
 Folder `site-plugins/` trzyma wtyczki pojedynczych stron w stylu Colorify (np. `kw-uslugi` dla Kancelarii Wieczorek). Nie wchodzą do paczki Colorify; każde wydanie dołącza je jako osobne pliki ZIP. Szczegóły: `site-plugins/README.md`.
+
+Sklepy WooCommerce: sprawdzone wzorce i pułapki z wdrożeń (opisy produktów, teksty karty produktu, usługi cyfrowe i wysyłka, testy na hostingu z limitem żądań) są w `docs/woocommerce-przepisy.md`, a pliki wzorcowe w `site-plugins/eta-wzorce-woocommerce/`.

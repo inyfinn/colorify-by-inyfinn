@@ -7,6 +7,7 @@ Każde wydanie Colorify dołącza każdą z nich jako osobny plik ZIP (np. `kw-u
 |---|---|---|
 | `kw-uslugi/` | Kancelaria Wieczorek (kancelaria-wieczorek.com.pl) | cennik usług i edytor usług w panelu |
 | `eta-light-future/` | ETA Innovations (etainnovations.com) | ukryty świąteczny katalog Kosmetyki Light Future (shortcode `[eta_light_future]`), zamówienia przedwstępne bez cen, filtr i suma sztuk w panelu zamówień |
+| `eta-wzorce-woocommerce/` | ETA Innovations (etainnovations.com) | WZORZEC, nie wtyczka: kopie mu-pluginów sklepu do czytania (teksty karty produktu per produkt i per kategoria, „Forma wyników” w zamówieniach i mailach). Opis: `docs/woocommerce-przepisy.md` |
 | `eta-przekierowania/` | ETA Innovations (etainnovations.com) | przekierowania 301 ze starych adresów (stary blog `/post/...`, `/kontakt.html`, `/o-firmie`, stare kategorie) |
 
 Wersja wtyczki jest w nagłówku jej głównego pliku (`kw-uslugi/kw-uslugi.php`), niezależnie od wersji Colorify.

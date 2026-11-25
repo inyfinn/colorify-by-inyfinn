@@ -12,6 +12,13 @@ Nowy moduł „Edytor produktu z podglądem” (WooCommerce). Domyślnie wyłąc
 - Wejścia: akcja w wierszu listy produktów, przycisk na zwykłym ekranie produktu, pasek admina na stronie produktu.
 - Edytor treści: skrypt przyjmuje parametry ekranu (`CFT.akcjaPodglad`, `akcjaWersja`, `zwloka`, `kluczKart`, `bezAuto`, `stop429`), atrybuty `data-cft-bez-podmiany` i `data-cft-osobno` oraz zdarzenia `cft:odswiez` i `cft:limit`; bez nich działa jak dotąd.
 - Test: `tools/test-produkt.php` (na kopii produktu, którą sam tworzy i przenosi do kosza).
+## 2.15.10
+
+Dokumentacja i wzorce dla sklepów WooCommerce. Kod wtyczki bez zmian (poza numerem wersji).
+
+- Nowy przewodnik `docs/woocommerce-przepisy.md`, spisany po naprawie sklepu ETA Innovations: strona pokazuje to, co jest w edytorze (bez przepisywania treści przy wyświetlaniu, naprawa danych z kopią i dry runem), teksty karty produktu per produkt z domyślnymi per kategoria, usługa cyfrowa a raport papierowy i wysyłka, testy na hostingu z limitem żądań, rejestracja kart dla Edytora produktu.
+- Nowa paczka wzorców `site-plugins/eta-wzorce-woocommerce/` (kopie mu-pluginów ETA do czytania, nie do instalacji): `eta-product-card-texts.php` z plikami JS i CSS oraz `eta-order-report-form.php`.
+- Moduł „Edytor produktu z podglądem” zostaje na gałęzi `feature/edytor-produktu`: wejdzie do wydania po sprawdzeniu ekranu w przeglądarce.
 
 ## 2.15.9
 

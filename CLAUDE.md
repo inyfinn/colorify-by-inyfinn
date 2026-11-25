@@ -3,6 +3,7 @@
 Wtyczka WordPressa: wygląd panelu (schematy kolorów, tryb ciemny, kokpit), moduły „Edytor treści” (panel Treści strony),
 „Kreator e-maili”, „Edytor produktu z podglądem” (WooCommerce). Dokumentacja modułów: `docs/edytor-tresci.md`,
 `docs/kreator-maili.md`, `docs/edytor-produktu.md`, tokeny: `docs/TOKENS.md`.
+Sklep WooCommerce na stronie klienta: przed zmianą przeczytaj `docs/woocommerce-przepisy.md` (wzorce w `site-plugins/eta-wzorce-woocommerce/`).
 
 ## Edytor treści: twarde reguły (decyzja usera 11.11.2026)
 
